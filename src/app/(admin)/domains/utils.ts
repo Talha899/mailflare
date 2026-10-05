@@ -1,46 +1,17 @@
 import { authFetch } from "@/lib/auth/client";
-import type { DnsAuthRecord, DnsAuthStatus, DnsRecord, DomainPreflightResponse } from "./types";
+import type { DnsAuthStatus, DomainPreflightResponse } from "./types";
+import { recordsForAuthCheck } from "./domain-dns-details-utils";
 
-export const dnsAuthRecords: DnsAuthRecord[] = ["mx", "spf", "dkim", "dmarc"];
+export const dnsAuthRecords = ["mx", "spf", "dkim", "dmarc"] as const;
 
-export const dnsAuthDescriptions: Record<DnsAuthRecord, string> = {
+export const dnsAuthDescriptions = {
 	mx: "Routes incoming email to Mailflare",
 	spf: "Authorizes Mailflare to send email",
 	dkim: "Signs outgoing email for deliverability",
 	dmarc: "Helps prevent email spoofing",
-};
+} as const;
 
-/** Pick the checklist rows that belong to one auth check (manual Setup expand). */
-export function recordsForAuthCheck(
-	record: DnsAuthRecord,
-	candidates: DnsRecord[],
-	auditName?: string,
-): DnsRecord[] {
-	const lower = (value?: string) => (value ?? "").toLowerCase();
-	const nameHint = lower(auditName);
-	const matched = candidates.filter((row) => {
-		const type = lower(row.type);
-		const name = lower(row.name);
-		const content = lower(row.content);
-		if (record === "mx") return type === "mx";
-		if (record === "spf") {
-			return type === "txt" && (content.includes("v=spf1") || name === nameHint || (!name.includes("_dmarc") && !name.includes("_domainkey") && content.includes("spf")));
-		}
-		if (record === "dkim") {
-			return type === "txt" && (name.includes("_domainkey") || (nameHint.includes("_domainkey") && name === nameHint));
-		}
-		if (record === "dmarc") {
-			return type === "txt" && (name.includes("_dmarc") || content.includes("v=dmarc1"));
-		}
-		return false;
-	});
-	if (matched.length) return matched;
-	if (auditName) {
-		const fallbackType = record === "mx" ? "MX" : "TXT";
-		return [{ type: fallbackType, name: auditName, content: `(publish the ${record.toUpperCase()} record for this name at your DNS host)` }];
-	}
-	return [];
-}
+export { recordsForAuthCheck };
 
 export function getDnsAuthStatusLabel(status: DnsAuthStatus): string {
 	switch (status) {

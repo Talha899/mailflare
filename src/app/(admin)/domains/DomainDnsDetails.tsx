@@ -4,97 +4,102 @@ import { useState } from "react";
 import { AlertTriangle, Check, CheckCheck, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-	dnsAuthDescriptions,
-	dnsAuthRecords,
-	getDnsAuthItemClass,
+	bounceSpfRecords,
+	copyText,
 	recordsForAuthCheck,
-} from "./utils";
+	toDnsHostInstruction,
+	type DnsHostInstruction,
+} from "./domain-dns-details-utils";
+import { dnsAuthDescriptions, dnsAuthRecords, getDnsAuthItemClass } from "./utils";
 import type { DnsAuthRecord, DnsRecord, DomainDnsDetailsProps } from "./types";
 
-function DnsRecordCard({ record }: { record: DnsRecord }) {
-	const [copied, setCopied] = useState<"name" | "content" | null>(null);
-	const type = record.type ?? "TXT";
-	const name = record.name ?? "";
-	const content = record.content ?? "";
+function CopyField({ label, value, copyable, hint }: { label: string; value: string; copyable: boolean; hint?: string }) {
+	const [copied, setCopied] = useState(false);
 
-	async function copy(kind: "name" | "content", value: string) {
-		try {
-			await navigator.clipboard.writeText(value);
-			setCopied(kind);
-			window.setTimeout(() => setCopied(null), 1500);
-		} catch {
-			/* clipboard may be unavailable */
-		}
+	async function onCopy() {
+		if (!copyable) return;
+		const ok = await copyText(value);
+		if (!ok) return;
+		setCopied(true);
+		window.setTimeout(() => setCopied(false), 1500);
 	}
 
 	return (
-		<div className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800">
-			<div className="flex flex-wrap items-center gap-2">
-				<span className="rounded bg-neutral-100 px-1.5 py-0.5 font-semibold uppercase tracking-wide text-neutral-700">
-					{type}
-				</span>
-				<span className="min-w-0 flex-1 break-all font-medium text-neutral-900">{name}</span>
+		<div className="grid gap-1 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-start">
+			<span className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">{label}</span>
+			<div className="min-w-0">
+				<p className="break-all font-mono text-sm text-neutral-900">{value}</p>
+				{hint && <p className="mt-0.5 text-[11px] text-neutral-500">{hint}</p>}
+			</div>
+			{copyable ? (
 				<Button
 					type="button"
-					variant="ghost"
+					variant="outline"
 					size="sm"
-					className="h-7 shrink-0 px-2 text-neutral-600"
-					onClick={() => void copy("name", name)}
-					aria-label="Copy DNS name"
+					className="h-8 shrink-0 gap-1.5 bg-white px-2.5 text-xs"
+					onClick={() => void onCopy()}
 				>
-					{copied === "name" ? <CheckCheck className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+					{copied ? (
+						<>
+							<CheckCheck className="h-3.5 w-3.5 text-green-600" />
+							Copied
+						</>
+					) : (
+						<>
+							<Copy className="h-3.5 w-3.5" />
+							Copy
+						</>
+					)}
 				</Button>
-			</div>
-			<div className="mt-2 flex items-start gap-2">
-				<p className="min-w-0 flex-1 break-all font-mono text-neutral-900">{content}</p>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					className="h-7 shrink-0 px-2 text-neutral-600"
-					onClick={() => void copy("content", content)}
-					aria-label="Copy DNS value"
-				>
-					{copied === "content" ? <CheckCheck className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
-				</Button>
-			</div>
-			{type === "MX" && (
-				<p className="mt-1 text-[11px] text-neutral-500">
-					In Cloudflare DNS: Type MX, Name <code>@</code>, Priority from the value (usually 10), Target{" "}
-					<code>mail.aiorders.io</code> (or the host after the priority).
-				</p>
+			) : (
+				<span className="text-[11px] text-amber-700">Not paste-ready yet</span>
 			)}
 		</div>
 	);
 }
 
-function ManualSetupPanel({
-	record,
+function DnsInstructionCard({ instruction }: { instruction: DnsHostInstruction }) {
+	return (
+		<div className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-neutral-800">
+			<p className="mb-2 text-xs font-semibold text-neutral-900">{instruction.title}</p>
+			<div className="space-y-2.5">
+				{instruction.fields.map((field) => (
+					<CopyField
+						key={`${field.label}:${field.value}`}
+						label={field.label}
+						value={field.value}
+						copyable={field.copyable}
+						hint={field.hint}
+					/>
+				))}
+			</div>
+			{instruction.note && <p className="mt-2 text-[11px] text-neutral-500">{instruction.note}</p>}
+		</div>
+	);
+}
+
+function ManualDnsPanel({
+	title,
+	body,
 	rows,
 	hostname,
 }: {
-	record: DnsAuthRecord;
+	title: string;
+	body: string;
 	rows: DnsRecord[];
 	hostname: string;
 }) {
-	const tips: Record<DnsAuthRecord, string> = {
-		mx: `Point ${hostname} mail to your Mailflare host so inbound delivery works.`,
-		spf: `Add one SPF TXT on ${hostname}. If an SPF record already exists, merge into a single v=spf1 string — do not create two SPF records.`,
-		dkim: `Onboard ${hostname} in Cloudflare Email Sending first, then paste the DKIM value Cloudflare shows for cf-bounce._domainkey.`,
-		dmarc: `Create a TXT at _dmarc.${hostname}. Start with p=none while you monitor delivery.`,
-	};
-
 	return (
-		<div className="col-span-full mt-1 space-y-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-3 text-xs text-neutral-800">
-			<p className="font-medium text-neutral-900">Add this at your DNS host for {hostname}</p>
-			<p className="text-neutral-600">{tips[record]}</p>
+		<div className="col-span-full space-y-2 rounded-xl border border-blue-100 bg-blue-50/80 px-3 py-3 text-xs text-neutral-800">
+			<p className="font-medium text-neutral-900">{title}</p>
+			<p className="text-neutral-600">{body}</p>
 			{rows.length === 0 ? (
-				<p className="text-amber-800">No suggested record for this check yet. Refresh DNS details after verifying ownership.</p>
+				<p className="text-amber-800">No suggested record yet. Refresh details after ownership is verified.</p>
 			) : (
 				<ul className="space-y-2">
 					{rows.map((row) => (
 						<li key={`${row.type}:${row.name}:${row.content}`}>
-							<DnsRecordCard record={row} />
+							<DnsInstructionCard instruction={toDnsHostInstruction(hostname, row)} />
 						</li>
 					))}
 				</ul>
@@ -102,6 +107,13 @@ function ManualSetupPanel({
 		</div>
 	);
 }
+
+const AUTH_TIPS: Record<DnsAuthRecord, string> = {
+	mx: "In Cloudflare DNS, Priority and Mail server are separate fields. Copy each value below.",
+	spf: "If an SPF TXT already exists, merge into one v=spf1 string — do not create two SPF records on @.",
+	dkim: "Onboard this domain in Cloudflare Email Sending first, then paste the DKIM content Cloudflare shows.",
+	dmarc: "Name is usually _dmarc (not the full hostname). Start with p=none while monitoring.",
+};
 
 export default function DomainDnsDetails({
 	domain,
@@ -123,8 +135,8 @@ export default function DomainDnsDetails({
 				? "Outbound is configured on this server — finish Cloudflare Email Sending DNS (SPF/DKIM) for deliverability"
 				: "Outbound is not configured (set CF_TOKEN + CF_ACCOUNT_ID or SMTP_URL)"
 			: "Sending has not configured for this domain";
-	const missingRecords = [...dns.routing.missing, ...dns.sending];
-	const checklist = missingRecords.length ? missingRecords : [...dns.routing.records, ...dns.sending];
+	const checklist = [...dns.routing.missing, ...dns.routing.records, ...dns.sending];
+	const bounceRows = bounceSpfRecords(checklist);
 	const routingOk = manual
 		? audit?.mx.status === "ok"
 		: dns.routing.missing.length === 0 && (dns.routing.records.length > 0 || domain.routingEnabled);
@@ -135,7 +147,20 @@ export default function DomainDnsDetails({
 		: dns.routing.missing.length > 0
 			? `${dns.routing.missing.length} DNS record${dns.routing.missing.length === 1 ? "" : "s"} to publish for inbound`
 			: "No routing DNS records found";
-	const [openManualSetup, setOpenManualSetup] = useState<DnsAuthRecord | null>(null);
+
+	/** Missing rows stay open so Setup instructions are visible without an extra click. */
+	const [collapsed, setCollapsed] = useState<Partial<Record<DnsAuthRecord | "sending", boolean>>>({});
+	const [cloudflareSetupOpen, setCloudflareSetupOpen] = useState(false);
+
+	function isOpen(key: DnsAuthRecord | "sending", defaultOpen: boolean) {
+		const value = collapsed[key];
+		if (value === undefined) return defaultOpen;
+		return !value;
+	}
+
+	function toggle(key: DnsAuthRecord | "sending", defaultOpen: boolean) {
+		setCollapsed((prev) => ({ ...prev, [key]: isOpen(key, defaultOpen) }));
+	}
 
 	return (
 		<div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
@@ -143,7 +168,7 @@ export default function DomainDnsDetails({
 				<section className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
 					<p className="text-sm font-medium text-amber-900">Ownership verification required</p>
 					<p className="mt-1 text-xs text-amber-800">
-						Add the Mailflare TXT verification record shown in the missing DNS list, then verify ownership.
+						Add the Mailflare TXT verification record, then verify ownership before mailboxes will accept mail.
 					</p>
 					{onVerify && (
 						<Button type="button" size="sm" className="mt-3" onClick={onVerify}>
@@ -152,27 +177,13 @@ export default function DomainDnsDetails({
 					)}
 				</section>
 			)}
-			{manual && missingRecords.length > 0 && (
-				<section className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-					<p className="text-sm font-medium text-neutral-900">Publish these DNS records</p>
-					<p className="mt-1 text-xs text-neutral-600">
-						Create them at the DNS host for {domain.hostname}. Or click <strong>Setup</strong> under each
-						check below to see that record alone with copy buttons.
-					</p>
-					<ul className="mt-3 space-y-2">
-						{missingRecords.map((record) => (
-							<li key={`${record.type}:${record.name}:${record.content}`}>
-								<DnsRecordCard record={record} />
-							</li>
-						))}
-					</ul>
-				</section>
-			)}
+
 			{audit && (
 				<section>
 					<h2 className="text-base font-semibold text-neutral-900">Domain setup</h2>
 					<p className="mt-0.5 text-sm text-neutral-500">
-						Review routing, sending, and DNS authentication for reliable email delivery.
+						Review routing, sending, and DNS authentication. For manual domains, each missing check shows the
+						exact Type / Name / Value to paste at your DNS host.
 					</p>
 					<ul className="mt-3 space-y-2">
 						<li
@@ -191,7 +202,13 @@ export default function DomainDnsDetails({
 								<span className="block font-medium text-neutral-900">Email Routing</span>
 								<span className="block text-xs text-neutral-500">Routes incoming email to Mailflare</span>
 							</span>
-							<span className="min-w-0 break-all text-neutral-500">{routingLabel}</span>
+							<span className="min-w-0 break-all text-neutral-500">
+								{routingOk
+									? routingLabel
+									: manual
+										? "Use Setup on the MX record below — inbound needs that MX published"
+										: routingLabel}
+							</span>
 						</li>
 
 						<li
@@ -211,12 +228,33 @@ export default function DomainDnsDetails({
 								<span className="block text-xs text-neutral-500">Sends outgoing email from this domain</span>
 							</span>
 							<span className="min-w-0 break-all text-neutral-500">{sendingLabel}</span>
+							{manual && bounceRows.length > 0 && (
+								<>
+									<Button
+										variant="outline"
+										size="sm"
+										className="shrink-0 bg-white"
+										onClick={() => toggle("sending", true)}
+									>
+										{isOpen("sending", true) ? "Hide" : "Setup"}
+									</Button>
+									{isOpen("sending", true) && (
+										<ManualDnsPanel
+											title="Cloudflare Email Sending bounce SPF"
+											body="Also onboard the domain under Cloudflare Email Sending, then finish DKIM below."
+											rows={bounceRows}
+											hostname={domain.hostname}
+										/>
+									)}
+								</>
+							)}
 						</li>
 
 						{dnsAuthRecords.map((record) => {
 							const item = audit[record];
 							const ok = item.status === "ok";
-							const expanded = openManualSetup === record;
+							const defaultOpen = manual && !ok;
+							const open = isOpen(record, defaultOpen);
 							const setupRows = recordsForAuthCheck(record, checklist, item.name);
 
 							return (
@@ -230,7 +268,9 @@ export default function DomainDnsDetails({
 										</span>
 									) : (
 										<span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/70">
-											<AlertTriangle className={`h-4 w-4 ${item.status === "missing" ? "text-red-600" : "text-neutral-400"}`} />
+											<AlertTriangle
+												className={`h-4 w-4 ${item.status === "missing" ? "text-red-600" : "text-neutral-400"}`}
+											/>
 										</span>
 									)}
 									<span className="min-w-0">
@@ -247,9 +287,9 @@ export default function DomainDnsDetails({
 											variant="outline"
 											size="sm"
 											className="shrink-0 bg-white"
-											onClick={() => setOpenManualSetup(expanded ? null : record)}
+											onClick={() => toggle(record, defaultOpen)}
 										>
-											{expanded ? "Hide" : "Setup"}
+											{open ? "Hide" : "Setup"}
 										</Button>
 									) : (
 										<Button
@@ -263,21 +303,56 @@ export default function DomainDnsDetails({
 										</Button>
 									)}
 
-									{manual && !ok && expanded && (
-										<ManualSetupPanel record={record} rows={setupRows} hostname={domain.hostname} />
+									{manual && !ok && open && (
+										<ManualDnsPanel
+											title={`Add the ${item.label} record at your DNS host`}
+											body={AUTH_TIPS[record]}
+											rows={setupRows}
+											hostname={domain.hostname}
+										/>
 									)}
 								</li>
 							);
 						})}
 					</ul>
+
 					{manual && (
-						<p className="mt-3 text-xs text-neutral-500">
-							Manual domain: Mailflare cannot write DNS. Use <strong>Setup</strong> on each missing row to
-							see Type / Name / Value, then add them at the DNS host for {domain.hostname}. Set{" "}
-							<code className="text-[11px]">CF_TOKEN</code> in Coolify for outbound sending.
-						</p>
+						<div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-700">
+							<p className="font-medium text-neutral-900">How to use Copy</p>
+							<p className="mt-1">
+								Each field has its own Copy button. For MX, copy <strong>Name</strong> as{" "}
+								<code className="rounded bg-white px-1">@</code>, <strong>Priority</strong> as{" "}
+								<code className="rounded bg-white px-1">10</code>, and <strong>Mail server</strong> as{" "}
+								<code className="rounded bg-white px-1">mail.aiorders.io</code> — not the combined{" "}
+								<code className="rounded bg-white px-1">10 mail.aiorders.io</code> string.
+							</p>
+							<button
+								type="button"
+								className="mt-2 text-blue-700 underline-offset-2 hover:underline"
+								onClick={() => setCloudflareSetupOpen((v) => !v)}
+							>
+								{cloudflareSetupOpen ? "Hide Cloudflare field map" : "Show Cloudflare field map"}
+							</button>
+							{cloudflareSetupOpen && (
+								<ul className="mt-2 list-disc space-y-1 pl-4 text-neutral-600">
+									<li>
+										Apex hosts use Name <code>@</code> (not {domain.hostname}).
+									</li>
+									<li>
+										<code>_dmarc.{domain.hostname}</code> → Name <code>_dmarc</code>
+									</li>
+									<li>
+										<code>cf-bounce.{domain.hostname}</code> → Name <code>cf-bounce</code>
+									</li>
+									<li>
+										<code>cf-bounce._domainkey.{domain.hostname}</code> → Name{" "}
+										<code>cf-bounce._domainkey</code>
+									</li>
+								</ul>
+							)}
+						</div>
 					)}
-					{setupMessage && <p className="text-xs text-red-600">{setupMessage}</p>}
+					{setupMessage && <p className="mt-2 text-xs text-red-600">{setupMessage}</p>}
 				</section>
 			)}
 		</div>
