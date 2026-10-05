@@ -1,6 +1,11 @@
 import type { DomainDnsView } from "@/lib/domains/service";
 import { normalizeMailHostname } from "@/lib/domains/hostname";
-import { OUTBOUND_DKIM_SELECTOR, readOutboundDkimTxt } from "@/lib/outbound/sender-domains";
+import {
+	describeOutboundDkimStatus,
+	OUTBOUND_DKIM_SELECTOR,
+	readOutboundDkimTxt,
+	syncOutboundSenderDomains,
+} from "@/lib/outbound/sender-domains";
 
 type MailerLike = { configured?: boolean; kind?: string };
 
@@ -38,6 +43,10 @@ export async function getManualDomainDns(env: CloudflareEnv, hostname: string): 
 	const host = mailHost();
 	const kind = mailerKind(env);
 	const sendingConfigured = kind !== "none";
+
+	if (kind === "smtp") {
+		await syncOutboundSenderDomains(env);
+	}
 
 	const routingMissing = [
 		{ type: "MX", name: hostname, content: `10 ${host}`, ttl: 3600 },
@@ -78,12 +87,11 @@ export async function getManualDomainDns(env: CloudflareEnv, hostname: string): 
 		);
 		if (kind === "smtp") {
 			const dkimTxt = await readOutboundDkimTxt(hostname);
+			const dkimStatus = dkimTxt ? null : await describeOutboundDkimStatus(hostname);
 			sending.push({
 				type: "TXT",
 				name: `${OUTBOUND_DKIM_SELECTOR}._domainkey.${hostname}`,
-				content:
-					dkimTxt ??
-					`(waiting for Postfix to generate DKIM — ensure SMTP_URL=smtp://postfix:587 and refresh in ~30s)`,
+				content: dkimTxt ?? `(${dkimStatus?.hint ?? "waiting for Postfix DKIM"})`,
 				ttl: 3600,
 			});
 		}

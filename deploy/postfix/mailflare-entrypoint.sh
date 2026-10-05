@@ -39,21 +39,40 @@ load_allowed_domains() {
 	fi
 }
 
+extract_dkim_txt() {
+	# Join quoted chunks from opendkim-genkey output into one v=DKIM1 string.
+	tr '\n' ' ' <"$1" |
+		sed 's/"/\
+/g' |
+		sed -n '/^v=DKIM1/p' |
+		tr -d '\n' |
+		sed 's/[[:space:]]*$//'
+}
+
 publish_dkim_for_ui() {
 	[ ! -f "$DOMAINS_FILE" ] && return 0
 	while IFS= read -r domain || [ -n "$domain" ]; do
 		domain=$(printf '%s' "$domain" | tr -d '\r' | tr '[:upper:]' '[:lower:]' | sed 's/[[:space:]]//g')
 		[ -z "$domain" ] && continue
 		case "$domain" in \#*) continue ;; esac
-		txt_file="${KEYS_ROOT}/${domain}/${SELECTOR}.txt"
-		# boky may also write keys as ${domain}.txt at the keys root
-		[ -f "$txt_file" ] || txt_file="${KEYS_ROOT}/${domain}.txt"
-		[ -f "$txt_file" ] || continue
-		content=$(
-			tr '\n' ' ' <"$txt_file" |
-				sed -e 's/.*TXT[[:space:]]*//' -e 's/"[[:space:]]*"//g' -e 's/"//g' -e 's/[[:space:]]*$//' -e 's/^[[:space:]]*//'
-		)
-		[ -n "$content" ] && printf '%s\n' "$content" >"${DKIM_PUB_DIR}/${domain}.txt"
+		txt_file=""
+		for candidate in \
+			"${KEYS_ROOT}/${domain}.txt" \
+			"${KEYS_ROOT}/${domain}/${SELECTOR}.txt" \
+			"${KEYS_ROOT}/${domain}/mail.txt" \
+			"${KEYS_ROOT}/${SELECTOR}.${domain}.txt"; do
+			if [ -f "$candidate" ]; then
+				txt_file="$candidate"
+				break
+			fi
+		done
+		[ -z "$txt_file" ] && continue
+		content=$(extract_dkim_txt "$txt_file")
+		if [ -n "$content" ]; then
+			printf '%s\n' "$content" >"${DKIM_PUB_DIR}/${domain}.txt"
+		else
+			echo "mailflare-postfix: could not parse DKIM TXT from $txt_file for $domain" >&2
+		fi
 	done <"$DOMAINS_FILE"
 }
 
@@ -75,6 +94,7 @@ load_allowed_domains
 		[ -f "$DOMAINS_FILE" ] && cur=$(cksum "$DOMAINS_FILE" | awk '{print $1" "$2}')
 		if [ "$cur" != "$last" ]; then
 			echo "mailflare-postfix: sender-domains.txt changed — restarting to reload all domains/DKIM"
+			last="$cur"
 			# Terminate the main process group; Docker restarts this service.
 			kill -TERM 1 2>/dev/null || kill -TERM $$ 2>/dev/null || true
 			exit 0
@@ -84,9 +104,11 @@ load_allowed_domains
 
 # Publish whatever keys already exist after a short delay (DKIM_AUTOGENERATE runs during run.sh).
 (
-	sleep 15
+	sleep 10
 	publish_dkim_for_ui || true
-	sleep 45
+	sleep 20
+	publish_dkim_for_ui || true
+	sleep 30
 	publish_dkim_for_ui || true
 ) &
 

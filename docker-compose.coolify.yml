@@ -34,11 +34,13 @@ services:
       INBOUND_WEBHOOK_SECRET: ${INBOUND_WEBHOOK_SECRET}
       SMTP_INBOUND_PORT: ${SMTP_INBOUND_PORT:-25}
       SMTP_URL: ${SMTP_URL:-smtp://postfix:587}
+      OPENDKIM_KEYS_DIR: /etc/opendkim/keys
       # Internal compose SMTP usually has no public CA — do not fail TLS verify.
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY}
     volumes:
       - mailflare-data:/data
+      - postfix-dkim:/etc/opendkim/keys:ro
     depends_on:
       - postfix
     expose:
