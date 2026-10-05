@@ -108,7 +108,11 @@ export class Mailer {
 			});
 			if (!response.ok) {
 				const detail = await response.text().catch(() => "");
-				throw new Error(`Cloudflare Email Sending failed (${response.status}): ${detail.slice(0, 300)}`);
+				const authHint =
+					response.status === 401
+						? " Check CF_TOKEN (API token secret, not ID; no Bearer prefix) and CF_ACCOUNT_ID match the same Cloudflare account; token needs Email Sending: Edit. Verify: GET /client/v4/user/tokens/verify."
+						: "";
+				throw new Error(`Cloudflare Email Sending failed (${response.status}): ${detail.slice(0, 300)}${authHint}`);
 			}
 			return { messageId };
 		}
