@@ -15,19 +15,24 @@ export default function DomainDnsDetails({
 	const manual = domain.zoneId === "manual";
 	const needsOwnership = manual && domain.status === "pending";
 	const subdomain = dns.sendingSubdomain;
-	const sendingOk = subdomain ? dns.sendingEnabled : manual && domain.sendingEnabled;
+	const sendingOk = subdomain ? dns.sendingEnabled : manual ? dns.sendingEnabled || domain.sendingEnabled : domain.sendingEnabled;
 	const sendingLabel = subdomain
 		? `Sending for ${subdomain.name} is ${dns.sendingEnabled ? "enabled" : "disabled"}`
 		: manual
-			? domain.sendingEnabled
-				? "Email sending is configured"
-				: "Email sending is not configured"
+			? sendingOk
+				? "Outbound is configured on this server — finish Cloudflare Email Sending DNS (SPF/DKIM) for deliverability"
+				: "Outbound is not configured (set CF_TOKEN + CF_ACCOUNT_ID or SMTP_URL)"
 			: "Sending has not configured for this domain";
-	const routingOk = dns.routing.missing.length === 0 && (dns.routing.records.length > 0 || domain.routingEnabled);
+	const missingRecords = [...dns.routing.missing, ...dns.sending];
+	const routingOk = manual
+		? audit?.mx.status === "ok"
+		: dns.routing.missing.length === 0 && (dns.routing.records.length > 0 || domain.routingEnabled);
 	const routingLabel = routingOk
-		? "Email routing is configured"
+		? manual
+			? `MX points to Mailflare (${audit?.mx.found[0] ?? "ok"})`
+			: "Email routing is configured"
 		: dns.routing.missing.length > 0
-			? `${dns.routing.missing.length} DNS record${dns.routing.missing.length === 1 ? "" : "s"} missing`
+			? `${dns.routing.missing.length} DNS record${dns.routing.missing.length === 1 ? "" : "s"} to publish for inbound`
 			: "No routing DNS records found";
 	return (
 		<div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
@@ -42,6 +47,30 @@ export default function DomainDnsDetails({
 							Verify ownership
 						</Button>
 					)}
+				</section>
+			)}
+			{manual && missingRecords.length > 0 && (
+				<section className="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+					<p className="text-sm font-medium text-neutral-900">Publish these DNS records</p>
+					<p className="mt-1 text-xs text-neutral-600">
+						Create them at the DNS host for {domain.hostname} (Cloudflare DNS, etc.). Without the MX record,
+						inbound mail will not reach Mailflare. For Cloudflare Email Sending, also onboard the domain in
+						the Cloudflare dashboard and paste the DKIM value Cloudflare shows.
+					</p>
+					<ul className="mt-3 space-y-2">
+						{missingRecords.map((record) => (
+							<li
+								key={`${record.type}:${record.name}:${record.content}`}
+								className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-800"
+							>
+								<p>
+									<span className="font-semibold">{record.type}</span>{" "}
+									<span className="break-all text-neutral-600">{record.name}</span>
+								</p>
+								<p className="mt-1 break-all font-mono text-neutral-900">{record.content}</p>
+							</li>
+						))}
+					</ul>
 				</section>
 			)}
 			{audit && (

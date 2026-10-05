@@ -80,9 +80,14 @@ export async function verifyDomainOwnership(
 	}
 
 	await markDomainVerified(env, domain.id);
+	const mailerReady = !!(env.EMAIL as unknown as { configured?: boolean })?.configured;
 	await db
 		.update(domains)
-		.set({ status: "active", routingEnabled: true })
+		.set({
+			status: "active",
+			routingEnabled: true,
+			...(mailerReady && domain.sendingRequested ? { sendingEnabled: true } : {}),
+		})
 		.where(eq(domains.id, domain.id));
 
 	return {

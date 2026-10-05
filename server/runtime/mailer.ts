@@ -51,6 +51,11 @@ export class Mailer {
 		return this.config.kind !== "none";
 	}
 
+	/** "cloudflare" | "smtp" | "none" — used by manual DNS guidance. */
+	get kind() {
+		return this.config.kind;
+	}
+
 	async send(message: Builder): Promise<{ messageId: string }> {
 		const messageId = message.headers?.["Message-ID"] ?? messageIdFor(message.from);
 		const headers = { ...(message.headers ?? {}), "Message-ID": messageId };

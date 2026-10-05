@@ -108,7 +108,11 @@ export async function addDomainForUser(
 		zone: { id: "manual", name: normalizedHostname },
 		routingEnabled: false,
 		sendingRequested: options?.enableSending ?? true,
-		sendingEnabled: false,
+		// Node mailer is ready for outbound even when the zone is not on our CF account;
+		// the operator still must onboard the domain in CF Email Sending / publish SPF+DKIM.
+		sendingEnabled:
+			(options?.enableSending ?? true) &&
+			!!(env.EMAIL as unknown as { configured?: boolean })?.configured,
 		sendingSubdomainTag: null as string | null,
 		routingStatus: "manual",
 		changes: {

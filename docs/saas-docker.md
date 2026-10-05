@@ -104,6 +104,8 @@ On startup the container logs `Object storage: S3 (...)` when S3 is active.
 Use the Compose file `docker-compose.coolify.yml` (Mongo is not published on the
 host; HTTP is proxied by Coolify; SMTP still maps host `:25`).
 
+For **send/receive DNS** on customer domains, see [saas-mail.md](./saas-mail.md).
+
 1. In Coolify: **+ New Resource → Docker Compose**.
 2. Connect the Git repo (or push this project to a private Git source Coolify can read).
 3. Set **Docker Compose Location** to `/docker-compose.coolify.yml`.
