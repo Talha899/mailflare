@@ -21,6 +21,7 @@ import type { DnsAuthRecord, DnsStatusSummary, Domain, DomainDnsCache, DomainDns
 import DomainItemCard from "./DomainItemCard";
 import { SectionRowSkeleton } from "@/components/page-skeletons";
 import { checkDomain } from "./utils";
+import { normalizeDomainHostname } from "@/lib/domains/hostname";
 
 export default function DomainsPage() {
   const qc = useQueryClient();
@@ -62,7 +63,7 @@ export default function DomainsPage() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const normalized = hostname.toLowerCase().trim();
+      const normalized = normalizeDomainHostname(hostname);
       let sendingRequested = enableSending;
       let checkedDomain = domainCheck;
       if (checkedDomain?.hostname !== normalized) {
@@ -212,7 +213,7 @@ export default function DomainsPage() {
   };
 
   const inspectDomain = async () => {
-    const normalized = hostname.toLowerCase().trim();
+    const normalized = normalizeDomainHostname(hostname);
     if (normalized.length < 3 || domainCheck?.hostname === normalized) return;
 
     setDomainChecking(true);
@@ -269,17 +270,23 @@ export default function DomainsPage() {
                 <Input
                   id="hostname"
                   value={hostname}
+                  placeholder="example.com"
                   onChange={(e) => {
                     setHostname(e.target.value);
-                    if (domainCheck?.hostname !== e.target.value.toLowerCase().trim()) {
+                    const cleaned = normalizeDomainHostname(e.target.value);
+                    if (domainCheck?.hostname !== cleaned) {
                       setDomainCheck(null);
                       setEnableSending(false);
                       setDomainCheckError(null);
                     }
                   }}
-                  onBlur={() => void inspectDomain()}
-                  placeholder="example.com"
+                  onBlur={() => {
+                    const cleaned = normalizeDomainHostname(hostname);
+                    if (cleaned && cleaned !== hostname) setHostname(cleaned);
+                    void inspectDomain();
+                  }}
                 />
+                <p className="text-xs text-neutral-500">Use example.com — not https://example.com/</p>
               </div>
               {!isManualDomain && (
                 <div className="flex items-center justify-between gap-4 rounded-xl bg-neutral-50 px-4 py-3">

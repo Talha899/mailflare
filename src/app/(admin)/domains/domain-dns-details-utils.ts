@@ -46,7 +46,13 @@ function parseMx(content: string, priority?: number): { priority: string; target
 
 function isPlaceholderContent(content?: string): boolean {
 	const value = (content ?? "").trim();
-	return !value || /^\(.*\)$/.test(value) || /paste\s+dkim/i.test(value) || /publish the /i.test(value);
+	return (
+		!value ||
+		/^\(.*\)$/.test(value) ||
+		/paste\s+dkim/i.test(value) ||
+		/waiting for postfix/i.test(value) ||
+		/publish the /i.test(value)
+	);
 }
 
 /**
@@ -74,6 +80,7 @@ export function toDnsHostInstruction(hostname: string, record: DnsRecord): DnsHo
 	}
 
 	const placeholder = isPlaceholderContent(content);
+	const waitingPostfix = /waiting for postfix/i.test(content);
 	return {
 		type,
 		title: `${type} — ${hostName === "@" ? hostname : hostName}`,
@@ -84,7 +91,11 @@ export function toDnsHostInstruction(hostname: string, record: DnsRecord): DnsHo
 				label: "Content",
 				value: content,
 				copyable: !placeholder,
-				hint: placeholder ? "Get this value from Cloudflare Email Sending after you onboard the domain" : undefined,
+				hint: placeholder
+					? waitingPostfix
+						? "Refresh this page after Postfix has been running ~30s — the key appears automatically"
+						: "Get this value from Cloudflare Email Sending after you onboard the domain"
+					: undefined,
 			},
 		],
 	};

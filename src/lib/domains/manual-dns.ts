@@ -1,16 +1,23 @@
 import type { DomainDnsView } from "@/lib/domains/service";
+import { normalizeMailHostname } from "@/lib/domains/hostname";
 import { OUTBOUND_DKIM_SELECTOR, readOutboundDkimTxt } from "@/lib/outbound/sender-domains";
 
 type MailerLike = { configured?: boolean; kind?: string };
 
 function mailHost(): string {
-	return process.env.MAIL_HOSTNAME?.trim() || process.env.APP_URL?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "mail.example.com";
+	const raw =
+		process.env.MAIL_HOSTNAME?.trim() ||
+		process.env.APP_URL?.trim() ||
+		"mail.example.com";
+	const host = normalizeMailHostname(raw);
+	return host || "mail.example.com";
 }
 
 function mailerKind(env: CloudflareEnv): "cloudflare" | "smtp" | "none" {
 	const mailer = env.EMAIL as unknown as MailerLike;
-	if (mailer?.kind === "cloudflare" || mailer?.kind === "smtp") return mailer.kind;
+	// Prefer SMTP_URL when set — Coolify Postfix path must win over leftover CF_TOKEN.
 	if (process.env.SMTP_URL?.trim()) return "smtp";
+	if (mailer?.kind === "cloudflare" || mailer?.kind === "smtp") return mailer.kind;
 	if (process.env.CF_ACCOUNT_ID?.trim() && process.env.CF_TOKEN?.trim()) return "cloudflare";
 	return mailer?.configured ? "smtp" : "none";
 }
@@ -76,7 +83,7 @@ export async function getManualDomainDns(env: CloudflareEnv, hostname: string): 
 				name: `${OUTBOUND_DKIM_SELECTOR}._domainkey.${hostname}`,
 				content:
 					dkimTxt ??
-					`(waiting for Postfix to generate DKIM — ensure SMTP_URL points at postfix, then refresh in ~30s)`,
+					`(waiting for Postfix to generate DKIM — ensure SMTP_URL=smtp://postfix:587 and refresh in ~30s)`,
 				ttl: 3600,
 			});
 		}

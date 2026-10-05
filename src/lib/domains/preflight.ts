@@ -1,4 +1,5 @@
 import { findZoneByHostname } from "@/lib/cloudflare-api";
+import { assertDomainHostname } from "@/lib/domains/hostname";
 import { MANUAL_ZONE_ID } from "@/lib/domains/provision";
 import type { DomainPreflightResult } from "@/lib/domains/types";
 import { hasCloudflareCredentials, isSaasModeEnabled } from "@/lib/runtime";
@@ -7,7 +8,7 @@ export async function preflightDomain(
 	env: CloudflareEnv,
 	hostname: string,
 ): Promise<DomainPreflightResult> {
-	const normalized = hostname.toLowerCase().trim();
+	const normalized = assertDomainHostname(hostname);
 
 	if (!hasCloudflareCredentials(env)) {
 		return {

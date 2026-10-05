@@ -15,6 +15,7 @@ import {
 import { deleteEmailRoutingRulesForDomain } from "@/lib/domains/cloudflare-cleanup";
 import { isManualZone, provisionDomainOnCloudflare } from "@/lib/domains/provision";
 import { getManualDomainDns } from "@/lib/domains/manual-dns";
+import { assertDomainHostname, normalizeDomainHostname, isValidDomainHostname } from "@/lib/domains/hostname";
 import { rollbackDomainProvisioning } from "@/lib/domains/rollback";
 import type { DomainProvisioningChanges } from "@/lib/domains/types";
 import { findSendingSubdomain } from "@/lib/domains/sending-status";
@@ -48,7 +49,8 @@ export async function listUserDomains(env: CloudflareEnv, userId: string) {
 
 export async function listOrganizationDomains(env: CloudflareEnv, organizationId: string) {
 	const db = getDb(env);
-	return db.select().from(domains).where(eq(domains.organizationId, organizationId));
+	const rows = await db.select().from(domains).where(eq(domains.organizationId, organizationId));
+	return Promise.all(rows.map((row) => repairDomainHostnameIfNeeded(env, row)));
 }
 
 export async function addDomainForUser(
@@ -66,7 +68,7 @@ export async function addDomainForUser(
 	const [owner] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 	const organizationId = options?.organizationId ?? owner?.organizationId ?? "org_default";
 
-	const normalizedHostname = hostname.toLowerCase().trim();
+	const normalizedHostname = assertDomainHostname(hostname);
 	const [claimedHostname] = await db
 		.select({ userId: domains.userId, organizationId: domains.organizationId })
 		.from(domains)
@@ -265,10 +267,38 @@ export async function addDomainForOrganization(
 	});
 }
 
+/**
+ * Fix rows stored as URLs (e.g. https://codenak.com/) from older UI pastes.
+ * Returns the repaired domain row.
+ */
+export async function repairDomainHostnameIfNeeded(
+	env: CloudflareEnv,
+	domain: typeof domains.$inferSelect,
+): Promise<typeof domains.$inferSelect> {
+	const normalized = normalizeDomainHostname(domain.hostname);
+	if (!normalized || normalized === domain.hostname || !isValidDomainHostname(normalized)) {
+		return domain;
+	}
+	const db = getDb(env);
+	const [conflict] = await db
+		.select({ id: domains.id })
+		.from(domains)
+		.where(and(eq(domains.hostname, normalized), ne(domains.id, domain.id)))
+		.limit(1);
+	if (conflict) {
+		console.warn(`repairDomainHostnameIfNeeded: skip ${domain.hostname} → ${normalized} (conflict)`);
+		return domain;
+	}
+	await db.update(domains).set({ hostname: normalized }).where(eq(domains.id, domain.id));
+	await syncOutboundSenderDomains(env);
+	return { ...domain, hostname: normalized };
+}
+
 export async function getDomainDns(
 	env: CloudflareEnv,
 	domain: typeof domains.$inferSelect,
 ): Promise<DomainDnsView> {
+	domain = await repairDomainHostnameIfNeeded(env, domain);
 	if (isManualZone(domain.zoneId)) return getManualDomainDns(env, domain.hostname);
 	// Read the zone's actual sending state rather than trusting `sendingRequested`,
 	// which goes stale when sending is enabled outside Mailflare (or when the row

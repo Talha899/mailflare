@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getEmailAddress, splitEmailAddressList } from "@/lib/email/address";
 import { DEFAULT_FOLDER_COLOR, FOLDER_COLOR_VALUES } from "@/lib/folders/colors";
+import { assertDomainHostname } from "@/lib/domains/hostname";
 
 /**
  * Recipients arrive either as one comma-separated header string (the composer)
@@ -48,8 +49,24 @@ export const registerSchema = z.object({
 	name: z.string().min(1),
 });
 
+export const domainHostnameSchema = z
+	.string()
+	.min(3)
+	.max(253)
+	.transform((value, ctx) => {
+		try {
+			return assertDomainHostname(value);
+		} catch (error) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: error instanceof Error ? error.message : "Enter a valid domain name",
+			});
+			return z.NEVER;
+		}
+	});
+
 export const firstRunRegisterSchema = z.object({
-	domain: z.string().min(3),
+	domain: domainHostnameSchema,
 	enableSending: z.boolean().optional(),
 	replaceMxRecords: z.boolean().optional(),
 	username: z.string().min(1).max(64).regex(/^[a-zA-Z0-9._%+-]+$/),
@@ -72,14 +89,18 @@ export const primaryDomainRegisterSchema = z.object({
 });
 
 export const setupDomainSchema = z.object({
-	hostname: z.string().min(3),
+	hostname: domainHostnameSchema,
 });
 
 export const addDomainSchema = z.object({
-	hostname: z.string().min(3),
+	hostname: domainHostnameSchema,
 	enableRouting: z.boolean().optional(),
 	enableSending: z.boolean().optional(),
 	replaceMxRecords: z.boolean().optional(),
+});
+
+export const domainSchema = z.object({
+	hostname: domainHostnameSchema,
 });
 
 export const loginSchema = z.object({
@@ -112,10 +133,6 @@ export const mfaConfirmSchema = z.object({
 export const mfaDisableSchema = z.object({
 	password: z.string().min(1),
 	code: z.string().trim().min(6).max(32),
-});
-
-export const domainSchema = z.object({
-	hostname: z.string().min(3),
 });
 
 export const mailboxSchema = z.object({

@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { domains } from "@/db/schema";
 import { getDb } from "@/db";
 
+import { normalizeDomainHostname } from "@/lib/domains/hostname";
+
 /** Shared with the Postfix container (`deploy/postfix`) via the mailflare-data volume. */
 export const OUTBOUND_SENDER_DOMAINS_FILE = "outbound/sender-domains.txt";
 export const OUTBOUND_DKIM_DIR = "outbound/dkim";
@@ -14,10 +16,6 @@ function dataDir(): string | null {
 	return dir || null;
 }
 
-function normalizeHostname(hostname: string): string {
-	return hostname.trim().toLowerCase().replace(/\.$/, "");
-}
-
 /**
  * Writes every registered domain hostname for the outbound MTA.
  * Postfix watches this file and provisions DKIM — no per-domain env vars.
@@ -27,7 +25,7 @@ export async function writeOutboundSenderDomains(hostnames: string[]): Promise<v
 	if (!root) return;
 	const dir = join(root, "outbound");
 	await mkdir(dir, { recursive: true });
-	const lines = [...new Set(hostnames.map(normalizeHostname).filter(Boolean))].sort();
+	const lines = [...new Set(hostnames.map(normalizeDomainHostname).filter(Boolean))].sort();
 	await writeFile(join(root, OUTBOUND_SENDER_DOMAINS_FILE), `${lines.join("\n")}${lines.length ? "\n" : ""}`, "utf8");
 }
 
@@ -48,7 +46,7 @@ export async function readOutboundDkimTxt(hostname: string): Promise<string | nu
 	const root = dataDir();
 	if (!root) return null;
 	try {
-		const path = join(root, OUTBOUND_DKIM_DIR, `${normalizeHostname(hostname)}.txt`);
+		const path = join(root, OUTBOUND_DKIM_DIR, `${normalizeDomainHostname(hostname)}.txt`);
 		const content = (await readFile(path, "utf8")).trim();
 		return content || null;
 	} catch {

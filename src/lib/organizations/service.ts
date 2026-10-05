@@ -8,6 +8,7 @@ import {
 	organizationsCollection,
 	orgSettingsCollection,
 } from "./mongo-collections";
+import { assertDomainHostname } from "@/lib/domains/hostname";
 import type {
 	DomainVerificationDocument,
 	OrganizationDocument,
@@ -94,7 +95,7 @@ export async function createDomainVerification(
 ): Promise<DomainVerificationDocument> {
 	const db = requireMongo(env);
 	const token = newId("vfy").replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
-	const hostname = input.hostname.toLowerCase().trim();
+	const hostname = assertDomainHostname(input.hostname);
 	const now = new Date();
 	// Upsert without touching _id: replaceOne with a new _id fails on retries
 	// ("immutable field '_id' was found to have been altered").
@@ -146,9 +147,10 @@ export function verificationTxtRecord(hostname: string, token: string): {
 	name: string;
 	content: string;
 } {
+	const host = assertDomainHostname(hostname);
 	return {
 		type: "TXT",
-		name: `_mailflare-verify.${hostname}`,
+		name: `_mailflare-verify.${host}`,
 		content: `mailflare-verification=${token}`,
 	};
 }
