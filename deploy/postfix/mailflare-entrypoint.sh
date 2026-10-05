@@ -11,6 +11,10 @@ SELECTOR="${DKIM_SELECTOR:-mail}"
 KEYS_ROOT="${OPENDKIM_KEYS_DIR:-/etc/opendkim/keys}"
 
 mkdir -p "${MAILFLARE_DATA}/outbound" "$DKIM_PUB_DIR" "$KEYS_ROOT"
+# Mailflare runs as uid `node` and must write sender-domains.txt here; Postfix
+# (root) creates these dirs first — without a world-writable outbound, sync never
+# lands and DKIM stays empty forever.
+chmod 1777 "${MAILFLARE_DATA}/outbound" "$DKIM_PUB_DIR" 2>/dev/null || true
 
 load_allowed_domains() {
 	if [ ! -f "$DOMAINS_FILE" ]; then

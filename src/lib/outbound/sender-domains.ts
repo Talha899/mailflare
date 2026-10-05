@@ -32,7 +32,19 @@ export async function writeOutboundSenderDomains(hostnames: string[]): Promise<v
 	const dir = join(root, "outbound");
 	await mkdir(dir, { recursive: true });
 	const lines = [...new Set(hostnames.map(normalizeDomainHostname).filter(Boolean))].sort();
-	await writeFile(join(root, OUTBOUND_SENDER_DOMAINS_FILE), `${lines.join("\n")}${lines.length ? "\n" : ""}`, "utf8");
+	const path = join(root, OUTBOUND_SENDER_DOMAINS_FILE);
+	try {
+		await writeFile(path, `${lines.join("\n")}${lines.length ? "\n" : ""}`, "utf8");
+	} catch (error) {
+		const code = error && typeof error === "object" && "code" in error ? String((error as { code?: unknown }).code) : "";
+		if (code === "EACCES" || code === "EPERM") {
+			console.warn(
+				`writeOutboundSenderDomains: cannot write ${path} (permission denied). ` +
+					`Fix: on the mailflare-data volume, chmod 1777 outbound/ (Postfix creates it as root).`,
+			);
+		}
+		throw error;
+	}
 }
 
 /** Re-export the full domains table into the shared sender-domains file. */
