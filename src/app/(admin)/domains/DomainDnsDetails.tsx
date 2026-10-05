@@ -164,10 +164,19 @@ export default function DomainDnsDetails({
 						})}
 					</ul>
 					{manual && (
-						<p className="text-xs text-neutral-500">
-							DNS is managed manually for this domain, so records must be created
-							where the domain&apos;s nameservers are hosted.
-						</p>
+						<div className="mt-3 space-y-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-700">
+							<p className="font-medium text-neutral-900">Why Setup is disabled</p>
+							<p>
+								This domain is not on your operator Cloudflare account. Mailflare cannot click
+								Setup for you — add MX, SPF, DMARC, and DKIM at your DNS host (e.g. Cloudflare
+								DNS for {domain.hostname}) and onboard the domain under Cloudflare Email Sending.
+							</p>
+							<p>
+								Server credentials (<code className="text-[11px]">CF_TOKEN</code>,{" "}
+								<code className="text-[11px]">CF_ACCOUNT_ID</code>) are set in Coolify, not in
+								this UI. Use <strong>Mailboxes</strong> to create addresses after DNS is ready.
+							</p>
+						</div>
 					)}
 					{setupMessage && <p className="text-xs text-red-600">{setupMessage}</p>}
 				</section>
