@@ -58,6 +58,7 @@ export type DomainDnsView = {
 	dkimSelector?: string;
 	sendingSubdomain?: { name: string; tag: string };
 	audit?: DomainDnsAudit;
+	ownershipTxt?: DnsRecord | null;
 };
 
 export type DomainDnsCache = Record<string, { domain: Domain; dns: DomainDnsView }>;

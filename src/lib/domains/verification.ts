@@ -101,3 +101,20 @@ export async function verifyDomainOwnership(
 		status: "verified",
 	};
 }
+
+/** TXT the operator must publish before Verify ownership (no DNS lookup). */
+export async function getDomainOwnershipTxt(
+	env: CloudflareEnv,
+	input: { domainId: string; organizationId: string },
+): Promise<{ type: "TXT"; name: string; content: string } | null> {
+	const db = getDb(env);
+	const [domain] = await db
+		.select()
+		.from(domains)
+		.where(and(eq(domains.id, input.domainId), eq(domains.organizationId, input.organizationId)))
+		.limit(1);
+	if (!domain || !isManualZone(domain.zoneId) || domain.status === "active") return null;
+	const verification = await getDomainVerification(env, domain.id);
+	if (!verification) return null;
+	return verificationTxtRecord(verification.hostname, verification.token);
+}

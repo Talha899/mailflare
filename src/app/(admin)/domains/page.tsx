@@ -142,7 +142,13 @@ export default function DomainsPage() {
     setExpandedDomainId(id);
     setSetupMessage(null);
     setDnsError(null);
-    if (dnsViews[id]) {
+    const cached = dnsViews[id];
+    const needsOwnershipReload =
+      cached &&
+      cached.domain.zoneId === "manual" &&
+      cached.domain.status === "pending" &&
+      !cached.dns.ownershipTxt;
+    if (cached && !needsOwnershipReload) {
       setDnsLoading(false);
       return;
     }
@@ -162,14 +168,31 @@ export default function DomainsPage() {
     setSetupMessage(null);
     try {
       const res = await authFetch(`/api/domains/${id}/verify`, { method: "POST" });
-      const json = (await res.json()) as { error?: string; verified?: boolean; expected?: { name: string; content: string } };
+      const json = (await res.json()) as {
+        error?: string;
+        verified?: boolean;
+        expected?: { type?: string; name: string; content: string };
+      };
       if (!res.ok) throw new Error(json.error ?? "Verification failed");
       if (!json.verified) {
-        setSetupMessage(
-          json.expected
-            ? `TXT not found yet. Add ${json.expected.name} = ${json.expected.content}`
-            : "TXT record not found yet. DNS can take a few minutes.",
-        );
+        if (json.expected) {
+          setDnsViews((current) => {
+            const view = current[id];
+            if (!view) return current;
+            return {
+              ...current,
+              [id]: {
+                ...view,
+                dns: { ...view.dns, ownershipTxt: json.expected },
+              },
+            };
+          });
+          setSetupMessage(
+            "TXT not found yet. Publish the ownership record above (Name _mailflare-verify), wait a minute, then Verify again.",
+          );
+        } else {
+          setSetupMessage("TXT record not found yet. DNS can take a few minutes.");
+        }
         return;
       }
       await loadDns(id);

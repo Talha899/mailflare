@@ -168,13 +168,17 @@ export default function DomainDnsDetails({
 	const routingOk = manual
 		? audit?.mx.status === "ok"
 		: dns.routing.missing.length === 0 && (dns.routing.records.length > 0 || domain.routingEnabled);
+	const expectedMx = checklist.find((row) => (row.type ?? "").toUpperCase() === "MX");
+	const expectedMxHost = expectedMx?.content?.replace(/^\d+\s+/, "").trim();
 	const routingLabel = routingOk
 		? manual
 			? `MX points to Mailflare (${audit?.mx.found[0] ?? "ok"})`
 			: "Email routing is configured"
-		: dns.routing.missing.length > 0
-			? `${dns.routing.missing.length} DNS record${dns.routing.missing.length === 1 ? "" : "s"} to publish for inbound`
-			: "No routing DNS records found";
+		: manual && audit?.mx.found?.length
+			? `Wrong MX (${audit.mx.found.join(", ")}) — replace with ${expectedMxHost ?? "MAIL_HOSTNAME"}`
+			: dns.routing.missing.length > 0
+				? `${dns.routing.missing.length} DNS record${dns.routing.missing.length === 1 ? "" : "s"} to publish for inbound`
+				: "No routing DNS records found";
 
 	/** Missing rows stay open so Setup instructions are visible without an extra click. */
 	const [collapsed, setCollapsed] = useState<Partial<Record<DnsAuthRecord | "sending", boolean>>>({});
@@ -196,8 +200,26 @@ export default function DomainDnsDetails({
 				<section className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
 					<p className="text-sm font-medium text-amber-900">Ownership verification required</p>
 					<p className="mt-1 text-xs text-amber-800">
-						Add the Mailflare TXT verification record, then verify ownership before mailboxes will accept mail.
+						Add this TXT at your DNS host (Hostinger: DNS Zone → Manage → Add Record). Use Name{" "}
+						<code className="rounded bg-white/80 px-1">_mailflare-verify</code> — not the full hostname —
+						then click Verify ownership.
 					</p>
+					{dns.ownershipTxt ? (
+						<div className="mt-3">
+							<DnsInstructionCard
+								instruction={{
+									...toDnsHostInstruction(domain.hostname, dns.ownershipTxt),
+									title: "TXT — ownership verification",
+									note: "TTL can stay Auto / 3600. DNS can take a few minutes to propagate before Verify succeeds.",
+								}}
+							/>
+						</div>
+					) : (
+						<p className="mt-3 text-xs text-amber-900">
+							No verification token found yet. Re-add the domain or refresh details after MongoDB is
+							connected.
+						</p>
+					)}
 					{onVerify && (
 						<Button type="button" size="sm" className="mt-3" onClick={onVerify}>
 							Verify ownership
@@ -311,14 +333,21 @@ export default function DomainDnsDetails({
 											{item.found.length > 0 ? item.found.join(", ") : item.name}
 										</span>
 									) : manual ? (
-										<Button
-											variant="outline"
-											size="sm"
-											className="shrink-0 bg-white"
-											onClick={() => toggle(record, defaultOpen)}
-										>
-											{open ? "Hide" : "Setup"}
-										</Button>
+										<>
+											{item.found.length > 0 && (
+												<span className="min-w-0 break-all text-xs text-amber-800 sm:col-start-3">
+													Found in DNS (not Mailflare): {item.found.join(", ")}
+												</span>
+											)}
+											<Button
+												variant="outline"
+												size="sm"
+												className="shrink-0 bg-white"
+												onClick={() => toggle(record, defaultOpen)}
+											>
+												{open ? "Hide" : "Setup"}
+											</Button>
+										</>
 									) : (
 										<Button
 											variant="outline"
@@ -377,6 +406,10 @@ export default function DomainDnsDetails({
 								<ul className="mt-2 list-disc space-y-1 pl-4 text-neutral-600">
 									<li>
 										Apex hosts use Name <code>@</code> (not {domain.hostname}).
+									</li>
+									<li>
+										<code>_mailflare-verify.{domain.hostname}</code> → Name{" "}
+										<code>_mailflare-verify</code>
 									</li>
 									<li>
 										<code>_dmarc.{domain.hostname}</code> → Name <code>_dmarc</code>
