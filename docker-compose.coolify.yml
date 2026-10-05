@@ -1,33 +1,39 @@
 # Coolify: Docker Compose resource → use this file.
-# Assign the domain to the `mailflare` service (port 3000).
-# Set environment variables in the Coolify UI (do not rely on .env.docker).
+# Assign the domain https://mail.aiorders.io to the `mailflare` service (port 3000).
+# Set environment variables in the Coolify UI (including MONGO_URL to your managed Mongo).
 # Expose host TCP 25 for inbound SMTP, or set SMTP_INBOUND_PORT=0 and use the CF relay.
+#
+# This compose does NOT run Mongo locally — use Coolify's MongoDB resource / managed URI.
 services:
-  mongo:
-    image: mongo:7
-    restart: unless-stopped
-    volumes:
-      - mailflare-mongo:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
   mailflare:
     build: .
     restart: unless-stopped
-    depends_on:
-      mongo:
-        condition: service_healthy
     ports:
       - "25:25"
     environment:
-      MONGO_URL: mongodb://mongo:27017/mailflare
+      MONGO_URL: ${MONGO_URL}
       SAAS_MODE: ${SAAS_MODE:-true}
+      APP_URL: ${APP_URL}
+      MAIL_HOSTNAME: ${MAIL_HOSTNAME}
       PORT: "3000"
       DATA_DIR: /data
+      CF_ACCOUNT_ID: ${CF_ACCOUNT_ID}
+      CF_TOKEN: ${CF_TOKEN}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+      S3_KEY_PREFIX: ${S3_KEY_PREFIX}
+      AI_BASE_URL: ${AI_BASE_URL}
+      AI_API_KEY: ${AI_API_KEY}
+      AI_MODEL: ${AI_MODEL}
+      INBOUND_WEBHOOK_SECRET: ${INBOUND_WEBHOOK_SECRET}
+      SMTP_INBOUND_PORT: ${SMTP_INBOUND_PORT:-25}
+      SMTP_URL: ${SMTP_URL}
+      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-true}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY}
     volumes:
       - mailflare-data:/data
     # Coolify proxies HTTP to this port when you attach a domain.
@@ -36,4 +42,3 @@ services:
 
 volumes:
   mailflare-data:
-  mailflare-mongo:

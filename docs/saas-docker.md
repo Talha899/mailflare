@@ -114,12 +114,17 @@ host; HTTP is proxied by Coolify; SMTP still maps host `:25`).
 
 ### Coolify environment variables
 
+`docker-compose.coolify.yml` expects a **managed Mongo** URI (Coolify Mongo
+resource or Atlas). Do not use the bundled `mongo` service from local compose.
+
 Minimum for SaaS + Cloudflare sending + S3:
 
 ```bash
 SAAS_MODE=true
-APP_URL=https://mail.example.com
-MAIL_HOSTNAME=mail.example.com
+APP_URL=https://mail.aiorders.io
+MAIL_HOSTNAME=mail.aiorders.io
+# Coolify Mongo root user — authSource=admin is required:
+MONGO_URL=mongodb://root:PASSWORD@HOST:27017/mailflare?directConnection=true&authSource=admin
 CF_ACCOUNT_ID=...
 CF_TOKEN=...
 S3_ENDPOINT=https://s3.aiorders.io
@@ -131,7 +136,8 @@ S3_FORCE_PATH_STYLE=true
 S3_KEY_PREFIX=mailflare
 ```
 
-`MONGO_URL` is fixed in the compose file to `mongodb://mongo:27017/mailflare`.
+Copy a filled local template from `.env.coolify` (gitignored) into Coolify’s
+Environment Variables UI. Domain on the `mailflare` service: port **3000**.
 
 ### Coolify mail / ports
 
