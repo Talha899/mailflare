@@ -21,8 +21,6 @@ services:
       MAIL_HOSTNAME: ${MAIL_HOSTNAME}
       PORT: "3000"
       DATA_DIR: /data
-      CF_ACCOUNT_ID: ${CF_ACCOUNT_ID}
-      CF_TOKEN: ${CF_TOKEN}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_BUCKET: ${S3_BUCKET}
