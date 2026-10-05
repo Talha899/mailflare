@@ -13,6 +13,7 @@ export type Mailbox = {
 export type Domain = {
 	id: string;
 	hostname: string;
+	status?: string;
 };
 
 export type CurrentAccountResponse = {

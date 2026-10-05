@@ -48,20 +48,35 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 				}
 
 				const onboardingPath = data.saasMode ? "/onboarding/domain" : "/setup";
+				const isAdmin = data.user?.role === "admin";
+				const hasMailboxes = data.hasMailboxes === true;
+				const isSetup = data.isSetup === true;
+				const onSetupPath = pathname === "/setup" || pathname === "/onboarding/domain";
+				const onAdminSetupPath =
+					pathname === "/admin" ||
+					pathname.startsWith("/mailboxes") ||
+					pathname.startsWith("/domains") ||
+					pathname.startsWith("/accounts");
+
+				// No domain yet — keep admins in domain onboarding (SaaS) or setup.
 				if (
-					requireMailbox &&
-					data.hasMailboxes === false &&
-					data.user?.role === "admin" &&
-					data.isSetup === false &&
-					pathname !== "/setup" &&
-					pathname !== "/onboarding/domain"
+					isAdmin &&
+					!isSetup &&
+					!onSetupPath &&
+					(requireMailbox || data.hasMailboxes === false)
 				) {
 					router.replace(onboardingPath);
 					return;
 				}
 
-				if ((pathname === "/setup" || pathname === "/onboarding/domain") && data.isSetup === true) {
-					router.replace("/inbox");
+				// Domain exists but no mailbox — send admins to create one (not an empty inbox).
+				if (isAdmin && isSetup && !hasMailboxes && !onAdminSetupPath && !onSetupPath) {
+					router.replace("/mailboxes");
+					return;
+				}
+
+				if (onSetupPath && isSetup) {
+					router.replace(hasMailboxes ? "/inbox" : "/mailboxes");
 					return;
 				}
 

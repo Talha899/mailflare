@@ -34,6 +34,7 @@ export default function MailboxesPage() {
 	const [ownerUserId, setOwnerUserId] = useState("");
 	const [mailboxType, setMailboxType] = useState<"personal" | "shared">("personal");
 	const [createOpen, setCreateOpen] = useState(false);
+	const [autoOpenedCreate, setAutoOpenedCreate] = useState(false);
 
 	const account = useQuery({
 		queryKey: ["auth", "me"],
@@ -75,6 +76,14 @@ export default function MailboxesPage() {
 		},
 	});
 
+	useEffect(() => {
+		if (autoOpenedCreate || mailboxes.isLoading || !mailboxes.data) return;
+		if ((mailboxes.data.mailboxes?.length ?? 0) === 0) {
+			setCreateOpen(true);
+			setAutoOpenedCreate(true);
+		}
+	}, [autoOpenedCreate, mailboxes.data, mailboxes.isLoading]);
+
 	const create = useMutation({
 		mutationFn: async () => {
 			const res = await authFetch("/api/mailboxes", {
@@ -108,6 +117,8 @@ export default function MailboxesPage() {
 	const domainMap = new Map(
 		(domains.data?.domains ?? []).map((d) => [d.id, d.hostname]),
 	);
+	const activeDomains = (domains.data?.domains ?? []).filter((domain) => !domain.status || domain.status === "active");
+	const pendingDomains = (domains.data?.domains ?? []).filter((domain) => domain.status && domain.status !== "active");
 	const mailboxOwners = [...(accounts.data?.accounts ?? [])];
 	if (account.data?.user?.id && !mailboxOwners.some((owner) => owner.id === account.data?.user?.id)) {
 		mailboxOwners.unshift({
@@ -201,13 +212,34 @@ export default function MailboxesPage() {
 										onChange={(event) => setDomainId(event.target.value)}
 									>
 										<option value="">Select domain</option>
-										{(domains.data?.domains ?? []).map((domain) => (
+										{activeDomains.map((domain) => (
 											<option key={domain.id} value={domain.id}>
 												{domain.hostname}
 											</option>
 										))}
 									</Select>
 								</div>
+								{activeDomains.length === 0 && (
+									<p className="text-sm text-amber-700">
+										{pendingDomains.length > 0 ? (
+											<>
+												Verify your domain first on{" "}
+												<Link href="/domains" className="underline">
+													Domains
+												</Link>{" "}
+												before creating a mailbox.
+											</>
+										) : (
+											<>
+												Add and verify a domain on{" "}
+												<Link href="/domains" className="underline">
+													Domains
+												</Link>{" "}
+												first.
+											</>
+										)}
+									</p>
+								)}
 							</div>
 							{create.isError && (
 								<p className="text-sm text-red-600">{(create.error as Error).message}</p>

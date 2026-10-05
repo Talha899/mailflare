@@ -43,7 +43,7 @@ export function DomainOnboardingClient() {
 			if (data.verification) {
 				setVerification(data.verification);
 			} else {
-				router.replace("/admin/mailboxes");
+				router.replace("/mailboxes");
 				router.refresh();
 			}
 		} catch {
@@ -68,7 +68,7 @@ export function DomainOnboardingClient() {
 				setError("TXT record not found yet. DNS can take a few minutes to propagate.");
 				return;
 			}
-			router.replace("/admin/mailboxes");
+			router.replace("/mailboxes");
 			router.refresh();
 		} catch {
 			setError("Verification failed");
@@ -100,7 +100,7 @@ export function DomainOnboardingClient() {
 						<Button type="submit" disabled={loading} className="flex-1">
 							{loading ? "Adding..." : "Add domain"}
 						</Button>
-						<Button type="button" variant="outline" onClick={() => router.replace("/inbox")}>
+						<Button type="button" variant="outline" onClick={() => router.replace("/domains")}>
 							Skip for now
 						</Button>
 					</div>
