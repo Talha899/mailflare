@@ -44,6 +44,7 @@ import {
   moveMessagesToCustomFolder,
   moveMessagesToSystemFolder,
 } from "./dashboard-nav-utils";
+import { AdminSidebarSection } from "./admin-sidebar-section";
 import { SidebarFooter } from "./sidebar-footer";
 import { SidebarHeader } from "./sidebar-header";
 import { useSidebar } from "./sidebar-state";
@@ -272,6 +273,7 @@ export function DashboardNav({ className }: { className?: string }) {
           }}
         />
       ))}
+      <AdminSidebarSection />
       <span className="flex-1" />
       <SidebarFooter />
     </nav>

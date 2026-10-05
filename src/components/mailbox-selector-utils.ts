@@ -13,13 +13,22 @@ export function getAccountInitial(value: string): string {
 }
 
 export function isAdminPath(pathname: string): boolean {
-	return (
-		pathname === "/admin" ||
-		pathname.startsWith("/mailboxes") ||
-		pathname.startsWith("/domains") ||
-		pathname.startsWith("/api-keys") ||
-		pathname.startsWith("/webhooks") ||
-		pathname.startsWith("/activity") ||
-		pathname.startsWith("/backups")
-	);
+	const adminPrefixes = [
+		"/admin",
+		"/mailboxes",
+		"/domains",
+		"/routing",
+		"/webhooks",
+		"/api-keys",
+		"/general",
+		"/agent",
+		"/accounts",
+		"/activity",
+		"/backups",
+		"/branding",
+		"/audit-logs",
+		"/ai-usage",
+		"/licenses",
+	];
+	return adminPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
