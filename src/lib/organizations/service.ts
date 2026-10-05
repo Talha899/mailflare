@@ -3,6 +3,7 @@ import { newId } from "@/lib/ids";
 import { isSaasModeEnabled } from "@/lib/runtime";
 import {
 	DEFAULT_ORG_LIMITS,
+	SAAS_ORG_LIMITS,
 	domainVerificationsCollection,
 	organizationsCollection,
 	orgSettingsCollection,
@@ -52,7 +53,7 @@ export async function createOrganization(
 		ownerUserId: input.ownerUserId,
 		createdAt: new Date(),
 		plan: "free",
-		limits: { ...DEFAULT_ORG_LIMITS },
+		limits: { ...SAAS_ORG_LIMITS },
 	};
 	await organizationsCollection(db).insertOne(doc);
 	const settings: OrgSettingsDocument = {
@@ -79,7 +80,12 @@ export async function getOrganizationLimits(
 ): Promise<OrgLimits> {
 	if (!isSaasMode(env) || !env.MONGO) return { ...DEFAULT_ORG_LIMITS };
 	const org = await getOrganization(env, organizationId);
-	return org?.limits ?? { ...DEFAULT_ORG_LIMITS };
+	// Prefer stored limits, but never cap SaaS below the product defaults.
+	const limits = org?.limits ?? { ...SAAS_ORG_LIMITS };
+	return {
+		maxDomains: Math.max(limits.maxDomains, SAAS_ORG_LIMITS.maxDomains),
+		maxMailboxes: Math.max(limits.maxMailboxes, SAAS_ORG_LIMITS.maxMailboxes),
+	};
 }
 
 export async function createDomainVerification(

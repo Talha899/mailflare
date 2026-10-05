@@ -1,4 +1,5 @@
 import type { DomainDnsView } from "@/lib/domains/service";
+import { OUTBOUND_DKIM_SELECTOR, readOutboundDkimTxt } from "@/lib/outbound/sender-domains";
 
 type MailerLike = { configured?: boolean; kind?: string };
 
@@ -23,7 +24,8 @@ function mailerKind(env: CloudflareEnv): "cloudflare" | "smtp" | "none" {
  * - Outbound via Cloudflare Email Sending: root SPF must include Cloudflare,
  *   plus the cf-bounce subdomain records Cloudflare shows when you onboard
  *   the domain in Email Sending (DKIM is copied from that dashboard).
- * - Outbound via SMTP_URL: SPF authorizes the mail host only.
+ * - Outbound via SMTP_URL / Postfix: SPF authorizes the mail host; DKIM uses
+ *   the shared Postfix selector (`mail`) once keys are generated for that hostname.
  */
 export async function getManualDomainDns(env: CloudflareEnv, hostname: string): Promise<DomainDnsView> {
 	const host = mailHost();
@@ -67,12 +69,23 @@ export async function getManualDomainDns(env: CloudflareEnv, hostname: string): 
 			{ type: "TXT", name: hostname, content: `v=spf1 a:${host} ~all`, ttl: 3600 },
 			{ type: "TXT", name: `_dmarc.${hostname}`, content: "v=DMARC1; p=none", ttl: 3600 },
 		);
+		if (kind === "smtp") {
+			const dkimTxt = await readOutboundDkimTxt(hostname);
+			sending.push({
+				type: "TXT",
+				name: `${OUTBOUND_DKIM_SELECTOR}._domainkey.${hostname}`,
+				content:
+					dkimTxt ??
+					`(waiting for Postfix to generate DKIM — ensure SMTP_URL points at postfix, then refresh in ~30s)`,
+				ttl: 3600,
+			});
+		}
 	}
 
 	return {
 		routing: { records: [], missing: routingMissing, status: "manual" },
 		sending,
 		sendingEnabled: sendingConfigured,
-		dkimSelector: kind === "cloudflare" ? "cf-bounce" : undefined,
+		dkimSelector: kind === "cloudflare" ? "cf-bounce" : kind === "smtp" ? OUTBOUND_DKIM_SELECTOR : undefined,
 	};
 }

@@ -8,6 +8,7 @@ import {
 	verificationTxtRecord,
 } from "@/lib/organizations/service";
 import { isManualZone } from "@/lib/domains/provision";
+import { syncOutboundSenderDomains } from "@/lib/outbound/sender-domains";
 
 export type DomainVerificationResult = {
 	verified: boolean;
@@ -89,6 +90,8 @@ export async function verifyDomainOwnership(
 			...(mailerReady && domain.sendingRequested ? { sendingEnabled: true } : {}),
 		})
 		.where(eq(domains.id, domain.id));
+
+	await syncOutboundSenderDomains(env);
 
 	return {
 		verified: true,

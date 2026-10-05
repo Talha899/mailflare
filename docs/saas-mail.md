@@ -1,80 +1,66 @@
 # Send and receive mail (SaaS / Coolify)
 
-This guide matches **mail.aiorders.io** hosting customer domains such as
-**healudoc.com** (DNS not on the operator Cloudflare account).
+This guide matches a self-hosted Mailflare on your operator host (e.g.
+`MAIL_HOSTNAME=mail.example.com`) with customer domains on any DNS provider.
 
 ## How mail flows
 
 | Direction | Path |
 |-----------|------|
-| **Receive** | Internet → MX → `mail.aiorders.io:25` → Mailflare SMTP → SQLite mailbox |
-| **Send** | Compose → `/api/send` → Cloudflare Email Sending API (`CF_TOKEN` + `CF_ACCOUNT_ID`) |
+| **Receive** | Internet → MX → `MAIL_HOSTNAME:25` → Mailflare SMTP → mailbox |
+| **Send** | Compose → `/api/send` → Postfix (`SMTP_URL=smtp://postfix:587`) → internet |
+
+Cloudflare Email Sending (`CF_TOKEN`) is optional and needs Workers Paid. The
+default Coolify compose uses free Postfix for all customer domains.
 
 ## 1. App environment (Coolify)
 
 ```bash
-APP_URL=https://mail.aiorders.io
-MAIL_HOSTNAME=mail.aiorders.io
-CF_ACCOUNT_ID=...
-CF_TOKEN=...   # Email Sending: Edit (and DNS if you manage zones)
+APP_URL=https://mail.example.com
+MAIL_HOSTNAME=mail.example.com
+SMTP_URL=smtp://postfix:587
+SMTP_TLS_REJECT_UNAUTHORIZED=false
+SAAS_MODE=true
+# No POSTFIX_ALLOWED_SENDER_DOMAINS — every domain in Mailflare is included automatically.
 ```
 
-`mail.aiorders.io` must resolve to your Coolify VPS **with Cloudflare proxy off
-(DNS only / grey cloud)** for inbound SMTP. Orange-cloud proxying breaks MX to
-that host.
+`MAIL_HOSTNAME` must resolve to your Coolify VPS **DNS only (grey cloud)**. Open
+**TCP 25** inbound for receive and outbound for Postfix delivery.
 
-Open **TCP 25** on the VPS firewall. If your provider blocks 25, set
-`SMTP_INBOUND_PORT=0` and use `deploy/cloudflare-email-relay` instead
-(different MX: Cloudflare Email Routing hosts, not `mail.aiorders.io`).
+## 2. Client onboarding (any domain)
 
-## 2. Create mailbox in Mailflare
+1. Admin → **Domains** → add the customer hostname → publish ownership TXT → verify.
+2. Admin → **Mailboxes** → create addresses on that domain (no domain allowlist env).
+3. Domains → **Show details** → publish MX, SPF, DMARC, and `mail._domainkey` DKIM
+   (Postfix generates DKIM; refresh details after ~30s for the Content value).
+4. Switch to the mailbox → **Compose** to send.
 
-1. Admin → **Domains** — add and verify domain (TXT ownership).
-2. Admin → **Mailboxes** → **New mailbox** (e.g. `sales@healudoc.com`).
-3. Open the avatar menu → switch to that mailbox → **Compose** to send.
-4. Inbox receives mail for that address after DNS is correct.
+There are **no per-domain Coolify env edits**. Adding `client-a.com` then
+`client-b.com` only requires DNS at each client’s DNS host.
 
-## 3. DNS on the customer domain (healudoc.com)
-
-Publish at the domain’s DNS host (e.g. Cloudflare DNS for healudoc.com).
-
-### Receive (required)
+## 3. DNS checklist (per customer domain)
 
 | Type | Name | Value |
 |------|------|--------|
-| **MX** | `@` / `healudoc.com` | `10 mail.aiorders.io` |
-
-Today healudoc.com has **no MX** — inbound cannot work until this exists.
-
-### Send via Cloudflare Email Sending (required for deliverability)
-
-1. In the **operator** Cloudflare account: **Email** → **Email Sending** →
-   **Onboard domain** → `healudoc.com`.
-2. Publish every record Cloudflare shows (typically SPF/DKIM/MX under a
-   `cf-bounce` subdomain).
-3. Also set on the apex:
-
-| Type | Name | Value |
-|------|------|--------|
-| **TXT** | `@` | `v=spf1 include:_spf.mx.cloudflare.net a:mail.aiorders.io ~all` |
+| **MX** | `@` | Priority `10` → your `MAIL_HOSTNAME` |
+| **TXT** | `@` | `v=spf1 a:MAIL_HOSTNAME ~all` (merge if SPF already exists) |
 | **TXT** | `_dmarc` | `v=DMARC1; p=none` |
+| **TXT** | `mail._domainkey` | Content from Domains → Setup → DKIM (Postfix) |
 
-Mailflare’s Domains page lists the same checklist for manual zones.
+Skip Cloudflare `cf-bounce` records when using Postfix.
 
 ## 4. Smoke test
 
-1. From Gmail, send to `sales@healudoc.com` → appears in Mailflare Inbox.
-2. From Mailflare Compose, reply → arrives in Gmail (check spam if SPF/DKIM incomplete).
+1. External mail → customer mailbox appears in Inbox.
+2. Compose from that mailbox → arrives at Gmail (check spam on a fresh VPS IP).
 
 ## 5. If send fails
 
-- Logs: `Cloudflare Email Sending failed (...)` — domain not onboarded or token
-  lacks Email Sending permission.
-- Domain must be verified/active in Mailflare and the mailbox selected in the UI.
+- Postfix / Mailflare logs: SMTP connection refused → `SMTP_URL` / compose network.
+- No DKIM Content in UI → wait for Postfix restart after domain sync, then refresh.
+- VPS blocks outbound 25 → Postfix cannot deliver (host limitation).
 
 ## 6. If receive fails
 
-- No MX / wrong MX.
-- Port 25 closed on the VPS.
-- `mail.aiorders.io` orange-clouded on Cloudflare.
+- Missing/wrong MX, port 25 closed, or `MAIL_HOSTNAME` orange-clouded.
 - Mailbox local part does not match the recipient address.

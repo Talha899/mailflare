@@ -19,6 +19,7 @@ import { rollbackDomainProvisioning } from "@/lib/domains/rollback";
 import type { DomainProvisioningChanges } from "@/lib/domains/types";
 import { findSendingSubdomain } from "@/lib/domains/sending-status";
 import { preflightDomain } from "@/lib/domains/preflight";
+import { syncOutboundSenderDomains } from "@/lib/outbound/sender-domains";
 import { hasCloudflareCredentials } from "@/lib/runtime";
 import {
 	createDomainVerification,
@@ -240,6 +241,7 @@ export async function addDomainForUser(
 			sendingEnabled: effectiveProvisioned.sendingEnabled,
 		};
 	}
+	await syncOutboundSenderDomains(env);
 	return { domain, dns, changes: effectiveProvisioned.changes, verification: verificationRecord };
 }
 
@@ -351,6 +353,7 @@ export async function removeDomainForUser(
 	}
 
 	await db.delete(domains).where(eq(domains.id, domainId));
+	await syncOutboundSenderDomains(env);
 }
 
 export async function getDomainForUser(env: CloudflareEnv, userId: string, domainId: string) {

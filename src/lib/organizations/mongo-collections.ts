@@ -16,6 +16,12 @@ export const DEFAULT_ORG_LIMITS = {
 	maxMailboxes: 25,
 } as const;
 
+/** SaaS product: no practical domain/mailbox caps (enforcement hooks use these). */
+export const SAAS_ORG_LIMITS = {
+	maxDomains: 1_000_000,
+	maxMailboxes: 10_000_000,
+} as const;
+
 export function organizationsCollection(db: Db): Collection<OrganizationDocument> {
 	return db.collection<OrganizationDocument>(ORG_COLLECTIONS.organizations);
 }

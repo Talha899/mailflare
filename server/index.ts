@@ -43,6 +43,13 @@ async function main() {
 	const migrated = await applyMigrations(runtime.database, resolve(process.env.MIGRATIONS_DIR ?? join(process.cwd(), "drizzle", "migrations")));
 	if (migrated.length) console.log(`Applied ${migrated.length} migration(s): ${migrated.join(", ")}`);
 
+	try {
+		const { syncOutboundSenderDomains } = await import("@/lib/outbound/sender-domains");
+		await syncOutboundSenderDomains(env);
+	} catch (error) {
+		console.warn("syncOutboundSenderDomains on boot", error);
+	}
+
 	runtime.inboundQueue.setConsumer(async (body) => {
 		if (isInboundQueueMessage(body)) await processInboundMessage(env, body);
 	});
