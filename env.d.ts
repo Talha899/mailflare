@@ -36,4 +36,16 @@ interface CloudflareEnv {
 	CF_ACCOUNT_ID?: string;
 	/** Public origin of this install (https://mail.example.com) when it sits behind a proxy. */
 	APP_URL?: string;
+	/**
+	 * MongoDB connection for SaaS tenant metadata (organizations, domain
+	 * verification, plan limits). Self-hosted / Docker only; unset on Workers.
+	 */
+	MONGO_URL?: string;
+	/** Wired at Node boot when MONGO_URL is set; null when unavailable. */
+	MONGO?: import("mongodb").Db | null;
+	/**
+	 * When "true", open multi-org signup is enabled (Node/Docker). Workers and
+	 * classic single-tenant installs leave this unset/false.
+	 */
+	SAAS_MODE?: string;
 }

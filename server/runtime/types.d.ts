@@ -3,6 +3,8 @@ import type { InProcessQueue } from "./queue";
 import type { RealtimeHubRegistry } from "./realtime";
 import type { SqliteDatabase } from "./sqlite-database";
 
+import type { BlobStoreHandle } from "./blob-store";
+
 export type NodeRuntime = {
 	env: CloudflareEnv;
 	dataDir: string;
@@ -12,4 +14,5 @@ export type NodeRuntime = {
 	outboundQueue: InProcessQueue;
 	agentQueue: InProcessQueue;
 	realtime: RealtimeHubRegistry;
+	blobStore: BlobStoreHandle;
 };

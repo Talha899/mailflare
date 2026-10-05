@@ -91,7 +91,7 @@ export async function resolveInboundAddress(
 	);
 	const mailbox = exactMailbox
 		?? await resolveMailboxAlias(db, domain.id, parsed.localPart)
-		?? await resolveMailboxDomainAlias(db, parsed.localPart, parsed.normalizedAddress);
+		?? await resolveMailboxDomainAlias(db, parsed.localPart, parsed.normalizedAddress, domain.organizationId);
 
 	if (mailbox) {
 		return {
@@ -212,11 +212,14 @@ async function resolveMailboxDomainAlias(
 	db: AppDatabase,
 	localPart: string,
 	normalizedAddress: string,
+	organizationId?: string,
 ) {
+	const conditions = [eq(mailboxes.useAllDomains, true), eq(mailboxes.disabled, false)];
+	if (organizationId) conditions.push(eq(mailboxes.organizationId, organizationId));
 	const candidates = await db
 		.select()
 		.from(mailboxes)
-		.where(and(eq(mailboxes.useAllDomains, true), eq(mailboxes.disabled, false)));
+		.where(and(...conditions));
 
 	for (const mailbox of candidates) {
 		if (normalizeRecipientLocalPart(mailbox.localPart) !== localPart) continue;

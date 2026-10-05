@@ -11,6 +11,7 @@ export type DomainCreateResult = {
 export type DomainPreflight = {
 	hostname: string;
 	zone: { id: string; name: string };
+	mode?: "cloudflare" | "manual";
 };
 
 export type DomainPreflightResponse = {

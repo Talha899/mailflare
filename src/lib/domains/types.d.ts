@@ -42,6 +42,8 @@ export type DomainProvisioningResult = {
 export type DomainPreflightResult = {
 	hostname: string;
 	zone: { id: string; name: string };
+	/** cloudflare = zone on this account; manual = TXT/DNS checklist (SaaS or no CF credentials). */
+	mode: "cloudflare" | "manual";
 };
 
 export type DomainRow = typeof domains.$inferSelect;

@@ -21,7 +21,7 @@ RUN npm run build:node && rm -rf .next-node/cache
 # dependencies of the Cloudflare adapter and is never loaded here, so it goes.
 FROM deps AS prod-deps
 RUN npm prune --omit=dev --ignore-scripts \
-	&& rm -rf node_modules/wrangler node_modules/miniflare node_modules/workerd node_modules/@cloudflare node_modules/cloudflare node_modules/@aws-sdk node_modules/esbuild node_modules/@esbuild node_modules/typescript
+	&& rm -rf node_modules/wrangler node_modules/miniflare node_modules/workerd node_modules/@cloudflare node_modules/cloudflare node_modules/esbuild node_modules/@esbuild node_modules/typescript
 
 FROM base AS runtime
 ENV NODE_ENV=production DATA_DIR=/data PORT=3000 SMTP_INBOUND_PORT=25

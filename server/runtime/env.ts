@@ -1,8 +1,9 @@
 import { mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { openFileBucket } from "./file-bucket";
+import { openBlobStore } from "./blob-store";
 import { openMailer, type Mailer, type MailerConfig } from "./mailer";
 import { openAssets, openRateLimiter } from "./misc";
+import { openMongoClient } from "./mongo";
 import { openQueue, type InProcessQueue } from "./queue";
 import { RealtimeHubRegistry } from "./realtime";
 import { openSqliteDatabase, type SqliteDatabase } from "./sqlite-database";
@@ -26,13 +27,17 @@ function mailerConfig(): MailerConfig {
  * Assemble a `CloudflareEnv` for the Node runtime from environment variables
  * and local resources. Everything the app reaches through `getEnv()` is here,
  * so application code does not know which platform it runs on.
+ *
+ * MongoDB is opened asynchronously via {@link finalizeNodeRuntimeMongo} so the
+ * sync bootstrap path stays unchanged for installs without MONGO_URL.
  */
 export function createNodeRuntime(): NodeRuntime {
 	const dataDir = resolve(optional("DATA_DIR") ?? "./data");
 	mkdirSync(join(dataDir, "blobs"), { recursive: true });
 
 	const database = openSqliteDatabase(join(dataDir, "mailflare.sqlite"));
-	const bucket = openFileBucket(join(dataDir, "blobs"));
+	const blobStore = openBlobStore(dataDir);
+	const bucket = blobStore.bucket;
 	const mailer = openMailer(mailerConfig());
 	const inboundQueue = openQueue("mailflare-inbound");
 	const outboundQueue = openQueue("mailflare-outbound");
@@ -67,6 +72,9 @@ export function createNodeRuntime(): NodeRuntime {
 		MAILFLARE_RUNTIME: "node",
 		APP_URL: optional("APP_URL")?.replace(/\/$/, ""),
 		INBOUND_WEBHOOK_SECRET: optional("INBOUND_WEBHOOK_SECRET"),
+		MONGO_URL: optional("MONGO_URL"),
+		MONGO: null,
+		SAAS_MODE: optional("SAAS_MODE"),
 	} as unknown as CloudflareEnv;
 	realtime.bindEnv(env);
 
@@ -79,5 +87,14 @@ export function createNodeRuntime(): NodeRuntime {
 		outboundQueue: outboundQueue as unknown as InProcessQueue,
 		agentQueue: agentQueue as unknown as InProcessQueue,
 		realtime,
+		blobStore,
 	};
+}
+
+/** Connect Mongo when MONGO_URL is set and attach it to the runtime env. */
+export async function finalizeNodeRuntimeMongo(runtime: NodeRuntime): Promise<void> {
+	const url = runtime.env.MONGO_URL?.trim();
+	if (!url) return;
+	const mongo = await openMongoClient(url);
+	(runtime.env as { MONGO: typeof mongo }).MONGO = mongo;
 }

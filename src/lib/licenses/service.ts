@@ -4,6 +4,7 @@ import { getDb } from "@/db";
 import { licenseSettings } from "@/db/schema";
 import { LICENSE_PRODUCT_IDS } from "./constants";
 import { callPaymugLicenseApi } from "./paymug";
+import { isSaasModeEnabled } from "@/lib/runtime";
 import type { LicenseEntitlements, LicensePlan, LicenseStatus, PaymugLicenseAction } from "./types";
 import { hashLicenseKey, normalizeLicensePlan, parseFeatures } from "./utils";
 
@@ -39,10 +40,35 @@ function toLicenseStatus(settings: typeof licenseSettings.$inferSelect): License
 }
 
 export async function getLicenseStatus(env: CloudflareEnv): Promise<LicenseStatus> {
+	if (billingDisabled(env)) {
+		return {
+			plan: "team",
+			state: "active",
+			features: [],
+			instanceId: "saas",
+			instanceUrl: null,
+			active: true,
+			activatedAt: null,
+			validatedAt: null,
+		};
+	}
 	return toLicenseStatus(await getOrCreateLicenseSettings(env));
 }
 
+/** SaaS ships without Paymug billing for now — unlock Team-tier features. */
+export function billingDisabled(env?: CloudflareEnv): boolean {
+	return isSaasModeEnabled(env);
+}
+
 export async function getLicenseEntitlements(env: CloudflareEnv): Promise<LicenseEntitlements> {
+	if (billingDisabled(env)) {
+		return {
+			plan: "team",
+			canCustomizeBranding: true,
+			canManageAccounts: true,
+			canForwardEmail: true,
+		};
+	}
 	try {
 		const status = await getLicenseStatus(env);
 		// TODO: confirm Paymug's exact feature identifiers when they are documented; plan is authoritative meanwhile.

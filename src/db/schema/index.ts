@@ -30,11 +30,16 @@ export const users = sqliteTable("users", {
 	totpSecret: text("totp_secret"),
 	totpEnabled: integer("totp_enabled", { mode: "boolean" }).notNull().default(false),
 	totpConfirmedAt: integer("totp_confirmed_at", { mode: "timestamp" }),
+	/** SaaS tenant boundary; backfilled to org_default on upgrade. */
+	organizationId: text("organization_id").notNull().default("org_default"),
 	createdByUserId: text("created_by_user_id").references((): AnySQLiteColumn => users.id, { onDelete: "set null" }),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),
-}, (t) => [uniqueIndex("users_booking_username_idx").on(t.bookingUsername)]);
+}, (t) => [
+	uniqueIndex("users_booking_username_idx").on(t.bookingUsername),
+	index("users_organization_idx").on(t.organizationId),
+]);
 
 export const domains = sqliteTable(
 	"domains",
@@ -43,6 +48,7 @@ export const domains = sqliteTable(
 		userId: text("user_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
+		organizationId: text("organization_id").notNull().default("org_default"),
 		hostname: text("hostname").notNull(),
 		zoneId: text("zone_id").notNull(),
 		status: text("status", { enum: ["pending", "active", "error"] })
@@ -60,6 +66,7 @@ export const domains = sqliteTable(
 	(t) => [
 		uniqueIndex("domains_hostname_idx").on(t.hostname),
 		index("domains_user_idx").on(t.userId),
+		index("domains_organization_idx").on(t.organizationId),
 	],
 );
 
@@ -73,6 +80,7 @@ export const mailboxes = sqliteTable(
 		domainId: text("domain_id")
 			.notNull()
 			.references(() => domains.id, { onDelete: "cascade" }),
+		organizationId: text("organization_id").notNull().default("org_default"),
 		localPart: text("local_part").notNull(),
 		displayName: text("display_name"),
 		signature: text("signature"),
@@ -87,7 +95,11 @@ export const mailboxes = sqliteTable(
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},
-	(t) => [uniqueIndex("mailboxes_address_idx").on(t.domainId, t.localPart), index("mailboxes_user_idx").on(t.userId)],
+	(t) => [
+		uniqueIndex("mailboxes_address_idx").on(t.domainId, t.localPart),
+		index("mailboxes_user_idx").on(t.userId),
+		index("mailboxes_organization_idx").on(t.organizationId),
+	],
 );
 
 export const mailboxAliases = sqliteTable(

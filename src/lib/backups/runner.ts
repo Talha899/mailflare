@@ -1,6 +1,7 @@
 import { and, eq, inArray, lt } from "drizzle-orm";
 import { getDb } from "@/db";
 import { backups } from "@/db/schema";
+import { exportMongoTenantData } from "@/lib/organizations/service";
 import { exportDatabaseRecords } from "./export";
 import { createScheduledBackupIfDue, getBackupSettings } from "./service";
 import { BACKUP_PREFIX, createBackupFilename } from "./utils";
@@ -21,6 +22,20 @@ export async function runDatabaseBackup(env: CloudflareEnv, backupId: string): P
 			httpMetadata: { contentType: "application/json" },
 			customMetadata: { backupId },
 		});
+
+		const mongoPayload = await exportMongoTenantData(env);
+		if (mongoPayload) {
+			const mongoKey = `${BACKUP_PREFIX}/${backupId}/mongo-tenants.json`;
+			await env.BUCKET.put(mongoKey, JSON.stringify({
+				format: "mailflare-mongo-tenant-backup",
+				version: 1,
+				createdAt: new Date().toISOString(),
+				...mongoPayload,
+			}, null, 2), {
+				httpMetadata: { contentType: "application/json" },
+				customMetadata: { backupId, kind: "mongo-tenants" },
+			});
+		}
 
 		await db
 			.update(backups)

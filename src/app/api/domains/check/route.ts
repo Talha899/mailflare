@@ -13,7 +13,8 @@ export async function POST(request: Request) {
 	}
 
 	try {
-		return NextResponse.json({ domain: await preflightDomain(env, parsed.data.hostname) });
+		const domain = await preflightDomain(env, parsed.data.hostname);
+		return NextResponse.json({ domain });
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Domain check failed";
 		return NextResponse.json({ error: message }, { status: 502 });

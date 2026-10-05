@@ -11,6 +11,7 @@ export type Domain = {
 export type DomainPreflight = {
 	hostname: string;
 	zone: { id: string; name: string };
+	mode?: "cloudflare" | "manual";
 };
 
 export type DomainPreflightResponse = {
@@ -65,6 +66,7 @@ export type DomainDnsDetailsProps = {
 	domain: Domain;
 	dns: DomainDnsView;
 	onSetup?: (record: DnsAuthRecord) => void;
+	onVerify?: () => void;
 	setupRecord?: DnsAuthRecord | null;
 	setupMessage?: string | null;
 };
@@ -79,6 +81,7 @@ export type DomainItemCardProps = {
 	remove: { mutate: (id: string) => void; isPending: boolean };
 	onToggleDns: (id: string) => void;
 	onSetup?: (record: DnsAuthRecord) => void;
+	onVerify?: (id: string) => void;
 	setupRecord?: DnsAuthRecord | null;
 	setupMessage?: string | null;
 };

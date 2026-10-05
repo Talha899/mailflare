@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { assertPrimaryAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/cookies";
+import { billingDisabled } from "@/lib/licenses/service";
 import type { LicenseKeyRequest } from "./types";
 
 const licenseKeySchema = z.object({
@@ -10,6 +11,9 @@ const licenseKeySchema = z.object({
 });
 
 export async function requireLicenseAdmin(env: CloudflareEnv, request: Request): Promise<NextResponse | null> {
+	if (billingDisabled(env)) {
+		return NextResponse.json({ error: "Billing is disabled for this installation" }, { status: 404 });
+	}
 	try {
 		assertPrimaryAdmin(await requireUser(env, request));
 		return null;

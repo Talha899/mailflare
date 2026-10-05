@@ -35,19 +35,32 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 					return;
 				}
 
-				const data = (await response.json()) as { hasMailboxes?: boolean; isSetup?: boolean; user?: { id?: string; role?: string; isPrimaryAdmin?: boolean; timeZone?: string | null } };
+				const data = (await response.json()) as {
+					hasMailboxes?: boolean;
+					isSetup?: boolean;
+					saasMode?: boolean;
+					user?: { id?: string; role?: string; isPrimaryAdmin?: boolean; timeZone?: string | null };
+				};
 				if (data.user?.id) saveUserTimeZonePreference(data.user.id, data.user.timeZone ?? null);
 				if (mode === "public") {
 					router.replace("/inbox");
 					return;
 				}
 
-				if (requireMailbox && data.hasMailboxes === false && data.user?.role === "admin" && data.isSetup === false && pathname !== "/setup") {
-					router.replace("/setup");
+				const onboardingPath = data.saasMode ? "/onboarding/domain" : "/setup";
+				if (
+					requireMailbox &&
+					data.hasMailboxes === false &&
+					data.user?.role === "admin" &&
+					data.isSetup === false &&
+					pathname !== "/setup" &&
+					pathname !== "/onboarding/domain"
+				) {
+					router.replace(onboardingPath);
 					return;
 				}
 
-				if (pathname === "/setup" && data.isSetup === true) {
+				if ((pathname === "/setup" || pathname === "/onboarding/domain") && data.isSetup === true) {
 					router.replace("/inbox");
 					return;
 				}

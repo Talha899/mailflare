@@ -20,13 +20,14 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 	const username = input.username.toLowerCase().trim();
 	const email = `${username}@${primaryDomain.hostname}`;
 	const requested = [{ domainId: primaryDomain.id, localPart: username }, ...input.aliases];
-	const ownedDomains = await db.select().from(domains).where(eq(domains.userId, adminUserId));
+	const organizationId = primaryDomain.organizationId;
+	const ownedDomains = await db.select().from(domains).where(eq(domains.organizationId, organizationId));
 	const byId = new Map(ownedDomains.map((domain) => [domain.id, domain]));
 	const seen = new Set<string>();
 	for (const [index, address] of requested.entries()) {
 		const domain = byId.get(address.domainId);
 		if (!domain || (index > 0 && domain.status !== "active")) {
-			return NextResponse.json({ error: "Choose an active alias domain owned by this admin account" }, { status: 400 });
+			return NextResponse.json({ error: "Choose an active alias domain owned by this organization" }, { status: 400 });
 		}
 		const localPart = normalizeRecipientLocalPart(address.localPart);
 		if (!localPart) return NextResponse.json({ error: "Enter a valid address username" }, { status: 400 });
@@ -39,7 +40,7 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 	const [registered] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
 	if (registered) return NextResponse.json({ error: "Email already registered" }, { status: 409 });
 	// A subquery avoids one bound parameter per selected domain.
-	const ownedDomainIds = db.select({ id: domains.id }).from(domains).where(eq(domains.userId, adminUserId));
+	const ownedDomainIds = db.select({ id: domains.id }).from(domains).where(eq(domains.organizationId, organizationId));
 	const [existingMailboxes, existingAliases] = await Promise.all([
 		db.select({ domainId: mailboxes.domainId, localPart: mailboxes.localPart }).from(mailboxes).where(inArray(mailboxes.domainId, ownedDomainIds)),
 		db.select({ domainId: mailboxAliases.domainId, localPart: mailboxAliases.localPart }).from(mailboxAliases).where(inArray(mailboxAliases.domainId, ownedDomainIds)),
@@ -50,13 +51,21 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 
 	const userId = newId("usr");
 	const mailboxId = newId("mbx");
-	const mailbox = { id: mailboxId, userId, domainId: primaryDomain.id, localPart: username, displayName: username, useAllDomains: input.useAllDomains };
+	const mailbox = {
+		id: mailboxId,
+		userId,
+		domainId: primaryDomain.id,
+		organizationId,
+		localPart: username,
+		displayName: username,
+		useAllDomains: input.useAllDomains,
+	};
 	const changes: CfEmailRoutingRuleChange[] = [];
 	let inserted = false;
 	try {
 		const accountInsert = db.insert(users).values({
 			id: userId, email, passwordHash: hashPassword(input.password), name: username,
-			role: input.role, createdByUserId: adminUserId,
+			role: input.role, createdByUserId: adminUserId, organizationId,
 		}).returning();
 		const mailboxInsert = db.insert(mailboxes).values(mailbox);
 		// Five bound columns per alias: 20 rows fit D1's 100-parameter limit.

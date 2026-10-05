@@ -10,8 +10,9 @@ import { processAgentDraftJob } from "@/lib/agent/jobs/utils";
 import { processOutboundQueue, type OutboundQueueMessage } from "@/lib/email/send";
 import { processWebhookRetry, type WebhookRetryMessage } from "@/lib/email/webhooks";
 import { isInboundQueueMessage, isWebhookRetryMessage } from "../worker-utils";
-import { createNodeRuntime } from "./runtime/env";
+import { createNodeRuntime, finalizeNodeRuntimeMongo } from "./runtime/env";
 import { applyMigrations } from "./runtime/migrate";
+import { ensureOrganizationIndexes } from "@/lib/organizations/mongo-collections";
 import { startScheduler } from "./runtime/scheduler";
 import { startSmtpListener } from "./runtime/smtp";
 
@@ -25,8 +26,19 @@ async function main() {
 	const host = process.env.HOST ?? "0.0.0.0";
 	const dev = process.env.NODE_ENV !== "production";
 	const runtime = createNodeRuntime();
+	if (runtime.blobStore.kind === "s3") {
+		await runtime.blobStore.ensureReady?.();
+		console.log(`Object storage: S3 (${process.env.S3_BUCKET} @ ${process.env.S3_ENDPOINT})`);
+	}
+	await finalizeNodeRuntimeMongo(runtime);
 	const { env } = runtime;
 	globalThis.__mailflareNodeEnv = env;
+	if (env.MONGO) {
+		await ensureOrganizationIndexes(env.MONGO);
+		console.log("MongoDB connected for SaaS tenant metadata");
+	} else if (env.SAAS_MODE === "true") {
+		console.warn("SAAS_MODE=true but MONGO_URL is unset; multi-org signup will fail until Mongo is available");
+	}
 
 	const migrated = await applyMigrations(runtime.database, resolve(process.env.MIGRATIONS_DIR ?? join(process.cwd(), "drizzle", "migrations")));
 	if (migrated.length) console.log(`Applied ${migrated.length} migration(s): ${migrated.join(", ")}`);

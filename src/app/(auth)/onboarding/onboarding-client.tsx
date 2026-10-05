@@ -51,7 +51,8 @@ export function OnboardingClient() {
 				return;
 			}
 			checkedDomain = result.domain;
-			sendingRequested = false;
+			const isManual = result.domain.mode === "manual" || result.domain.zone.id === "manual";
+			sendingRequested = isManual ? true : false;
 			setDomainCheck(result.domain);
 			setEnableSending(sendingRequested);
 		}
@@ -94,7 +95,8 @@ export function OnboardingClient() {
 		}
 
 		setDomainCheck(result.domain);
-		setEnableSending(false);
+		const isManual = result.domain.mode === "manual" || result.domain.zone.id === "manual";
+		setEnableSending(isManual);
 	}
 
 	async function addMailbox() {
@@ -134,8 +136,8 @@ export function OnboardingClient() {
 				{step === 1 && (
 					<>
 						<p className="rounded-2xl bg-[#eaf1fb] px-4 py-3 text-sm leading-6 text-neutral-700">
-							Your domain must use Cloudflare DNS on the same account as{" "}
-							<code className="no-font-mono text-xs font-semibold text-blue-800">CF_TOKEN</code>.
+							Zones on your Cloudflare account are configured automatically. Other domains use TXT
+							ownership verification and a manual MX/SPF/DMARC checklist.
 						</p>
 						<div className="space-y-2">
 							<Label htmlFor="domain">Domain</Label>
@@ -154,34 +156,42 @@ export function OnboardingClient() {
 								placeholder="example.com"
 							/>
 						</div>
-						<div className="flex items-center justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
-							<div>
-								<Label htmlFor="onboarding-enable-sending">Enable sending</Label>
-								<p className="mt-1 text-xs leading-5 text-neutral-500">
-									{domainChecking
-										? "Checking Cloudflare access..."
-										: domainCheck
-											? enableSending
-												? "Required to send email."
-												: "Receive-only mode."
-											: "Leave the domain field to verify it."}
-								</p>
+						{!(domainCheck?.mode === "manual" || domainCheck?.zone.id === "manual") && (
+							<div className="flex items-center justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
+								<div>
+									<Label htmlFor="onboarding-enable-sending">Enable sending</Label>
+									<p className="mt-1 text-xs leading-5 text-neutral-500">
+										{domainChecking
+											? "Checking Cloudflare access..."
+											: domainCheck
+												? enableSending
+													? "Required to send email."
+													: "Receive-only mode."
+												: "Leave the domain field to verify it."}
+									</p>
+								</div>
+								{domainChecking ? (
+									<LoaderCircle className="h-4 w-4 animate-spin text-neutral-500" />
+								) : (
+									<Switch
+										id="onboarding-enable-sending"
+										checked={enableSending}
+										onCheckedChange={setEnableSending}
+										disabled={!domainCheck}
+									/>
+								)}
 							</div>
-							{domainChecking ? (
-								<LoaderCircle className="h-4 w-4 animate-spin text-neutral-500" />
-							) : (
-								<Switch
-									id="onboarding-enable-sending"
-									checked={enableSending}
-									onCheckedChange={setEnableSending}
-									disabled={!domainCheck}
-								/>
-							)}
-						</div>
-						{domainCheck && (
+						)}
+						{domainCheck && domainCheck.mode !== "manual" && domainCheck.zone.id !== "manual" && (
 							<div className="flex items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
 								<CheckCircle2 className="h-4 w-4" />
 								Domain found in Cloudflare as {domainCheck.zone.name}
+							</div>
+						)}
+						{domainCheck && (domainCheck.mode === "manual" || domainCheck.zone.id === "manual") && (
+							<div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+								Not on this Cloudflare account. Continue to get TXT verification and DNS records to
+								publish at your registrar.
 							</div>
 						)}
 						{mxConflict && (

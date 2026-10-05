@@ -1,6 +1,6 @@
 import { eq, and, ne } from "drizzle-orm";
 import { getDb } from "@/db";
-import { domains, mailboxes } from "@/db/schema";
+import { domains, mailboxes, users } from "@/db/schema";
 import { ensureMailboxDomainRouting } from "@/lib/mailboxes/domain-addresses";
 import { newId } from "@/lib/ids";
 import {
@@ -20,6 +20,11 @@ import type { DomainProvisioningChanges } from "@/lib/domains/types";
 import { findSendingSubdomain } from "@/lib/domains/sending-status";
 import { preflightDomain } from "@/lib/domains/preflight";
 import { hasCloudflareCredentials } from "@/lib/runtime";
+import {
+	createDomainVerification,
+	isSaasMode,
+	verificationTxtRecord,
+} from "@/lib/organizations/service";
 
 export type DomainDnsView = {
 	routing: { records: CfDnsRecord[]; missing: CfDnsRecord[]; status?: string };
@@ -33,57 +38,126 @@ export type DomainDnsView = {
 
 export async function listUserDomains(env: CloudflareEnv, userId: string) {
 	const db = getDb(env);
+	const [owner] = await db.select({ organizationId: users.organizationId }).from(users).where(eq(users.id, userId)).limit(1);
+	if (owner?.organizationId) {
+		return db.select().from(domains).where(eq(domains.organizationId, owner.organizationId));
+	}
 	return db.select().from(domains).where(eq(domains.userId, userId));
+}
+
+export async function listOrganizationDomains(env: CloudflareEnv, organizationId: string) {
+	const db = getDb(env);
+	return db.select().from(domains).where(eq(domains.organizationId, organizationId));
 }
 
 export async function addDomainForUser(
 	env: CloudflareEnv,
 	userId: string,
 	hostname: string,
-	options?: { enableRouting?: boolean; enableSending?: boolean; replaceMxRecords?: boolean },
+	options?: { enableRouting?: boolean; enableSending?: boolean; replaceMxRecords?: boolean; organizationId?: string },
 ): Promise<{
 	domain: typeof domains.$inferSelect;
 	dns: DomainDnsView;
 	changes: DomainProvisioningChanges;
+	verification?: { type: "TXT"; name: string; content: string };
 }> {
 	const db = getDb(env);
+	const [owner] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+	const organizationId = options?.organizationId ?? owner?.organizationId ?? "org_default";
+
 	const normalizedHostname = hostname.toLowerCase().trim();
-	const [claimedHostname] = await db.select({ userId: domains.userId }).from(domains).where(eq(domains.hostname, normalizedHostname)).limit(1);
-	if (claimedHostname && claimedHostname.userId !== userId) {
+	const [claimedHostname] = await db
+		.select({ userId: domains.userId, organizationId: domains.organizationId })
+		.from(domains)
+		.where(eq(domains.hostname, normalizedHostname))
+		.limit(1);
+	if (claimedHostname && claimedHostname.organizationId !== organizationId) {
 		throw new Error("Domain is already registered");
 	}
+
+	let useCloudflare = false;
 	if (hasCloudflareCredentials(env)) {
-		const { zone } = await preflightDomain(env, normalizedHostname);
-		const [claimedZone] = await db.select({ userId: domains.userId }).from(domains).where(and(
-			eq(domains.zoneId, zone.id),
-			ne(domains.userId, userId),
-		)).limit(1);
-		if (claimedZone) {
-			throw new Error("Cloudflare zone is already registered to another account");
+		try {
+			const preflight = await preflightDomain(env, normalizedHostname);
+			// Manual / off-account domains share zoneId "manual" — never treat that as a unique CF zone claim.
+			if (preflight.mode === "manual" || isManualZone(preflight.zone.id)) {
+				useCloudflare = false;
+			} else {
+				const [claimedZone] = await db
+					.select({ userId: domains.userId, organizationId: domains.organizationId })
+					.from(domains)
+					.where(and(eq(domains.zoneId, preflight.zone.id), ne(domains.organizationId, organizationId)))
+					.limit(1);
+				if (claimedZone) {
+					throw new Error("Cloudflare zone is already registered to another organization");
+				}
+				useCloudflare = true;
+			}
+		} catch (error) {
+			// Dual path C: fall back to manual TXT verification when the zone is not on this CF account.
+			if (isSaasMode(env) && error instanceof Error && /Zone not found/i.test(error.message)) {
+				useCloudflare = false;
+			} else {
+				throw error;
+			}
 		}
 	}
-	const provisioned = await provisionDomainOnCloudflare(env, hostname, options);
+
+	const manualProvisioned = {
+		hostname: normalizedHostname,
+		zone: { id: "manual", name: normalizedHostname },
+		routingEnabled: false,
+		sendingRequested: options?.enableSending ?? true,
+		sendingEnabled: false,
+		sendingSubdomainTag: null as string | null,
+		routingStatus: "manual",
+		changes: {
+			zoneId: "manual",
+			enabledEmailRouting: false,
+			createdSendingSubdomainTag: null,
+			previousCatchAll: null,
+			createdAddressRules: [] as string[],
+			deletedMxRecords: [] as Array<{ id: string; name: string; type: string; content: string; priority?: number; ttl?: number }>,
+		} satisfies DomainProvisioningChanges,
+	};
+
+	const effectiveProvisioned = useCloudflare
+		? await provisionDomainOnCloudflare(env, hostname, options)
+		: !hasCloudflareCredentials(env)
+			? await provisionDomainOnCloudflare(env, hostname, options)
+			: manualProvisioned;
+
+	const forceManual = isManualZone(effectiveProvisioned.zone.id);
+
 	let insertedDomainId: string | null = null;
 	let domain: typeof domains.$inferSelect;
+	let verificationRecord: { type: "TXT"; name: string; content: string } | undefined;
 
 	try {
-		const [existing] = await db.select().from(domains).where(eq(domains.hostname, provisioned.hostname)).limit(1);
-		if (existing && existing.userId !== userId) {
+		const [existing] = await db.select().from(domains).where(eq(domains.hostname, effectiveProvisioned.hostname)).limit(1);
+		if (existing && existing.organizationId !== organizationId) {
 			throw new Error("Domain is already registered");
 		}
 
 		const domainId = existing?.id ?? newId("dom");
+		const isManual = forceManual;
+		const requiresTxtProof = isManual && isSaasMode(env);
 		const values = {
 			id: domainId,
 			userId,
-			hostname: provisioned.hostname,
-			zoneId: provisioned.zone.id,
-			status: provisioned.routingEnabled || provisioned.sendingEnabled ? ("active" as const) : ("pending" as const),
-			routingStatus: provisioned.routingStatus ?? null,
-			sendingSubdomainTag: provisioned.sendingSubdomainTag,
-			sendingRequested: provisioned.sendingRequested,
-			sendingEnabled: provisioned.sendingEnabled,
-			routingEnabled: provisioned.routingEnabled,
+			organizationId,
+			hostname: effectiveProvisioned.hostname,
+			zoneId: isManual ? "manual" : effectiveProvisioned.zone.id,
+			status: requiresTxtProof
+				? ("pending" as const)
+				: effectiveProvisioned.routingEnabled || effectiveProvisioned.sendingEnabled || isManual
+					? ("active" as const)
+					: ("pending" as const),
+			routingStatus: effectiveProvisioned.routingStatus ?? null,
+			sendingSubdomainTag: effectiveProvisioned.sendingSubdomainTag,
+			sendingRequested: effectiveProvisioned.sendingRequested,
+			sendingEnabled: effectiveProvisioned.sendingEnabled,
+			routingEnabled: requiresTxtProof ? false : (effectiveProvisioned.routingEnabled || isManual),
 		};
 
 		if (existing) {
@@ -93,11 +167,26 @@ export async function addDomainForUser(
 			insertedDomainId = domainId;
 		}
 
+		if (requiresTxtProof && env.MONGO) {
+			const verification = await createDomainVerification(env, {
+				organizationId,
+				domainId,
+				hostname: effectiveProvisioned.hostname,
+			});
+			verificationRecord = verificationTxtRecord(verification.hostname, verification.token);
+		}
+
 		const aliasMailboxes = await db
-			.select({ id: mailboxes.id, domainId: mailboxes.domainId, localPart: mailboxes.localPart, useAllDomains: mailboxes.useAllDomains })
+			.select({
+				id: mailboxes.id,
+				domainId: mailboxes.domainId,
+				localPart: mailboxes.localPart,
+				useAllDomains: mailboxes.useAllDomains,
+				organizationId: mailboxes.organizationId,
+			})
 			.from(mailboxes)
 			.innerJoin(domains, eq(mailboxes.domainId, domains.id))
-			.where(and(eq(domains.userId, userId), eq(mailboxes.useAllDomains, true)));
+			.where(and(eq(domains.organizationId, organizationId), eq(mailboxes.useAllDomains, true)));
 		const routingResults = await Promise.allSettled(
 			aliasMailboxes.map((mailbox) => ensureMailboxDomainRouting(env, db, mailbox)),
 		);
@@ -108,10 +197,7 @@ export async function addDomainForUser(
 		const [row] = await db.select().from(domains).where(eq(domains.id, domainId)).limit(1);
 		domain = row!;
 	} catch (err) {
-		// The zone was already provisioned above. Anything that fails after that —
-		// a hostname owned by another user, an unmigrated D1 schema — would otherwise
-		// strand Email Routing and the sending subdomain with nothing referencing them.
-		await rollbackDomainProvisioning(env, provisioned.changes);
+		if (useCloudflare) await rollbackDomainProvisioning(env, effectiveProvisioned.changes);
 		if (insertedDomainId) {
 			try {
 				await db.delete(domains).where(eq(domains.id, insertedDomainId));
@@ -122,21 +208,55 @@ export async function addDomainForUser(
 		throw err;
 	}
 
-	// Read the DNS view outside the rollback scope: the domain is fully set up by
-	// now, so a failed status read must not tear it back down or make registration
-	// delete the account that now owns the completed Cloudflare configuration.
 	let dns: DomainDnsView;
 	try {
 		dns = await getDomainDns(env, domain);
+		if (verificationRecord) {
+			dns = {
+				...dns,
+				routing: {
+					...dns.routing,
+					missing: [
+						{
+							type: verificationRecord.type,
+							name: verificationRecord.name,
+							content: verificationRecord.content,
+							ttl: 3600,
+						},
+						...dns.routing.missing,
+					],
+				},
+			};
+		}
 	} catch (error) {
 		console.warn("addDomainForUser: failed to read DNS status after provisioning", error);
 		dns = {
-			routing: { records: [], missing: [], status: provisioned.routingStatus },
+			routing: { records: [], missing: [], status: effectiveProvisioned.routingStatus },
 			sending: [],
-			sendingEnabled: provisioned.sendingEnabled,
+			sendingEnabled: effectiveProvisioned.sendingEnabled,
 		};
 	}
-	return { domain, dns, changes: provisioned.changes };
+	return { domain, dns, changes: effectiveProvisioned.changes, verification: verificationRecord };
+}
+
+/** Alias used by SaaS org-scoped callers. */
+export async function addDomainForOrganization(
+	env: CloudflareEnv,
+	input: {
+		userId: string;
+		organizationId: string;
+		hostname: string;
+		enableRouting?: boolean;
+		enableSending?: boolean;
+		replaceMxRecords?: boolean;
+	},
+) {
+	return addDomainForUser(env, input.userId, input.hostname, {
+		enableRouting: input.enableRouting,
+		enableSending: input.enableSending,
+		replaceMxRecords: input.replaceMxRecords,
+		organizationId: input.organizationId,
+	});
 }
 
 export async function getDomainDns(
@@ -187,10 +307,16 @@ export async function removeDomainForUser(
 	domainId: string,
 ): Promise<void> {
 	const db = getDb(env);
+	const [owner] = await db.select({ organizationId: users.organizationId }).from(users).where(eq(users.id, userId)).limit(1);
 	const [domain] = await db
 		.select()
 		.from(domains)
-		.where(and(eq(domains.id, domainId), eq(domains.userId, userId)))
+		.where(and(
+			eq(domains.id, domainId),
+			owner?.organizationId
+				? eq(domains.organizationId, owner.organizationId)
+				: eq(domains.userId, userId),
+		))
 		.limit(1);
 	if (!domain) throw new Error("Domain not found");
 

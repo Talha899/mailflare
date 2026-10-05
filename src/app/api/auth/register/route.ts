@@ -61,6 +61,9 @@ export async function POST(request: Request) {
 		name,
 		role: "admin",
 		isPrimaryAdmin: true,
+		canManageDomains: true,
+		canManageUsers: true,
+		organizationId: "org_default",
 	});
 
 	// Tracks what the attempt changed on the Cloudflare zone so a failure can undo
@@ -85,6 +88,7 @@ export async function POST(request: Request) {
 			id: mailboxId,
 			userId,
 			domainId: domain.id,
+			organizationId: "org_default",
 			localPart: username,
 			displayName: username,
 		});

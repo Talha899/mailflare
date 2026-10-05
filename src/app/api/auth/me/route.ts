@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
 import { hasPrimaryDomain, userHasMailboxes } from "@/lib/user";
 import { getLicenseEntitlements } from "@/lib/licenses/service";
-import { hasCloudflareCredentials, isNodeRuntime } from "@/lib/runtime";
+import { hasCloudflareCredentials, isNodeRuntime, isSaasModeEnabled } from "@/lib/runtime";
 
 export async function GET(request: Request) {
 	const env = getEnv();
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 	try {
 		[hasMailboxes, isSetup] = await Promise.all([
 			userHasMailboxes(env, user.id),
-			hasPrimaryDomain(env),
+			hasPrimaryDomain(env, user.organizationId),
 		]);
 	} catch {
 		// Authentication remains valid when optional mailbox/setup metadata is unavailable.
@@ -40,10 +40,12 @@ export async function GET(request: Request) {
 			keyboardShortcutsEnabled: user.keyboardShortcutsEnabled,
 			spamProtectionEnabled: user.spamProtectionEnabled,
 			showFullRecipientAddresses: user.showFullRecipientAddresses,
+			organizationId: user.organizationId,
 			hasAvatar: !!user.avatarKey,
 			mfaEnabled: user.totpEnabled,
 		},
 		runtime: isNodeRuntime(env) ? "node" : "cloudflare",
+		saasMode: isSaasModeEnabled(env),
 		managesDns: hasCloudflareCredentials(env),
 		hasMailboxes,
 		isSetup,

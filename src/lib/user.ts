@@ -42,16 +42,36 @@ export async function userHasAccessibleMailboxes(env: CloudflareEnv, user: Sessi
 	return ids.length > 0;
 }
 
-export async function hasPrimaryDomain(env: CloudflareEnv): Promise<boolean> {
+export async function hasPrimaryDomain(env: CloudflareEnv, organizationId?: string): Promise<boolean> {
 	const db = getDb(env);
-	const [row] = await db.select({ id: domains.id }).from(domains).limit(1);
+	const conditions = organizationId ? [eq(domains.organizationId, organizationId)] : [];
+	const [row] = await db
+		.select({ id: domains.id })
+		.from(domains)
+		.where(conditions.length ? and(...conditions) : undefined)
+		.limit(1);
 	return !!row;
 }
 
-export async function getPrimaryDomain(env: CloudflareEnv) {
+export async function getPrimaryDomain(env: CloudflareEnv, organizationId?: string) {
 	const db = getDb(env);
-	const [row] = await db.select().from(domains).limit(1);
+	const conditions = organizationId ? [eq(domains.organizationId, organizationId)] : [];
+	const [row] = await db
+		.select()
+		.from(domains)
+		.where(conditions.length ? and(...conditions) : undefined)
+		.limit(1);
 	return row ?? null;
+}
+
+export async function hasActiveDomain(env: CloudflareEnv, organizationId: string): Promise<boolean> {
+	const db = getDb(env);
+	const [row] = await db
+		.select({ id: domains.id })
+		.from(domains)
+		.where(and(eq(domains.organizationId, organizationId), eq(domains.status, "active")))
+		.limit(1);
+	return !!row;
 }
 
 export async function getMailboxForUser(env: CloudflareEnv, userId: string, mailboxId: string) {

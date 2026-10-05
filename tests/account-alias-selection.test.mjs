@@ -48,14 +48,14 @@ async function fixture(t, { rules = [], failAddress, slowAddress } = {}) {
 	t.after(() => database.db.close());
 	await applyMigrations(database, join(root, "drizzle/migrations"));
 	database.db.exec(`
-		INSERT INTO users (id, email, password_hash, name, role, created_at) VALUES
-			('admin', 'owner@one.test', 'hash', 'Owner', 'admin', 1),
-			('other', 'owner@foreign.test', 'hash', 'Other', 'admin', 1);
-		INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at) VALUES
-			('one', 'admin', 'one.test', 'zone-one', 'active', 1),
-			('two', 'admin', 'two.test', 'zone-two', 'active', 1),
-			('pending', 'admin', 'pending.test', 'zone-pending', 'pending', 1),
-			('foreign', 'other', 'foreign.test', 'zone-foreign', 'active', 1);
+		INSERT INTO users (id, email, password_hash, name, role, is_primary_admin, created_at, organization_id) VALUES
+			('admin', 'owner@one.test', 'hash', 'Owner', 'admin', 1, 1, 'org_admin'),
+			('other', 'owner@foreign.test', 'hash', 'Other', 'admin', 1, 1, 'org_foreign');
+		INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at, organization_id) VALUES
+			('one', 'admin', 'one.test', 'zone-one', 'active', 1, 'org_admin'),
+			('two', 'admin', 'two.test', 'zone-two', 'active', 1, 'org_admin'),
+			('pending', 'admin', 'pending.test', 'zone-pending', 'pending', 1, 'org_admin'),
+			('foreign', 'other', 'foreign.test', 'zone-foreign', 'active', 1, 'org_foreign');
 		INSERT INTO license_settings (id, instance_id, plan, state, features, updated_at)
 			VALUES ('default', 'test-instance', 'team', 'active', '[]', 1);
 	`);
@@ -133,7 +133,7 @@ for (const kind of ["dashboard", "api"]) {
 		assert.equal((await resolveInboundAddress(f.db, "sales@two.test")).mailbox.mailboxId, mailbox.id);
 		assert.equal((await getAuthorizedSenderAddress(f.env, { userId: mailbox.userId, mailboxId: mailbox.id, from: "sales@two.test" })).mailboxId, mailbox.id);
 		assert.equal(await resolveInboundAddress(f.db, "sam@two.test"), null);
-		f.database.db.exec("INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at) VALUES ('later', 'admin', 'later.test', 'manual', 'active', 1)");
+		f.database.db.exec("INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at, organization_id) VALUES ('later', 'admin', 'later.test', 'manual', 'active', 1, 'org_admin')");
 		assert.equal(await resolveInboundAddress(f.db, "sam@later.test"), null);
 		assert.equal((await getMailboxDomainAddresses(f.db, mailbox)).includes("sam@later.test"), false);
 	});
@@ -144,7 +144,7 @@ test("omitted settings preserve API compatibility; opting in includes future dom
 	assert.equal((await f.post("api")).status, 201);
 	assert.equal(f.mailbox().useAllDomains, true);
 	assert.deepEqual(await getMailboxDomainAddresses(f.db, f.mailbox()), ["sam@one.test", "sam@two.test"]);
-	f.database.db.exec("INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at) VALUES ('later', 'admin', 'later.test', 'manual', 'active', 1)");
+	f.database.db.exec("INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at, organization_id) VALUES ('later', 'admin', 'later.test', 'manual', 'active', 1, 'org_admin')");
 	assert.equal((await resolveInboundAddress(f.db, "sam@later.test")).mailbox.mailboxId, f.mailbox().id);
 	assert.equal((await f.post("dashboard", { username: "jane", useAllDomains: true, aliases: [{ domainId: "two", localPart: "billing" }] })).status, 201);
 	const address = await resolveInboundAddress(f.db, "billing@two.test");
@@ -248,7 +248,7 @@ for (const separateDomains of [false, true]) {
 		f.database.db.exec("UPDATE domains SET zone_id = 'manual'");
 		const aliases = Array.from({ length: 125 }, (_, i) => ({ domainId: separateDomains ? `domain${i}` : "two", localPart: `alias${i}` }));
 		if (separateDomains) {
-			const insert = f.database.db.prepare("INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at) VALUES (?, 'admin', ?, 'manual', 'active', 1)");
+			const insert = f.database.db.prepare("INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at, organization_id) VALUES (?, 'admin', ?, 'manual', 'active', 1, 'org_admin')");
 			for (const alias of aliases) insert.run(alias.domainId, `${alias.domainId}.test`);
 		}
 		const prepare = f.database.prepare.bind(f.database);

@@ -7,11 +7,13 @@ export default function DomainDnsDetails({
 	domain,
 	dns,
 	onSetup,
+	onVerify,
 	setupRecord,
 	setupMessage,
 }: DomainDnsDetailsProps) {
 	const audit = dns.audit;
 	const manual = domain.zoneId === "manual";
+	const needsOwnership = manual && domain.status === "pending";
 	const subdomain = dns.sendingSubdomain;
 	const sendingOk = subdomain ? dns.sendingEnabled : manual && domain.sendingEnabled;
 	const sendingLabel = subdomain
@@ -29,6 +31,19 @@ export default function DomainDnsDetails({
 			: "No routing DNS records found";
 	return (
 		<div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
+			{needsOwnership && (
+				<section className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+					<p className="text-sm font-medium text-amber-900">Ownership verification required</p>
+					<p className="mt-1 text-xs text-amber-800">
+						Add the Mailflare TXT verification record shown in the missing DNS list, then verify ownership.
+					</p>
+					{onVerify && (
+						<Button type="button" size="sm" className="mt-3" onClick={onVerify}>
+							Verify ownership
+						</Button>
+					)}
+				</section>
+			)}
 			{audit && (
 				<section>
 					<h2 className="text-base font-semibold text-neutral-900">Domain setup</h2>

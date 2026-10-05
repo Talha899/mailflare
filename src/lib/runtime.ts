@@ -20,3 +20,14 @@ export function isNodeRuntime(env?: Pick<CloudflareEnv, "MAILFLARE_RUNTIME">): b
 export function hasCloudflareCredentials(env: Pick<CloudflareEnv, "CF_TOKEN" | "CF_API_KEY" | "CF_EMAIL">): boolean {
 	return !!env.CF_TOKEN?.trim() || (!!env.CF_API_KEY?.trim() && !!env.CF_EMAIL?.trim());
 }
+
+/** True when open multi-org signup is enabled (Docker/Node SaaS). */
+export function isSaasModeEnabled(env?: Pick<CloudflareEnv, "SAAS_MODE">): boolean {
+	const raw =
+		env !== undefined
+			? env.SAAS_MODE
+			: getNodeEnv()?.SAAS_MODE ??
+				(typeof process !== "undefined" ? process.env?.SAAS_MODE : undefined);
+	const value = typeof raw === "string" ? raw.trim() : "";
+	return value === "true" || value === "1";
+}

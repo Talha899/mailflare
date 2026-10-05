@@ -13,9 +13,10 @@ cp .env.docker.example .env.docker      # edit: how to receive and send mail
 docker compose up -d --build
 ```
 
-Open `http://your-host:3000/setup`, create the admin account and add your
-domain. All data lives in the `mailflare-data` volume (`/data` in the
-container): the SQLite database, raw messages, attachments and backups.
+Open `http://your-host:3000/setup` for classic single-tenant setup, or set
+`SAAS_MODE=true` with MongoDB (see [saas-docker.md](./saas-docker.md)) and use
+`/signup` for multi-organization hosting. All SQLite and blob data lives in the
+`mailflare-data` volume (`/data` in the container).
 
 Behind a reverse proxy, set `APP_URL=https://mail.example.com` so links in
 password-reset mail and the JMAP session point at the public address, and
@@ -68,7 +69,11 @@ and the DNS page shows what to set by hand.
 | Variable | Default | Purpose |
 |---|---|---|
 | `PORT` | `3000` | HTTP port |
-| `DATA_DIR` | `/data` | SQLite database, blobs and backups |
+| `DATA_DIR` | `/data` | SQLite database; local blobs when S3 is unset |
+| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | unset | Optional S3-compatible object store for MIME, attachments, backups (instead of `/data/blobs`) |
+| `S3_REGION` | `us-east-1` | Region passed to the S3 client |
+| `S3_FORCE_PATH_STYLE` | `false` | Set `true` for MinIO and many custom endpoints |
+| `S3_KEY_PREFIX` | unset | Optional folder prefix inside the bucket (e.g. `mailflare`) |
 | `APP_URL` | request origin | Public URL behind a proxy |
 | `SMTP_INBOUND_PORT` | `25` | Inbound SMTP; `0` disables |
 | `MAIL_HOSTNAME` | `mail.<domain>` | Host the MX record points at; SMTP banner |
@@ -86,8 +91,9 @@ and the DNS page shows what to set by hand.
 ## Operations
 
 - **Backups.** The daily 02:00 UTC backup and the admin Backups page work
-  unchanged; files land under `/data/blobs/backups`. Back up the whole volume
-  for a full copy.
+  unchanged; files land in the blob store (`/data/blobs/backups` locally, or the
+  configured S3 bucket). Back up SQLite on the volume and the bucket separately
+  when using S3.
 - **Updates.** Pull the new image and recreate the container; migrations run
   at start. The in-app update button is disabled on self-hosted installs.
 - **Logs.** `docker compose logs -f mailflare`.

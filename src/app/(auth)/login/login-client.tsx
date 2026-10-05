@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { TurnstileField } from "@/components/auth/turnstile";
 import { submitLogin, submitMfaCode } from "./utils";
 
-export function LoginClient() {
+export function LoginClient({ showSignupLink = false }: { showSignupLink?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -169,6 +169,14 @@ export function LoginClient() {
         >
           {loading ? "Signing in..." : "Sign in"}
         </Button>
+        {showSignupLink && (
+          <p className="text-center text-sm text-neutral-600">
+            New here?{" "}
+            <Link href="/signup" className="font-medium text-blue-600 hover:underline">
+              Create a workspace
+            </Link>
+          </p>
+        )}
       </form>
     </AuthShell>
   );

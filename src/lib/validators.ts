@@ -57,6 +57,14 @@ export const firstRunRegisterSchema = z.object({
 	resetEmail: z.string().email(),
 });
 
+/** Public SaaS signup: create an organization + its first admin. */
+export const saasSignupSchema = z.object({
+	organizationName: z.string().min(2).max(100),
+	name: z.string().min(1).max(100),
+	email: z.string().email().max(320),
+	password: z.string().min(8).max(200),
+});
+
 export const primaryDomainRegisterSchema = z.object({
 	username: z.string().min(1).max(64).regex(/^[a-zA-Z0-9._%+-]+$/),
 	password: z.string().min(8),

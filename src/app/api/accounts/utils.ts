@@ -6,10 +6,31 @@ import { assertAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/cookies";
 import { getLicenseEntitlements } from "@/lib/licenses/service";
 import { getEnv } from "@/lib/cloudflare";
+import { isSaasModeEnabled } from "@/lib/runtime";
 
 type Db = ReturnType<typeof getDb>;
 
-export function listAccountsForAdmin(db: Db) {
+export function listAccountsForAdmin(db: Db, organizationId?: string) {
+	if (organizationId) {
+		return db
+			.select({
+				id: users.id,
+				email: users.email,
+				name: users.name,
+				resetEmail: users.resetEmail,
+				role: users.role,
+				isPrimaryAdmin: users.isPrimaryAdmin,
+				disabled: users.disabled,
+				avatarKey: users.avatarKey,
+				canManageMailboxes: users.canManageMailboxes,
+				canManageDomains: users.canManageDomains,
+				canManageUsers: users.canManageUsers,
+				createdAt: users.createdAt,
+			})
+			.from(users)
+			.where(eq(users.organizationId, organizationId))
+			.orderBy(desc(users.createdAt));
+	}
 	return db
 		.select({
 			id: users.id,
@@ -30,6 +51,15 @@ export function listAccountsForAdmin(db: Db) {
 }
 
 export async function getDomainForAdmin(db: Db, adminUserId: string, domainId: string) {
+	const [admin] = await db.select({ organizationId: users.organizationId }).from(users).where(eq(users.id, adminUserId)).limit(1);
+	if (admin?.organizationId) {
+		const [domain] = await db
+			.select()
+			.from(domains)
+			.where(and(eq(domains.id, domainId), eq(domains.organizationId, admin.organizationId)))
+			.limit(1);
+		return domain ?? null;
+	}
 	const [domain] = await db
 		.select()
 		.from(domains)
@@ -82,7 +112,7 @@ export async function requireTeamAdmin(request: Request) {
 	try {
 		const user = await requireUser(env, request);
 		assertAdmin(user);
-		if (!(await getLicenseEntitlements(env)).canManageAccounts) {
+		if (!isSaasModeEnabled(env) && !(await getLicenseEntitlements(env)).canManageAccounts) {
 			return {
 				env,
 				user,

@@ -9,6 +9,7 @@ import { getLicenseEntitlements } from "@/lib/licenses/service";
 import { tracksAccountIdentity } from "@/lib/profile/identity-utils";
 import { mailboxSchema } from "@/lib/validators";
 import { ensureMailboxDomainRouting, getMailboxDomainAddresses } from "@/lib/mailboxes/domain-addresses";
+import { isSaasMode } from "@/lib/organizations/service";
 import { ensurePersonalMailbox } from "./utils";
 
 export async function GET(request: Request) {
@@ -17,6 +18,7 @@ export async function GET(request: Request) {
 	const db = getDb(env);
 	const rows = await ensurePersonalMailbox(env, db, user);
 	const entitlements = await getLicenseEntitlements(env);
+	const saas = isSaasMode(env);
 	return NextResponse.json({
 		mailboxes: await Promise.all(rows.map(async (mailbox) => ({
 			...mailbox,
@@ -25,7 +27,7 @@ export async function GET(request: Request) {
 				: {}),
 			senderAddresses: await getMailboxDomainAddresses(db, mailbox),
 		}))),
-		canCreateShared: user.role === "admin" && entitlements.canManageAccounts,
+		canCreateShared: user.role === "admin" && (saas || entitlements.canManageAccounts),
 	});
 }
 
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
 	const mailboxType = parsed.data.type ?? "personal";
 	if (mailboxType === "shared") {
 		const entitlements = await getLicenseEntitlements(env);
-		if (user.role !== "admin" || !entitlements.canManageAccounts) {
+		if (user.role !== "admin" || (!isSaasMode(env) && !entitlements.canManageAccounts)) {
 			return NextResponse.json({ error: "A Team license is required to create shared inboxes" }, { status: 403 });
 		}
 	}
@@ -53,7 +55,10 @@ export async function POST(request: Request) {
 		const [owner] = await db
 			.select({ id: users.id })
 			.from(users)
-			.where(and(eq(users.id, ownerUserId), eq(users.createdByUserId, user.id)))
+			.where(and(
+				eq(users.id, ownerUserId),
+				eq(users.organizationId, user.organizationId),
+			))
 			.limit(1);
 		if (!owner) return NextResponse.json({ error: "Account not found" }, { status: 404 });
 	}
@@ -62,10 +67,7 @@ export async function POST(request: Request) {
 		.from(domains)
 		.where(eq(domains.id, parsed.data.domainId))
 		.limit(1);
-	const canUseDomain = domain && (
-		domain.userId === user.id ||
-		(user.canManageMailboxes && !!user.createdByUserId && domain.userId === user.createdByUserId)
-	);
+	const canUseDomain = domain && domain.organizationId === user.organizationId && domain.status === "active";
 	if (!canUseDomain) {
 		return NextResponse.json({ error: "Domain not found" }, { status: 404 });
 	}
@@ -93,6 +95,7 @@ export async function POST(request: Request) {
 		id,
 		userId: ownerUserId,
 		domainId: parsed.data.domainId,
+		organizationId: user.organizationId,
 		localPart,
 		displayName: parsed.data.displayName,
 		type: mailboxType,

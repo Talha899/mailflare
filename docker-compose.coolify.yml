@@ -1,0 +1,39 @@
+# Coolify: Docker Compose resource → use this file.
+# Assign the domain to the `mailflare` service (port 3000).
+# Set environment variables in the Coolify UI (do not rely on .env.docker).
+# Expose host TCP 25 for inbound SMTP, or set SMTP_INBOUND_PORT=0 and use the CF relay.
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mailflare-mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mailflare:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "25:25"
+    environment:
+      MONGO_URL: mongodb://mongo:27017/mailflare
+      SAAS_MODE: ${SAAS_MODE:-true}
+      PORT: "3000"
+      DATA_DIR: /data
+    volumes:
+      - mailflare-data:/data
+    # Coolify proxies HTTP to this port when you attach a domain.
+    expose:
+      - "3000"
+
+volumes:
+  mailflare-data:
+  mailflare-mongo:

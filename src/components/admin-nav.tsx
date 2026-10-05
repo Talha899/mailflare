@@ -7,7 +7,6 @@ import {
   Mail,
   Settings,
   Palette,
-  BadgeDollarSign,
   Users,
   Route,
   Webhook,
@@ -60,7 +59,6 @@ const sections: { label?: string; links: AdminNavLink[] }[] = [
     label: "Product",
     links: [
       { href: "/branding", label: "Branding", icon: Palette, permission: "primary" },
-      { href: "/licenses", label: "Licenses", icon: BadgeDollarSign, permission: "primary" },
     ],
   },
 ];
@@ -71,6 +69,7 @@ export function AdminNav({ className }: { className?: string }) {
   const user = useCurrentUser();
 
   function canSee(link: AdminNavLink): boolean {
+    if (link.href === "/licenses") return false;
     if (link.href === "/branding" && !branding.canCustomizeBranding) return false;
     if (!link.permission) return true;
     if (!user) return false;

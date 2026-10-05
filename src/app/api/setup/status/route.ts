@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { hasAdminAccount } from "@/lib/auth/setup";
 import { getEnv } from "@/lib/cloudflare";
+import { isSaasModeEnabled } from "@/lib/runtime";
 import { getPrimaryDomain } from "@/lib/user";
 
 export async function GET() {
 	const env = getEnv();
 	try {
+		const saasMode = isSaasModeEnabled(env);
 		const [adminAccountExists, domain] = await Promise.all([
 			hasAdminAccount(env),
 			getPrimaryDomain(env),
 		]);
 		return NextResponse.json({
+			saasMode,
 			hasAdminAccount: adminAccountExists,
 			hasPrimaryDomain: !!domain,
 			primaryDomain: domain

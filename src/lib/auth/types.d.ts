@@ -17,6 +17,8 @@ export type SessionUser = {
 	keyboardShortcutsEnabled: boolean;
 	spamProtectionEnabled: boolean;
 	showFullRecipientAddresses: boolean;
+	/** SaaS tenant id; org_default on classic single-tenant installs. */
+	organizationId: string;
 	createdByUserId: string | null;
 	createdAt: Date;
 };

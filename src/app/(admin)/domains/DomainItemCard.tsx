@@ -33,6 +33,7 @@ export default function DomainItemCard({
   remove,
   onToggleDns,
   onSetup,
+  onVerify,
   setupRecord,
   setupMessage,
 }: DomainItemCardProps) {
@@ -122,6 +123,7 @@ export default function DomainItemCard({
             domain={item}
             dns={dnsDetails}
             onSetup={onSetup}
+            onVerify={onVerify ? () => onVerify(item.id) : undefined}
             setupRecord={setupRecord}
             setupMessage={setupMessage}
           />

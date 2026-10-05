@@ -1,14 +1,36 @@
 services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mailflare-mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   mailflare:
     build: .
     image: mailflare:local
     restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
     ports:
       - "3000:3000"   # web app and JMAP
       - "25:25"       # inbound SMTP (point your domain's MX here)
     env_file: .env.docker
+    environment:
+      # Fixed in-compose URL so a host MONGO_URL (e.g. 127.0.0.1 for local scripts) cannot override env_file.
+      MONGO_URL: mongodb://mongo:27017/mailflare
+      SAAS_MODE: ${SAAS_MODE:-true}
     volumes:
       - mailflare-data:/data
 
 volumes:
   mailflare-data:
+  mailflare-mongo:
