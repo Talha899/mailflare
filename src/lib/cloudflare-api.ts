@@ -98,6 +98,7 @@ export async function enableEmailRouting(
 }
 
 export async function disableEmailRouting(env: CloudflareEnv, zoneId: string) {
+	if (zoneId === "manual") return;
 	return cfRequest<unknown>(env, `/zones/${zoneId}/email/routing/dns`, {
 		method: "DELETE",
 	});

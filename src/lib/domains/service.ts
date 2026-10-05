@@ -41,10 +41,10 @@ export type DomainDnsView = {
 export async function listUserDomains(env: CloudflareEnv, userId: string) {
 	const db = getDb(env);
 	const [owner] = await db.select({ organizationId: users.organizationId }).from(users).where(eq(users.id, userId)).limit(1);
-	if (owner?.organizationId) {
-		return db.select().from(domains).where(eq(domains.organizationId, owner.organizationId));
-	}
-	return db.select().from(domains).where(eq(domains.userId, userId));
+	const rows = owner?.organizationId
+		? await db.select().from(domains).where(eq(domains.organizationId, owner.organizationId))
+		: await db.select().from(domains).where(eq(domains.userId, userId));
+	return Promise.all(rows.map((row) => repairDomainHostnameIfNeeded(env, row)));
 }
 
 export async function listOrganizationDomains(env: CloudflareEnv, organizationId: string) {
@@ -69,6 +69,9 @@ export async function addDomainForUser(
 	const organizationId = options?.organizationId ?? owner?.organizationId ?? "org_default";
 
 	const normalizedHostname = assertDomainHostname(hostname);
+	if (isSaasMode(env) && !env.MONGO) {
+		throw new Error("MongoDB is required for SaaS domain verification. Set MONGO_URL and restart.");
+	}
 	const [claimedHostname] = await db
 		.select({ userId: domains.userId, organizationId: domains.organizationId })
 		.from(domains)

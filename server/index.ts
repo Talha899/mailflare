@@ -13,6 +13,7 @@ import { isInboundQueueMessage, isWebhookRetryMessage } from "../worker-utils";
 import { createNodeRuntime, finalizeNodeRuntimeMongo } from "./runtime/env";
 import { applyMigrations } from "./runtime/migrate";
 import { ensureOrganizationIndexes } from "@/lib/organizations/mongo-collections";
+import { normalizeMailHostname } from "@/lib/domains/hostname";
 import { startScheduler } from "./runtime/scheduler";
 import { startSmtpListener } from "./runtime/smtp";
 
@@ -100,7 +101,7 @@ async function main() {
 			port: smtpPort,
 			host: process.env.SMTP_INBOUND_HOST,
 			maxSize: Number(process.env.SMTP_MAX_SIZE ?? 36 * 1024 * 1024),
-			hostname: process.env.MAIL_HOSTNAME,
+			hostname: normalizeMailHostname(process.env.MAIL_HOSTNAME ?? process.env.APP_URL ?? "mail.example.com") || "mail.example.com",
 			tls: process.env.SMTP_TLS_KEY && process.env.SMTP_TLS_CERT ? { keyPath: process.env.SMTP_TLS_KEY, certPath: process.env.SMTP_TLS_CERT } : null,
 		});
 	}

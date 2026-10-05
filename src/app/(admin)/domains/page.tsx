@@ -35,7 +35,7 @@ export default function DomainsPage() {
         saasMode?: boolean;
       },
   });
-  const managesDns = me?.managesDns ?? true;
+  const managesDns = me?.managesDns ?? false;
   const saasMode = me?.saasMode ?? false;
   const [domainCheck, setDomainCheck] = useState<DomainPreflight | null>(null);
   const [domainChecking, setDomainChecking] = useState(false);
