@@ -41,14 +41,14 @@ export function NavItem({ link }: { link: NavLink }) {
 	if (!Icon) return null;
 	const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
 	const classes = cn(
-		"flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium text-[var(--foreground)]/80 transition-colors active:scale-[0.98]",
+		"flex h-9 items-center gap-3 rounded-lg px-3 text-sm font-medium text-[var(--muted-foreground)] transition-colors",
 		minimal && "relative mx-auto w-10 justify-center rounded-lg px-0",
 		active
-			? "bg-[var(--accent)] text-[var(--primary)]"
-			: "hover:bg-[var(--muted)]",
-		dragOver && "bg-[var(--accent)] text-[var(--primary)] ring-1 ring-[var(--primary)]/25",
+			? "bg-[var(--accent)] font-semibold text-[var(--accent-foreground)]"
+			: "hover:bg-[color-mix(in_oklab,var(--sidebar)_60%,var(--border))] hover:text-[var(--foreground)]",
+		dragOver && "bg-[var(--accent)] text-[var(--accent-foreground)] ring-2 ring-[var(--primary)]/40",
 		link.primary &&
-			"mb-3 h-11 w-fit rounded-xl bg-[var(--compose)] px-5 text-[var(--compose-foreground)] shadow-sm hover:bg-[color-mix(in_oklab,var(--compose)_88%,black)]",
+			"mb-4 h-11 w-full rounded-xl bg-[var(--compose)] px-4 font-semibold text-[var(--compose-foreground)] shadow-[var(--shadow-md)] hover:bg-[var(--primary-hover)] hover:text-[var(--compose-foreground)]",
 		link.primary && active && "bg-[var(--compose)] text-[var(--compose-foreground)]",
 		link.primary && minimal && "h-10 w-10 rounded-xl px-0",
 	);
@@ -160,7 +160,7 @@ export function NavItem({ link }: { link: NavLink }) {
 				</span>
 			)}
 			{!minimal && typeof link.count === "number" && link.count > 0 && (
-				<span className="ml-auto rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums text-[var(--foreground)]">
+				<span className={cn("ml-auto min-w-6 rounded-full px-1.5 text-center text-xs font-semibold leading-5 tabular-nums", active ? "text-[var(--accent-foreground)]" : "text-[var(--foreground)]")}>
 					{link.count > 99 ? "99+" : link.count}
 				</span>
 			)}

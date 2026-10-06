@@ -140,12 +140,18 @@ function isSafeLinkUrl(value: string, options: SanitizeEmailHtmlOptions): boolea
 	}
 }
 
+/** The only same-origin images a message may show: its own inline attachments. */
+const INLINE_ATTACHMENT_PATH = /^\/api\/messages\/[A-Za-z0-9_-]+\/attachments\/[A-Za-z0-9_-]+$/;
+
 function isSafeImageUrl(value: string, options: SanitizeEmailHtmlOptions): boolean {
-	if (!options.forOutgoing && value.startsWith("/api/messages/")) return true;
 	if (/^data:image\/(?:gif|jpeg|png|webp);base64,/i.test(value)) return true;
 	try {
-		const url = options.forOutgoing ? new URL(value) : new URL(value, window.location.origin);
-		return options.forOutgoing ? url.protocol === "https:" : url.protocol === "http:" || url.protocol === "https:";
+		if (options.forOutgoing) return new URL(value).protocol === "https:";
+		// Resolve first so "../" tricks are normalised; a sender must not be able to
+		// make the reader fire credentialed requests at arbitrary app URLs.
+		const url = new URL(value, window.location.origin);
+		if (url.origin === window.location.origin) return INLINE_ATTACHMENT_PATH.test(url.pathname);
+		return url.protocol === "http:" || url.protocol === "https:";
 	} catch {
 		return false;
 	}

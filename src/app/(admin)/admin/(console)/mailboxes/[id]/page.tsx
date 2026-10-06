@@ -71,7 +71,7 @@ export default function MailboxSettingsPage() {
     mutationFn: () => deleteMailbox(mailboxId),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["mailboxes"] });
-      router.push("/mailboxes");
+      router.push("/admin/mailboxes");
     },
   });
 
@@ -352,6 +352,7 @@ export default function MailboxSettingsPage() {
               disabled={addAlias.isPending}
             />
             <Select
+              aria-label="Alias domain"
               value={aliasDomainId}
               onChange={(event) => setAliasDomainId(event.target.value)}
               className="h-10 min-w-0 flex-1 text-sm"
@@ -434,6 +435,7 @@ export default function MailboxSettingsPage() {
             )}
             <div className="flex gap-2">
               <Select
+                aria-label="Account to share with"
                 value={selectedUserId}
                 onChange={(event) => setSelectedUserId(event.target.value)}
                 className="h-10 min-w-0 flex-1 text-sm"
@@ -471,7 +473,7 @@ export default function MailboxSettingsPage() {
         <CardHeader className="py-0">
           <CardTitle className="text-[var(--destructive)]">Danger zone</CardTitle>
           <CardDescription>
-            Deleting this mailbox stops new mail to {address || "this address"}
+            Deleting this mailbox stops new mail to {address || "this address"}{" "}
             from being accepted. Messages already received are kept in the
             database but will no longer appear in any inbox. This cannot be
             undone.

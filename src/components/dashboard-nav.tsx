@@ -181,7 +181,7 @@ export function DashboardNav({ className }: { className?: string }) {
 			{minimal && <hr className="mx-2 my-2 border-[var(--border)]" />}
 			{!minimal && (
 				<div className="mt-3 flex h-8 items-center justify-between px-2">
-					<span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+					<span className="px-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--subtle-foreground)]">
 						Folders
 					</span>
 					{selectedMailbox && (
@@ -253,9 +253,9 @@ export function DashboardNav({ className }: { className?: string }) {
 				</div>
 			)}
 			{!minimal && folders.length === 0 && (
-				<div className="mx-1 rounded-lg border border-dashed border-[var(--border)] px-3 py-3 text-xs text-[var(--muted-foreground)]">
-					No folders yet
-				</div>
+				<p className="px-3 py-1.5 text-xs leading-relaxed text-[var(--subtle-foreground)]">
+					Create folders to file mail, then drag messages onto them.
+				</p>
 			)}
 			{folders.map((folder) => (
 				<NavItem

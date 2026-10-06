@@ -20,8 +20,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
 	const [options, setOptions] = useState<ConfirmOptions | null>(null);
 	const [typed, setTyped] = useState("");
 	const resolver = useRef<((value: boolean) => void) | null>(null);
+	// The dialog is opened from code, not a Radix trigger, so remember where focus was.
+	const returnFocus = useRef<HTMLElement | null>(null);
 
 	const confirm = useCallback<ConfirmFn>((next) => {
+		returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		resolver.current?.(false);
 		setTyped("");
 		setOptions(next);
@@ -49,6 +52,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
 					<AlertDialog.Content
 						role="alertdialog"
 						className="dialog-content fixed left-1/2 top-1/2 z-[300] w-[min(440px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-lg)] focus:outline-none"
+						onCloseAutoFocus={(event) => {
+							if (!returnFocus.current?.isConnected) return;
+							event.preventDefault();
+							returnFocus.current.focus();
+						}}
 						onOpenAutoFocus={(event) => {
 							// Land on the safe choice unless a confirmation word is required.
 							if (needsTyping) return;

@@ -145,7 +145,7 @@ export default function AdminAgentPage() {
 					Plug in your own OpenRouter, OpenAI, Groq, or custom OpenAI-compatible API key. Without a key, the assistant stays off.
 				</p>
 			</div>
-			<Link href="/ai-usage" className="shrink-0 self-start rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]">View Usage</Link>
+			<Link href="/admin/ai-usage" className="shrink-0 self-start rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]">View Usage</Link>
 		</div>
 		<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
 			<CardContent className="flex flex-col gap-3 p-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">

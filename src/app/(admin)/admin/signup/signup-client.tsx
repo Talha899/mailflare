@@ -54,7 +54,7 @@ export function SignupClient() {
 			footer={
 				<p className="text-sm text-[var(--muted-foreground)]">
 					Already have an account?{" "}
-					<Link href="/login" className="font-medium text-[var(--foreground)] underline">
+					<Link href="/admin/login" className="font-medium text-[var(--foreground)] underline">
 						Sign in
 					</Link>
 				</p>

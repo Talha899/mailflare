@@ -51,7 +51,7 @@ export function MessageRowSelect({
 			)}
 		>
 			<ContactAvatar
-				mailboxId={mailboxId ?? undefined}
+				mailboxId={mailboxId ?? null}
 				address={address}
 				name={name}
 				hasManagedAvatar={hasManagedAvatar}

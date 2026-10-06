@@ -92,11 +92,15 @@ export async function getMessageContactNames(
 ): Promise<MessageContactNames> {
 	// `toAddr` may be a full recipient list; the name shown belongs to the first one.
 	const firstTo = getFirstEmailAddressEntry(toAddr);
-	const contactMap = await getContactDisplayNameMap(env, userId, [fromAddr, firstTo]);
+	const [contactMap, avatarMap] = await Promise.all([
+		getContactDisplayNameMap(env, userId, [fromAddr, firstTo]),
+		getContactAvatarMap(env, userId, [fromAddr]),
+	]);
 
 	return {
 		fromContactName: contactMap.get(normalizeEmailAddress(fromAddr)) ?? null,
 		toContactName: contactMap.get(normalizeEmailAddress(firstTo)) ?? null,
+		fromContactHasAvatar: avatarMap.get(normalizeEmailAddress(fromAddr)) ?? false,
 	};
 }
 

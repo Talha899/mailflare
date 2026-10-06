@@ -56,6 +56,7 @@ export async function POST(request: Request) {
 		return NextResponse.json({ backupId });
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to run backup";
-		return NextResponse.json({ error: message }, { status: 400 });
+		const status = message === "Forbidden" || message === "Unauthorized" ? 403 : 400;
+		return NextResponse.json({ error: message }, { status });
 	}
 }

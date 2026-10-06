@@ -113,5 +113,9 @@ test("migration adds the user column off by default and the journal lists it", (
 		journal.entries.some((item) => item.tag === "0052_add_mailbox_password_hash"),
 		"journal is missing 0052_add_mailbox_password_hash",
 	);
-	assert.equal(journal.entries.at(-1).tag, "0053_rename_mailflare_branding_to_Dispatch");
+	assert.ok(
+		journal.entries.some((item) => item.tag === "0053_rename_mailflare_branding_to_Dispatch"),
+		"journal is missing 0053_rename_mailflare_branding_to_Dispatch",
+	);
+	assert.equal(journal.entries.at(-1).tag, "0054_add_session_scope");
 });

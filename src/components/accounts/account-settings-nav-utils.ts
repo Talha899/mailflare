@@ -8,7 +8,7 @@ export const accountSettingsNavItems: AccountSettingsNavItem[] = [
 ];
 
 export function getAccountSettingsHref(accountId: string, segment: AccountSettingsNavItem["segment"]): string {
-	return `/accounts/${accountId}${segment ? `/${segment}` : ""}`;
+	return `/admin/accounts/${accountId}${segment ? `/${segment}` : ""}`;
 }
 
 export function isActiveAccountSettingsPath(pathname: string, href: string): boolean {

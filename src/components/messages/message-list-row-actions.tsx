@@ -34,24 +34,24 @@ export function MessageListRowActions({ message, onAction }: MessageListRowActio
 
 	return (
 		<>
-			<div className="pointer-events-none absolute right-6 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1 bg-gradient-to-l from-[var(--muted)] from-45% to-transparent pl-6 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+			<div className="pointer-events-none absolute -right-1 top-1/2 z-10 flex -translate-y-1/2 items-center gap-0.5 bg-gradient-to-l from-[var(--hover)] from-60% to-transparent pl-8 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100" role="toolbar" aria-label="Message actions">
 				<Tooltip label="Archive">
-					<Button type="button" variant="ghost" size="sm" onClick={() => void onAction("archive")} aria-label="Archive">
+					<Button type="button" variant="ghost" size="icon-sm" onClick={() => void onAction("archive")} aria-label="Archive">
 						<Archive className="h-4 w-4" />
 					</Button>
 				</Tooltip>
 				<Tooltip label="Trash">
-					<Button type="button" variant="ghost" size="sm" onClick={() => void onAction("trash")} aria-label="Trash">
+					<Button type="button" variant="ghost" size="icon-sm" onClick={() => void onAction("trash")} aria-label="Trash">
 						<Trash2 className="h-4 w-4" />
 					</Button>
 				</Tooltip>
 				<Tooltip label={readAction === "read" ? "Mark as read" : "Mark as unread"}>
-					<Button type="button" variant="ghost" size="sm" onClick={() => void onAction(readAction)} aria-label={readAction === "read" ? "Mark as read" : "Mark as unread"}>
+					<Button type="button" variant="ghost" size="icon-sm" onClick={() => void onAction(readAction)} aria-label={readAction === "read" ? "Mark as read" : "Mark as unread"}>
 						{readAction === "read" ? <MailOpen className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
 					</Button>
 				</Tooltip>
 				<Tooltip label={snoozed ? "Unsnooze" : "Snooze"}>
-					<Button type="button" variant="ghost" size="sm" onClick={() => {
+					<Button type="button" variant="ghost" size="icon-sm" onClick={() => {
 						if (snoozed) {
 							void unsnoozeMessage(message.id);
 							return;

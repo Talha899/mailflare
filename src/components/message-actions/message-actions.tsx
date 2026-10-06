@@ -225,7 +225,7 @@ export function MessageActions({
 	const moveActions = getMoveMessageActions(status, direction);
 
 	return (
-		<div className="flex flex-wrap items-center gap-3 text-[var(--muted-foreground)] flex-1 min-w-0">
+		<div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto text-[var(--muted-foreground)] [scrollbar-width:none] sm:gap-1" role="toolbar" aria-label="Message actions">
 			{error && <span className="text-xs text-[var(--destructive)]">{error}</span>}
 
 			<Tooltip label={shortcutsEnabled ? "Archive (e)" : "Archive"}>
@@ -261,7 +261,7 @@ export function MessageActions({
 					<Trash2 size={iconSize} />
 				</Button>
 			</Tooltip>
-			<span className="h-5 mx-2 bg-[var(--border)] w-px inline-block" />
+			<span aria-hidden className="mx-1 inline-block h-5 w-px shrink-0 bg-[var(--border)] sm:mx-1.5" />
 
 
 			<Tooltip label={shortcutsEnabled ? "Reply (r)" : "Reply"}>

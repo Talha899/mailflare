@@ -25,7 +25,7 @@ export function HomeHeroActions() {
 		};
 	}, []);
 
-	const createHref = hasUser ? "/inbox" : saasMode ? "/signup" : "/setup";
+	const createHref = hasUser ? "/inbox" : saasMode ? "/admin/signup" : "/setup";
 
 	return (
 		<div className="mt-8 flex flex-col gap-3 sm:flex-row">

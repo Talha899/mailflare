@@ -31,6 +31,7 @@ import {
 import { headerToRecipients, isValidRecipient, recipientsToHeader } from "./recipient-utils";
 import type { ComposeAttachment, ComposeStoredAttachment, ComposeThreading } from "./types";
 import type { ComposeAttachmentPolicy } from "./attachment-policy-types";
+import notify from "react-hot-toast";
 
 type Toast = { type: "success" | "error"; message: string } | null;
 
@@ -118,10 +119,13 @@ export function ComposeForm({
 		if (!senderAddresses.includes(selectedFrom)) setSelectedFrom(senderAddresses[0]);
 	}, [selectedFrom, senderAddresses]);
 
+	// Feedback goes through the app-wide toast host (announced to screen readers,
+	// errors stay up longer) instead of a local overlay.
 	useEffect(() => {
 		if (!toast) return;
-		const timer = setTimeout(() => setToast(null), 3200);
-		return () => clearTimeout(timer);
+		if (toast.type === "success") notify.success(toast.message);
+		else notify.error(toast.message);
+		setToast(null);
 	}, [toast]);
 
 	useEffect(() => {
@@ -300,7 +304,11 @@ export function ComposeForm({
 		setLoading(false);
 
 		if (!res.ok) {
-			setToast({ type: "error", message: data.error ?? "Send failed" });
+			// 4xx messages are written for people; a server failure is not, so it gets a plain explanation.
+			const message = res.status >= 500 || !data.error
+				? "Your message couldn't be sent right now. It's saved in Drafts — try again in a moment."
+				: data.error;
+			setToast({ type: "error", message });
 			return;
 		}
 
@@ -501,18 +509,6 @@ export function ComposeForm({
 		<>
 			{agentReview && <SendReview approvalId={agentReview.approvalId} snapshot={agentReview.snapshot} onClose={() => setAgentReview(null)} onSent={() => { setAgentReview(null); if (onClose) onClose(); else router.push("/sent"); }} />}
 			{mode === "popup" && modalMode && !minimized && <div className="fixed inset-0 z-40 bg-[color-mix(in_oklab,var(--foreground)_36%,transparent)]" aria-hidden="true" />}
-			{toast && (
-				<div
-					className={cn(
-						"fixed right-6 top-6 z-[60] rounded-lg border px-4 py-3 text-sm font-medium tracking-tight shadow-[0_12px_32px_-12px_rgba(0,0,0,0.28)]",
-						toast.type === "success"
-							? "border-[color-mix(in_oklab,var(--success)_35%,var(--border))] bg-[var(--success)] text-[var(--primary-foreground)]"
-							: "border-[color-mix(in_oklab,var(--destructive)_35%,var(--border))] bg-[var(--destructive)] text-[var(--primary-foreground)]",
-					)}
-				>
-					{toast.message}
-				</div>
-			)}
 			<form onSubmit={onSubmit} className={frameClass} role={modalMode && !minimized ? "dialog" : undefined} aria-modal={modalMode && !minimized || undefined} aria-label={modalMode && !minimized ? "Compose message" : undefined} onKeyDown={(event) => { if (modalMode && !minimized && event.key === "Escape") { event.preventDefault(); setModalMode(false); } }} onDragEnterCapture={minimized ? undefined : onFileDragEnter} onDragOverCapture={minimized ? undefined : onFileDragOver} onDragLeaveCapture={minimized ? undefined : onFileDragLeave} onDropCapture={minimized ? undefined : onFileDrop}>
 				{draggingFiles && !minimized && (
 					<div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center border-2 border-dashed border-[var(--compose)] bg-[color-mix(in_oklab,var(--compose)_10%,var(--card))] text-sm font-medium tracking-tight text-[var(--compose)]" aria-hidden="true">
@@ -549,7 +545,7 @@ export function ComposeForm({
 				</div>
 				<div className={cn("flex min-h-0 flex-1 flex-col", minimized && "hidden")}>
 				<div className="flex flex-row items-center border-b border-[var(--border)] px-4 py-1">
-					<Label htmlFor={`${mode}-from`} className="text-[13px] text-[var(--muted-foreground)]">From</Label>
+					<Label htmlFor={`${mode}-from`} className="w-10 shrink-0 text-[13px] font-normal text-[var(--muted-foreground)]">From</Label>
 					<Select
 						id={`${mode}-from`}
 						value={selectedMailbox && selectedFrom ? `${selectedMailbox.id}|${selectedFrom}` : ""}
@@ -557,7 +553,7 @@ export function ComposeForm({
 						// placeholder="Select a mailbox first"
 						required
 						disabled={loadingDraft || senderOptions.length === 0}
-						className="h-8 px-0 py-1 text-sm shadow-none focus-visible:ring-0"
+						className="h-8 bg-transparent px-1 py-1 text-sm shadow-none hover:bg-[var(--hover)] focus-visible:ring-0"
 						containerClassName="border-0 flex-1"
 					>
 						{senderOptions.length === 0 && <option value="">Select a mailbox first</option>}

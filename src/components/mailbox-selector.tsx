@@ -131,6 +131,20 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 		return () => document.removeEventListener("pointerdown", onPointerDown);
 	}, []);
 
+	// Keyboard: Escape closes and returns focus to the avatar; focus starts inside the panel.
+	useEffect(() => {
+		if (!open) return;
+		const panel = ref.current?.querySelector<HTMLElement>("[data-account-panel]");
+		panel?.querySelector<HTMLElement>("a, button")?.focus();
+		function onKeyDown(event: KeyboardEvent) {
+			if (event.key !== "Escape") return;
+			setOpen(false);
+			ref.current?.querySelector<HTMLButtonElement>("[data-account-trigger]")?.focus();
+		}
+		document.addEventListener("keydown", onKeyDown);
+		return () => document.removeEventListener("keydown", onKeyDown);
+	}, [open]);
+
 	useEffect(() => {
 		authFetch("/api/auth/me", { redirectOnUnauthorized: false })
 			.then((response) => (response.ok ? response.json() : null))
@@ -215,9 +229,11 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 			<button
 				type="button"
 				onClick={() => setOpen((value) => !value)}
-				className="rounded-lg p-0.5 transition-colors hover:bg-[var(--muted)] active:scale-[0.98]"
+				className="rounded-full p-0.5 transition-colors hover:bg-[var(--hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
 				aria-label="Open account menu"
 				aria-expanded={open}
+				aria-haspopup="dialog"
+				data-account-trigger
 			>
 				<AccountAvatar
 					name={selectedName}
@@ -231,7 +247,13 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 			</button>
 
 			{open && (
-				<div className="absolute right-0 top-12 z-90 flex max-h-[82vh] w-[320px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_20px_48px_-20px_color-mix(in_oklab,var(--foreground)_40%,transparent)] sm:w-[340px]">
+				<div
+					data-account-panel
+					role="dialog"
+					aria-label="Account"
+					data-state="open"
+					className="popover-content absolute right-0 top-12 z-90 flex max-h-[82vh] w-[min(340px,calc(100vw-16px))] flex-col overflow-hidden overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] shadow-[var(--shadow-lg)]"
+				>
 					{/* Identity */}
 					<div className="border-b border-[var(--border)] px-4 pb-3 pt-4">
 						<div className="flex items-start gap-3">

@@ -33,6 +33,8 @@ export async function GET(request: Request) {
 			resetEmail: user.resetEmail,
 			forwardingEmail: user.forwardingEmail,
 			canForwardEmail: entitlements.canForwardEmail,
+			/** Whether account management is available (Team license, or SaaS mode). */
+			canManageAccounts: entitlements.canManageAccounts || isSaasModeEnabled(env),
 			role: user.role,
 			isPrimaryAdmin: user.isPrimaryAdmin,
 			isInstanceOwner: isInstanceOwner(env, user),

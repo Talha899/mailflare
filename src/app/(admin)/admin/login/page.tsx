@@ -16,11 +16,9 @@ export default async function AdminLoginPage() {
 	if (!saas && !(await hasAdminAccount(env))) redirect("/setup");
 	const cookieStore = await cookies();
 	const user = await getUserFromSession(env, cookieStore.get(SESSION_COOKIE)?.value);
-	if (user && !user.disabled) {
-		if (user.role === "admin") redirect("/admin");
-		// Non-admin sessions belong on webmail, not the operator console.
-		redirect("/inbox");
-	}
+	// Only an admin-portal session skips the form. A webmail session (even for an
+	// admin's own mailbox) carries no admin rights, so it signs in here separately.
+	if (user && !user.disabled && user.role === "admin") redirect("/admin");
 
 	return (
 		<AuthGuard mode="public">

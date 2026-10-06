@@ -20,7 +20,7 @@ export default function AiUsagePage() {
 
 	const totals = data?.totals;
 	return <div className="space-y-6">
-		<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">AI Usage</h1><p className="mt-2 text-sm text-[var(--muted-foreground)]">Requests recorded since usage tracking was added.</p></div><Link href="/agent" className="shrink-0 self-start text-sm font-medium text-[var(--compose)] hover:underline">Back to Agent</Link></div>
+		<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">AI Usage</h1><p className="mt-2 text-sm text-[var(--muted-foreground)]">Requests recorded since usage tracking was added.</p></div><Link href="/admin/agent" className="shrink-0 self-start text-sm font-medium text-[var(--compose)] hover:underline">Back to Agent</Link></div>
 		{error && <p role="alert" className="text-sm text-[var(--destructive)]">{error}</p>}
 		<div className="grid gap-4 sm:grid-cols-3">
 			<section className="rounded-2xl bg-[var(--card)] p-5"><p className="text-sm text-[var(--muted-foreground)]">Total tokens</p><p className="mt-2 text-2xl font-semibold text-[var(--foreground)]">{totals ? formatTokenCount(totals.totalTokens) : "—"}</p></section>

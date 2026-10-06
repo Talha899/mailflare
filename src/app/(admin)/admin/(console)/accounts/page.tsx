@@ -99,7 +99,7 @@ export default function AccountsPage() {
 				if (locked) {
 					return <ListRow key={account.id} aria-disabled="true" title="Only the primary admin can open admin accounts" className="cursor-not-allowed opacity-50">{row}</ListRow>;
 				}
-				return <ListRow key={account.id} asChild><Link href={`/accounts/${account.id}`}>{row}</Link></ListRow>;
+				return <ListRow key={account.id} asChild><Link href={`/admin/accounts/${account.id}`}>{row}</Link></ListRow>;
 			})}
 		</List></div>
 		<Dialog open={createOpen} onOpenChange={setCreateOpen}><DialogContent className="max-h-[calc(100dvh-4rem)] w-[min(640px,calc(100vw-32px))] overflow-y-auto"><DialogHeader><DialogTitle>Add user account</DialogTitle><DialogDescription>The user can sign in with this email and password.</DialogDescription></DialogHeader><form onSubmit={createAccount}><fieldset disabled={saving} className="space-y-4">

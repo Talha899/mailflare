@@ -81,7 +81,8 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: message }, { status: 500 });
 	}
 
-	const token = await createSession(env, userId);
+	// The new organization's owner signed up through the admin portal.
+	const token = await createSession(env, userId, { scope: "admin" });
 	const response = NextResponse.json({
 		ok: true,
 		token,

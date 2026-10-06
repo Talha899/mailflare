@@ -23,7 +23,7 @@ export default async function LoginPage() {
 	return (
 		<AuthGuard mode="public">
 			{/* Mailbox webmail — separate product surface from /admin/login */}
-			<MailboxLoginClient />
+			<MailboxLoginClient allowOrganizationSignup={saas} />
 		</AuthGuard>
 	);
 }

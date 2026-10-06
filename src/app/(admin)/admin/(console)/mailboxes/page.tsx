@@ -106,7 +106,7 @@ export default function MailboxesPage() {
 						return (
 							<ListRow key={mailbox.id} asChild>
 								<Link
-									href={`/mailboxes/${mailbox.id}`}
+									href={`/admin/mailboxes/${mailbox.id}`}
 									className="group px-5 py-4 transition-colors hover:bg-[var(--muted)]"
 								>
 									<span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--muted)] text-sm font-semibold text-[var(--compose)]">

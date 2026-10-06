@@ -21,7 +21,7 @@ export default function PricingPage() {
 					<li>Optional AI drafts with your own provider key</li>
 				</ul>
 				<Button asChild className="mt-8">
-					<Link href="/signup">Create an account</Link>
+					<Link href="/admin/signup">Create an account</Link>
 				</Button>
 			</div>
 		</div>

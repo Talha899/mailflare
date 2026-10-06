@@ -176,7 +176,7 @@ function MessageListRow({
 					<span className={clsx("mt-0.5 block truncate text-sm", unread ? "font-semibold text-[var(--foreground)]" : "text-[var(--foreground)]/80")}>
 						{rowMessage.subject ?? "(no subject)"}
 					</span>
-					<span className="mt-0.5 line-clamp-1 block text-[13px] leading-5 text-[var(--muted-foreground)]">{preview}</span>
+					<span className="mt-0.5 line-clamp-1 text-[13px] leading-5 text-[var(--muted-foreground)]">{preview}</span>
 				</Link>
 				{starred && canStar && (
 					<Star className="absolute bottom-3 right-4 h-3.5 w-3.5 fill-[var(--star)] text-[var(--star)]" aria-label="Starred" />
@@ -216,7 +216,6 @@ function MessageListRow({
 			<span className="relative flex min-w-[88px] items-center justify-end">
 				{meta}
 				{hasRowActions && (
-					<span className="absolute inset-y-0 right-0 z-10 flex items-center">
 						<MessageListRowActions
 							message={rowMessage}
 							onAction={async (action) => {
@@ -236,7 +235,6 @@ function MessageListRow({
 								}
 							}}
 						/>
-					</span>
 				)}
 			</span>
 		</div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Inbox, ShieldCheck } from "lucide-react";
@@ -14,7 +15,7 @@ import {
 	submitMfaCode,
 } from "./utils";
 
-export function MailboxLoginClient() {
+export function MailboxLoginClient({ allowOrganizationSignup = false }: { allowOrganizationSignup?: boolean }) {
 	const router = useRouter();
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -129,6 +130,26 @@ export function MailboxLoginClient() {
 			icon={Inbox}
 			title="Open your inbox"
 			description="Use your mailbox address and mailbox password (IMAP/SMTP use the same password). This is not your admin account password."
+			footer={
+				// Webmail never offers signup itself: mailboxes are created by an
+				// organization's admins. New organizations start in the admin portal.
+				<div className="space-y-1.5 border-t border-[var(--border)] pt-4 text-center text-xs text-[var(--muted-foreground)]">
+					{allowOrganizationSignup && (
+						<p>
+							Run an organization?{" "}
+							<Link href="/admin/signup" className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline">
+								Create an organization account
+							</Link>
+						</p>
+					)}
+					<p>
+						Administrator?{" "}
+						<Link href="/admin/login" className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline">
+							Sign in to the admin console
+						</Link>
+					</p>
+				</div>
+			}
 		>
 			<form method="post" onSubmit={onSubmit} className="space-y-5">
 				<div className="space-y-2">

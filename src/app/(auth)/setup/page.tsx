@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SetupPage() {
 	const env = getEnv();
-	if (isSaasModeEnabled(env)) redirect("/signup");
+	if (isSaasModeEnabled(env)) redirect("/admin/signup");
 
 	if (!(await hasAdminAccount(env))) {
 		const cookieStore = await cookies();

@@ -2,7 +2,8 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Cloud, ExternalLink } from "lucide-react";
+import { Cloud, ExternalLink, MailX } from "lucide-react";
+import { EmptyState } from "@/components/ui/feedback";
 import { formatUserDate } from "@/lib/time/utils";
 import { MarkAsRead } from "@/components/mark-read";
 import { useSelectedMailbox } from "@/components/mailbox-provider";
@@ -101,9 +102,11 @@ export default function MessageDetailPage() {
 
   if (!data?.message) {
     return (
-      <p className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
-        {data?.error ?? "Message not found"}
-      </p>
+      <EmptyState
+        icon={MailX}
+        title="This message isn't available"
+        description="It may have been deleted, moved to another mailbox, or you no longer have access to it."
+      />
     );
   }
 
@@ -148,7 +151,7 @@ export default function MessageDetailPage() {
   );
   return (<>
 
-    <div className={clsx("flex py-2 h-12 items-center px-2 border-b sticky top-0 bg-[var(--card)] z-40 gap-3", scrolled ? "border-[var(--border)]" : "border-transparent")}>
+    <div className={clsx("sticky top-0 z-40 flex h-14 shrink-0 items-center gap-1 border-b bg-[var(--card)] px-2 sm:px-3", scrolled ? "border-[var(--border)] shadow-[var(--shadow-sm)]" : "border-transparent")}>
       <MessageReadingHeaderButton assistantVisible={assistantVisible} />
       {/* <div className="min-w-0 flex-1" /> */}
       {/* <div className="flex items-center flex-row gap-6">
@@ -181,7 +184,7 @@ export default function MessageDetailPage() {
     <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto overscroll-contain scrollbar-gutter-stable flex-1 min-h-0">
       {!message.read && <MarkAsRead messageId={message.id} />}
 
-      <h1 className={clsx(!isAnyPanelVisible ? "pl-16" : "pl-10", "pr-6 pb-2 pt-2 text-2xl text-[var(--foreground)]")} title={message.subject ?? "(no subject)"}>
+      <h1 className={clsx(!isAnyPanelVisible ? "lg:pl-16" : "lg:pl-10", "break-words px-4 pb-3 pt-3 text-xl font-semibold leading-snug tracking-tight text-[var(--foreground)] sm:px-6 sm:text-2xl")} title={message.subject ?? "(no subject)"}>
         {message.subject ?? "(no subject)"}
       </h1>
       {/* <div className="px-6">
@@ -207,15 +210,15 @@ export default function MessageDetailPage() {
         expandedAll={threadExpanded}
         onExpandedAllChange={setThreadExpanded}
       />
-      <article className={clsx("px-6 py-4", !isAnyPanelVisible && "pl-12")}>
+      <article className={clsx("px-4 py-4 sm:px-6", !isAnyPanelVisible && "lg:pl-12")}>
         <div className="w-full">
-          <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 pb-5 pl-4">
+          <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1 pb-5 sm:pl-4">
             <div className="flex min-w-0 items-start gap-3">
               <ContactAvatar
                 mailboxId={message.mailboxId}
                 address={message.fromAddr}
                 name={fromName}
-                hasManagedAvatar={message.direction === "inbound"}
+                hasManagedAvatar={message.direction === "inbound" && message.fromContactHasAvatar !== false}
                 managedAvatarUrl={message.direction === "outbound" && message.mailboxId
                   ? `/api/mailboxes/${message.mailboxId}/avatar`
                   : undefined}
@@ -269,7 +272,7 @@ export default function MessageDetailPage() {
               />
             </div>
           </div>
-          <div className="prose max-w-none pl-16 text-[var(--foreground)]">
+          <div className="prose max-w-none overflow-x-auto text-[var(--foreground)] sm:pl-16">
             {htmlBody ? (
               <div className="email-body mx-auto" dangerouslySetInnerHTML={{ __html: htmlBody }} />
             ) : (
@@ -286,7 +289,7 @@ export default function MessageDetailPage() {
             ))}
           </div>
           {cloudAttachmentResult.attachments.length > 0 && (
-            <section className="mt-8 border-t border-[var(--border)] py-6 pl-16">
+            <section className="mt-8 border-t border-[var(--border)] py-6 sm:pl-16">
               <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Cloud files ({cloudAttachmentResult.attachments.length})
               </h2>
@@ -297,7 +300,7 @@ export default function MessageDetailPage() {
                     href={attachment.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 rounded-lg border border-[var(--border)] p-3 text-left hover:border-[var(--border)] hover:bg-[var(--muted)]"
+                    className="flex items-center gap-3 rounded-xl border border-[var(--border)] p-3 text-left transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--hover)]"
                   >
                     <Cloud className="h-5 w-5 shrink-0 text-[var(--primary)]" />
                     <span className="min-w-0 flex-1">
@@ -315,7 +318,7 @@ export default function MessageDetailPage() {
             </section>
           )}
           {attachments.length > 0 && (
-            <section className="mt-8 border-t border-[var(--border)] py-6 pl-16">
+            <section className="mt-8 border-t border-[var(--border)] py-6 sm:pl-16">
               <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Attachments ({attachments.length})
               </h2>

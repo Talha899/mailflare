@@ -4,6 +4,6 @@ import { isSaasModeEnabled } from "@/lib/runtime";
 
 export default function RegisterPage() {
 	const env = getEnv();
-	if (isSaasModeEnabled(env)) redirect("/signup");
+	if (isSaasModeEnabled(env)) redirect("/admin/signup");
 	redirect("/setup");
 }

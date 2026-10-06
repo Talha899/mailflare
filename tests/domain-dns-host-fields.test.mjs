@@ -11,7 +11,7 @@ const outDir = mkdtempSync(join(tmpdir(), "mailflare-domain-dns-"));
 after(() => rmSync(outDir, { recursive: true, force: true }));
 
 await build({
-	entryPoints: [join(root, "src/app/(admin)/domains/domain-dns-details-utils.ts")],
+	entryPoints: [join(root, "src/app/(admin)/admin/(console)/domains/domain-dns-details-utils.ts")],
 	outfile: join(outDir, "dns-utils.mjs"),
 	bundle: true,
 	platform: "node",

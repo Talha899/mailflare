@@ -17,6 +17,8 @@
 /.next/
 /.next-node/
 /.next-node-*/
+# Browser-automation screenshots and logs from local testing
+/.playwright-mcp/
 /out/
 
 # production

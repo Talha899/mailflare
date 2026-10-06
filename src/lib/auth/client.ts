@@ -79,6 +79,15 @@ export function ensureClientSessionMarker(): void {
 	dispatchAuthSessionChanged(true);
 }
 
+/**
+ * The server says there is no session (expired, revoked, signed out elsewhere):
+ * drop the marker so realtime stops reconnecting. Quiet when nothing was stored.
+ */
+export function forgetClientSessionIfStale(): void {
+	if (typeof window === "undefined" || !getClientSessionToken()) return;
+	clearClientSessionToken();
+}
+
 export function clearClientSessionToken(): void {
 	writeStorage(SESSION_STORAGE_KEY, null);
 	writeStorage(SESSION_MARKER_KEY, null);

@@ -13,6 +13,8 @@ const dispatchSans = Geist({
 const dispatchMono = Geist_Mono({
 	variable: "--font-dispatch-mono",
 	subsets: ["latin"],
+	// Only shortcut hints and code use it; not worth a preload on every page.
+	preload: false,
 });
 
 export const metadata: Metadata = {

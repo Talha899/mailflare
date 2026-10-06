@@ -19,4 +19,6 @@ export type BlockContactInput = {
 export type MessageContactNames = {
 	fromContactName: string | null;
 	toContactName: string | null;
+	/** Whether the sender's contact has an uploaded picture, so the reader only requests real images. */
+	fromContactHasAvatar: boolean;
 };

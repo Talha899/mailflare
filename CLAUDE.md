@@ -103,6 +103,12 @@ The app reaches every platform service through `getEnv()` (`src/lib/cloudflare.t
 
 ### Access control
 
+Admin console and webmail are separate portals. Every admin page lives under `/admin/*` (`src/app/(admin)/admin/(console)/`, gated server-side by its `layout.tsx`); `/admin/login` and `/admin/signup` are the portal's public pages. Organization signup exists only there — webmail `/login` links to it but never signs anyone up. Old root paths (`/mailboxes`, `/domains`, `/signup`, …) redirect via `next.config.ts`.
+
+Sessions carry a `scope` (migration 0054): `admin` from the admin portal, `mailbox` from webmail (pinned to `sessions.mailbox_id`), `account` for legacy rows. `getUserFromSession` returns a mailbox-scope user with `role: "user"` and every `canManage*` flag cleared, and `access.ts` (`ownedMailboxAllowed`) limits it to that one owned mailbox plus explicit shares — so a mailbox password can never reach admin APIs or the owner's other mailboxes. Account-wide settings (recovery email, forwarding) refuse mailbox sessions via `rejectMailboxSession`.
+
+`isPrimaryAdmin` is per organization; installation-wide routes (backups/restore, branding, licenses, audit logs, activity, general, agent, AI usage, migrations, updates, search index) require `isInstanceOwner` (`src/lib/auth/admin.ts`), which in SaaS mode is only the primary admin of `org_default`. `scripts/security-isolation-check.mjs` exercises all of this against a dev server.
+
 Two independent auth surfaces:
 
 - **Session cookie** (`ep_session`) — `getCurrentUser` / `requireUser` in `src/lib/auth/cookies.ts`, backed by `src/lib/auth/session.ts`. Used by dashboard/admin API routes. `requireUser` *throws*, which Next surfaces as a 500; prefer `requireSessionUser` from `src/lib/api/auth.ts`, which returns a proper 401 response. Most older routes still use `requireUser` and 500 on unauthenticated requests.

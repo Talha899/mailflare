@@ -43,7 +43,7 @@ export function DomainOnboardingClient() {
 			if (data.verification) {
 				setVerification(data.verification);
 			} else {
-				router.replace("/mailboxes");
+				router.replace("/admin/mailboxes");
 				router.refresh();
 			}
 		} catch {
@@ -68,7 +68,7 @@ export function DomainOnboardingClient() {
 				setError("TXT record not found yet. DNS can take a few minutes to propagate.");
 				return;
 			}
-			router.replace("/mailboxes");
+			router.replace("/admin/mailboxes");
 			router.refresh();
 		} catch {
 			setError("Verification failed");
@@ -108,7 +108,7 @@ export function DomainOnboardingClient() {
 							type="button"
 							variant="outline"
 							className="h-10 rounded-xl active:scale-[0.98]"
-							onClick={() => router.replace("/domains")}
+							onClick={() => router.replace("/admin/domains")}
 						>
 							Skip for now
 						</Button>
@@ -148,7 +148,7 @@ export function DomainOnboardingClient() {
 							type="button"
 							variant="outline"
 							className="h-10 rounded-xl active:scale-[0.98]"
-							onClick={() => router.replace("/domains")}
+							onClick={() => router.replace("/admin/domains")}
 						>
 							Open domains
 						</Button>

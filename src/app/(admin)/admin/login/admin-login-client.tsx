@@ -135,7 +135,7 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 				showSignupLink ? (
 					<p className="text-center text-xs text-[var(--muted-foreground)]">
 						New organization?{" "}
-						<Link href="/signup" className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline">
+						<Link href="/admin/signup" className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline">
 							Create a workspace
 						</Link>
 					</p>

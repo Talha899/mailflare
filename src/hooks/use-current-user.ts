@@ -9,6 +9,10 @@ export type CurrentUser = {
 	name: string;
 	role: "admin" | "user";
 	isPrimaryAdmin: boolean;
+	/** Runs the whole installation (backups, branding, licenses…); differs from primary admin in SaaS mode. */
+	isInstanceOwner?: boolean;
+	/** Account management is licensed (Team) or the install runs in SaaS mode. */
+	canManageAccounts?: boolean;
 	canManageMailboxes: boolean;
 	canManageDomains: boolean;
 	canManageUsers: boolean;

@@ -65,6 +65,6 @@ export function getHomeActions(isLoggedIn: boolean, saasMode = false): HomeActio
 
 	return [
 		{ href: "/login", label: "Log in", variant: "outline" },
-		{ href: saasMode ? "/signup" : "/setup", label: "Create account", variant: "default" },
+		{ href: saasMode ? "/admin/signup" : "/setup", label: "Create account", variant: "default" },
 	];
 }
