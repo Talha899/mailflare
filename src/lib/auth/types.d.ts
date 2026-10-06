@@ -21,4 +21,8 @@ export type SessionUser = {
 	organizationId: string;
 	createdByUserId: string | null;
 	createdAt: Date;
+	/** How the current session was signed in; absent for API-key callers. */
+	sessionScope?: "account" | "admin" | "mailbox";
+	/** Set on webmail sessions: the only owned mailbox the session may open. */
+	sessionMailboxId?: string | null;
 };

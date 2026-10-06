@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { domains, mailboxes } from "@/db/schema";
-import { canManageUsers } from "@/lib/auth/admin";
+import { domains, mailboxes, users } from "@/db/schema";
+import { canManageUsers, isPrimaryAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
 import { hasValidSessionMutationOrigin } from "@/lib/auth/origin";
@@ -31,18 +31,30 @@ export async function POST(request: Request, { params }: Params) {
 			localPart: mailboxes.localPart,
 			hostname: domains.hostname,
 			organizationId: mailboxes.organizationId,
+			ownerRole: users.role,
+			ownerIsPrimaryAdmin: users.isPrimaryAdmin,
 		})
 		.from(mailboxes)
 		.innerJoin(domains, eq(mailboxes.domainId, domains.id))
+		.innerJoin(users, eq(mailboxes.userId, users.id))
 		.where(and(eq(mailboxes.id, id), eq(mailboxes.organizationId, user.organizationId)))
 		.limit(1);
 
 	if (!row) return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+	// A mailbox password signs in to webmail as the mailbox's owner. Only the
+	// primary admin may set one for a mailbox owned by an admin, matching the
+	// rule that only the primary admin manages admin accounts.
+	if (!isPrimaryAdmin(user) && (row.ownerRole === "admin" || row.ownerIsPrimaryAdmin)) {
+		return NextResponse.json({ error: "Only the primary admin can reset an admin's mailbox password" }, { status: 403 });
+	}
 
 	let password = generateMailboxPassword();
 	try {
-		const body = (await request.json()) as { password?: string };
-		if (typeof body.password === "string" && body.password.length >= 8) {
+		const body = (await request.json()) as { password?: unknown };
+		if (typeof body.password === "string" && body.password.length > 0) {
+			if (body.password.length < 8 || body.password.length > 128) {
+				return NextResponse.json({ error: "Password must be 8 to 128 characters" }, { status: 400 });
+			}
 			password = body.password;
 		}
 	} catch {

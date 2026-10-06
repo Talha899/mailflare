@@ -556,6 +556,10 @@ export const sessions = sqliteTable("sessions", {
 		.references(() => users.id, { onDelete: "cascade" }),
 	tokenHash: text("token_hash").notNull().unique(),
 	expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+	/** How the session was signed in: account (legacy), admin (admin portal) or mailbox (webmail). */
+	scope: text("scope").notNull().default("account"),
+	/** For mailbox-scope sessions, the one mailbox whose password signed it in. */
+	mailboxId: text("mailbox_id"),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),
@@ -608,6 +612,10 @@ export const loginChallenges = sqliteTable("login_challenges", {
 		.references(() => users.id, { onDelete: "cascade" }),
 	tokenHash: text("token_hash").notNull().unique(),
 	expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+	/** The session scope the challenge will grant once the second factor checks out. */
+	scope: text("scope").notNull().default("account"),
+	mailboxId: text("mailbox_id"),
+	failedAttempts: integer("failed_attempts").notNull().default(0),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),

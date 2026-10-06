@@ -17,6 +17,7 @@ import { ensureOrganizationIndexes } from "@/lib/organizations/mongo-collections
 import { normalizeMailHostname } from "@/lib/domains/hostname";
 import { startScheduler } from "./runtime/scheduler";
 import { startSmtpListener } from "./runtime/smtp";
+import { applyTrustedClientIp, isSameHostWebSocketOrigin } from "./runtime/client-ip";
 
 /**
  * The self-hosted entrypoint: one Node process serving the Next app, the
@@ -69,6 +70,7 @@ async function main() {
 	await app.prepare();
 
 	const server = createServer((request, response) => {
+		applyTrustedClientIp(request);
 		void handle(request, response, parse(request.url ?? "/", true));
 	});
 
@@ -79,6 +81,13 @@ async function main() {
 			// Next's own dev-mode HMR socket, or anything else, is not ours.
 			if (dev) app.getUpgradeHandler()(request, socket, head);
 			else socket.destroy();
+			return;
+		}
+		// Same rule as worker.ts: a cookie-authenticated socket must come from our own
+		// pages, so a sibling subdomain cannot open it with the user's cookie.
+		if (!isSameHostWebSocketOrigin(request.headers.origin, request.headers.host)) {
+			socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
+			socket.destroy();
 			return;
 		}
 		const cookie = request.headers.cookie ?? "";
@@ -140,6 +149,12 @@ async function main() {
 	if (imapPort > 0) {
 		const { startImapServer } = await import("./runtime/imap/server");
 		startImapServer(env, { port: imapPort, hostname: mailHostname, tls });
+		if (process.env.IMAP_ALLOW_INSECURE_AUTH !== "true") {
+			console.log(
+				`IMAP on port ${imapPort} is plain TCP, so sign-in is refused there. Clients should use IMAPS ` +
+				"(set IMAPS_PORT with SMTP_TLS_KEY/SMTP_TLS_CERT), or set IMAP_ALLOW_INSECURE_AUTH=true when TLS is terminated in front.",
+			);
+		}
 	}
 	const imapsPort = Number(process.env.IMAPS_PORT ?? 0);
 	if (imapsPort > 0 && tls) {

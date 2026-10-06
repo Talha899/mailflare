@@ -277,6 +277,8 @@ export async function getMessageWithBodyForUser(env: CloudflareEnv, user: Sessio
 	if (!message?.mailboxId) return null;
 	const access = await getMailboxAccessLevel(db, user, message.mailboxId);
 	if (!access?.canRead) return null;
+	// In a shared mailbox a draft belongs to whoever is writing it.
+	if (message.status === "draft" && message.userId !== user.id) return null;
 	const contactNames = await getMessageContactNames(env, message.userId, message.fromAddr, message.toAddr);
 	const attachments = await listMessageAttachments(env, messageId);
 	const unsubscribeUrl = await getUnsubscribeUrlFromRawR2Key(env, message.rawR2Key);

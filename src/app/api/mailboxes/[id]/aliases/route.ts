@@ -78,6 +78,10 @@ export async function POST(request: Request, { params }: MailboxRouteParams) {
 		return NextResponse.json({ error: "Enter a valid alias username and domain" }, { status: 400 });
 	}
 
+	// Aliases claim new addresses on a domain, which is administration.
+	if (user.role !== "admin") {
+		return NextResponse.json({ error: "Only administrators can add aliases" }, { status: 403 });
+	}
 	const db = getDb(env);
 	const mailbox = await getManagedMailbox(db, user, id);
 	if (!mailbox) return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
@@ -90,6 +94,7 @@ export async function POST(request: Request, { params }: MailboxRouteParams) {
 				.where(and(
 					eq(domains.id, parsed.data.domainId),
 					eq(domains.userId, ownerId),
+					eq(domains.organizationId, user.organizationId),
 					eq(domains.status, "active"),
 				))
 				.limit(1)

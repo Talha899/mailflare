@@ -21,6 +21,8 @@ import {
 
 type Session = {
 	socket: Socket;
+	/** Whether this connection is TLS-protected (or insecure auth was explicitly allowed). */
+	authAllowed: boolean;
 	tag: string;
 	mailbox: AuthenticatedMailbox | null;
 	folders: ImapFolderSpec[];
@@ -34,9 +36,26 @@ type Session = {
 };
 
 const globalAuthFailures = new Map<string, { count: number; resetAt: number }>();
+/** Longest command line accepted before the connection is dropped. */
+const MAX_LINE_BYTES = 64 * 1024;
+/** Largest APPEND literal accepted, matching the inbound SMTP size limit. */
+const MAX_APPEND_BYTES = Number(process.env.SMTP_MAX_SIZE ?? 36 * 1024 * 1024);
+
+/**
+ * Passwords must not cross the network in the clear: a mailbox password also
+ * opens webmail and SMTP. Plain-TCP IMAP only authenticates when the operator
+ * says TLS is terminated in front of it (IMAP_ALLOW_INSECURE_AUTH=true).
+ */
+function insecureAuthAllowed(): boolean {
+	return process.env.IMAP_ALLOW_INSECURE_AUTH === "true";
+}
 
 function allowLogin(key: string): boolean {
 	const now = Date.now();
+	// Expired rows are dropped so unknown usernames cannot grow the map forever.
+	if (globalAuthFailures.size > 10_000) {
+		for (const [entry, value] of globalAuthFailures) if (value.resetAt < now) globalAuthFailures.delete(entry);
+	}
 	const row = globalAuthFailures.get(key);
 	if (!row || row.resetAt < now) {
 		globalAuthFailures.set(key, { count: 0, resetAt: now + 60_000 });
@@ -190,6 +209,7 @@ export function startImapServer(
 	const handler = (socket: Socket) => {
 		const session: Session = {
 			socket,
+			authAllowed: Boolean(options.secure && options.tls) || insecureAuthAllowed(),
 			tag: "*",
 			mailbox: null,
 			folders: [],
@@ -237,7 +257,20 @@ export function startImapServer(
 						continue;
 					}
 					const nl = buffer.indexOf(0x0a);
-					if (nl < 0) return;
+					if (nl < 0) {
+						if (buffer.length > MAX_LINE_BYTES) {
+							write(socket, "* BYE Line too long");
+							socket.destroy();
+							buffer = Buffer.alloc(0);
+						}
+						return;
+					}
+					if (nl > MAX_LINE_BYTES) {
+						write(socket, "* BYE Line too long");
+						socket.destroy();
+						buffer = Buffer.alloc(0);
+						return;
+					}
 					const line = buffer.subarray(0, nl).toString("utf8");
 					buffer = buffer.subarray(nl + 1);
 					await handleCommand(env, session, line);
@@ -294,7 +327,7 @@ async function handleCommand(env: CloudflareEnv, session: Session, line: string)
 	try {
 		switch (command) {
 			case "CAPABILITY":
-				write(socket, `* CAPABILITY IMAP4rev1 AUTH=PLAIN`);
+				write(socket, session.authAllowed ? `* CAPABILITY IMAP4rev1 AUTH=PLAIN` : `* CAPABILITY IMAP4rev1 LOGINDISABLED`);
 				write(socket, `${tag} OK CAPABILITY completed`);
 				return;
 			case "NOOP":
@@ -306,11 +339,19 @@ async function handleCommand(env: CloudflareEnv, session: Session, line: string)
 				socket.end();
 				return;
 			case "LOGIN": {
+				if (!session.authAllowed) {
+					write(socket, `${tag} NO [PRIVACYREQUIRED] Use the TLS port (IMAPS) to sign in`);
+					return;
+				}
 				const atoms = parseAtoms(args);
 				await doLogin(env, session, tag, atoms[0] ?? "", atoms[1] ?? "");
 				return;
 			}
 			case "AUTHENTICATE": {
+				if (!session.authAllowed) {
+					write(socket, `${tag} NO [PRIVACYREQUIRED] Use the TLS port (IMAPS) to sign in`);
+					return;
+				}
 				const mech = args.trim().split(/\s+/)[0]?.toUpperCase();
 				if (mech !== "PLAIN") {
 					write(socket, `${tag} NO AUTHENTICATE failed`);
@@ -529,6 +570,10 @@ async function handleCommand(env: CloudflareEnv, session: Session, line: string)
 					return;
 				}
 				const size = Number(literalMatch[1]);
+				if (!Number.isSafeInteger(size) || size > MAX_APPEND_BYTES) {
+					write(socket, `${tag} NO [TOOBIG] Message too large`);
+					return;
+				}
 				const flagMatch = args.match(/\(([^)]*)\)/);
 				const flags = flagMatch
 					? flagMatch[1]!.split(/\s+/).filter(Boolean)
@@ -641,8 +686,13 @@ async function emitFetch(
 	}
 	if (wantSize && body) parts.push(`RFC822.SIZE ${body.byteLength}`);
 	if (wantBody && body) {
-		const text = Buffer.from(body).toString("binary");
-		parts.push(`BODY[] {${body.byteLength}}\r\n${text}`);
+		// The literal is written as raw bytes: a string write would UTF-8 encode
+		// 8-bit content and break the declared {length}, desynchronising the client.
+		const prefix = parts.length ? `${parts.join(" ")} ` : "";
+		session.socket.write(`* ${sequence} FETCH (${prefix}BODY[] {${body.byteLength}}\r\n`);
+		session.socket.write(Buffer.from(body));
+		session.socket.write(")\r\n");
+		return;
 	}
 
 	write(session.socket, `* ${sequence} FETCH (${parts.join(" ")})`);

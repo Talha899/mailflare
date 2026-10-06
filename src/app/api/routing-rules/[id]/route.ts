@@ -18,7 +18,7 @@ export async function PATCH(request: Request, { params }: RoutingRuleRouteParams
 	}
 
 	const db = getDb(env);
-	const [rule] = await db.select().from(routingRules).where(eq(routingRules.id, id)).limit(1);
+	const [rule] = await db.select().from(routingRules).where(and(eq(routingRules.id, id), eq(routingRules.scope, "mailbox"))).limit(1);
 	if (!rule?.mailboxId || rule.mailboxId !== parsed.data.mailboxId) {
 		return NextResponse.json({ error: "Rule not found" }, { status: 404 });
 	}
@@ -66,7 +66,7 @@ export async function DELETE(request: Request, { params }: RoutingRuleRouteParam
 	const env = getEnv();
 	const user = await requireUser(env, request);
 	const db = getDb(env);
-	const [rule] = await db.select().from(routingRules).where(eq(routingRules.id, id)).limit(1);
+	const [rule] = await db.select().from(routingRules).where(and(eq(routingRules.id, id), eq(routingRules.scope, "mailbox"))).limit(1);
 	if (!rule?.mailboxId) {
 		return NextResponse.json({ error: "Rule not found" }, { status: 404 });
 	}

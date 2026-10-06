@@ -9,7 +9,7 @@ import { allowLoginAttempt } from "@/lib/auth/rate-limit";
 import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
 import { recordAuthActivity } from "@/lib/auth/activity";
-import { consumeLoginChallenge, getLoginChallengeUserId } from "@/lib/auth/login-challenge";
+import { consumeLoginChallenge, getLoginChallenge, recordFailedLoginChallenge } from "@/lib/auth/login-challenge";
 import { verifySecondFactor } from "@/lib/auth/mfa";
 
 /** Second step of a login: trade a challenge plus a TOTP or recovery code for a session. */
@@ -31,26 +31,31 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Too many attempts. Try again shortly." }, { status: 429, headers: { "Retry-After": "60" } });
 	}
 
-	const userId = await getLoginChallengeUserId(env, parsed.data.challengeToken);
-	if (!userId) {
+	const challenge = await getLoginChallenge(env, parsed.data.challengeToken);
+	if (!challenge) {
 		return NextResponse.json({ error: "This sign-in attempt has expired. Start again." }, { status: 401 });
 	}
 	const db = getDb(env);
-	const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+	const [user] = await db.select().from(users).where(eq(users.id, challenge.userId)).limit(1);
 	if (!user || user.disabled) {
 		return NextResponse.json({ error: "Account disabled" }, { status: 403 });
 	}
 	const method = await verifySecondFactor(env, user, parsed.data.code);
 	if (!method) {
+		await recordFailedLoginChallenge(env, parsed.data.challengeToken);
 		return NextResponse.json({ error: "That code did not match" }, { status: 401 });
 	}
 
 	await consumeLoginChallenge(env, parsed.data.challengeToken);
-	const token = await createSession(env, user.id);
+	// The session gets exactly what the first factor unlocked: a mailbox password
+	// never becomes an admin session, whatever the client claims about its portal.
+	const token = await createSession(env, user.id, {
+		scope: challenge.scope,
+		mailboxId: challenge.mailboxId,
+	});
 	await recordAuthActivity(env, { action: "auth.login", userId: user.id, request });
 	await recordAuthActivity(env, { action: "auth.mfa_verified", userId: user.id, request });
-	const redirect =
-		parsed.data.adminPortal && user.role === "admin" ? "/admin" : "/inbox";
+	const redirect = challenge.scope === "admin" && user.role === "admin" ? "/admin" : "/inbox";
 	const response = NextResponse.json({ ok: true, token, redirect, method });
 	response.headers.set("Cache-Control", "no-store");
 	response.cookies.set(SESSION_COOKIE, token, {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { assertPrimaryAdmin } from "@/lib/auth/admin";
+import { assertInstanceOwner } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/cookies";
 import { billingDisabled } from "@/lib/licenses/service";
 import type { LicenseKeyRequest } from "./types";
@@ -15,7 +15,7 @@ export async function requireLicenseAdmin(env: CloudflareEnv, request: Request):
 		return NextResponse.json({ error: "Billing is disabled for this installation" }, { status: 404 });
 	}
 	try {
-		assertPrimaryAdmin(await requireUser(env, request));
+		assertInstanceOwner(env, await requireUser(env, request));
 		return null;
 	} catch {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });

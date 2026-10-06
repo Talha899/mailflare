@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq, desc, and, or, count, isNull, isNotNull, inArray, lte, gt, notInArray, sql, sum } from "drizzle-orm";
+import { eq, ne, desc, and, or, count, isNull, isNotNull, inArray, lte, gt, notInArray, sql, sum } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { getEnv } from "@/lib/cloudflare";
 import { getCurrentUser } from "@/lib/auth/cookies";
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
 	} else if (accessibleMailboxIds.length > 0) {
 		conditions.push(inArray(messages.mailboxId, accessibleMailboxIds));
 	} else {
-		conditions.push(eq(messages.userId, user.id));
+		conditions.push(sql`0 = 1` /* no accessible mailbox: show nothing rather than rows from disabled or unshared ones */);
 	}
 	if (direction === "inbound" || direction === "outbound") {
 		conditions.push(eq(messages.direction, direction));
@@ -61,6 +61,8 @@ export async function GET(request: Request) {
 	if (status) {
 		conditions.push(eq(messages.status, status));
 	}
+	// Other members' drafts in a shared mailbox are theirs alone.
+	conditions.push(or(ne(messages.status, "draft"), eq(messages.userId, user.id))!);
 	if (status === "received" && !folderId) {
 		conditions.push(isNull(messages.folderId));
 		conditions.push(or(isNull(messages.snoozedUntil), lte(messages.snoozedUntil, new Date()))!);
@@ -136,7 +138,7 @@ export async function GET(request: Request) {
 			? eq(messages.mailboxId, mailboxId)
 			: accessibleMailboxIds.length > 0
 				? inArray(messages.mailboxId, accessibleMailboxIds)
-				: eq(messages.userId, user.id);
+				: sql`0 = 1` /* no accessible mailbox: show nothing rather than rows from disabled or unshared ones */;
 		const countRows = await db
 			.select({
 				threadId: messages.threadId,

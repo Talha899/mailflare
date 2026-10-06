@@ -5,8 +5,15 @@ import { hashPassword } from "@/lib/auth/password";
 
 type Db = ReturnType<typeof getDb>;
 
-export async function selectAccountById(db: Db, id: string) {
-	const [account] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+/**
+ * An account by id, limited to the caller's organization when one is given.
+ * Session routes always pass it: in SaaS mode an admin of one organization must
+ * never read or edit another organization's users.
+ */
+export async function selectAccountById(db: Db, id: string, organizationId?: string) {
+	const conditions = [eq(users.id, id)];
+	if (organizationId) conditions.push(eq(users.organizationId, organizationId));
+	const [account] = await db.select().from(users).where(and(...conditions)).limit(1);
 	return account ?? null;
 }
 

@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import type { AppDatabase } from "@/db";
 import { webhookDeliveries, webhooks } from "@/db/schema";
 import { newId } from "@/lib/ids";
+import { assertPublicUrl } from "@/lib/http/public-url-server";
 
 export type WebhookEventType = "message.inbound" | "message.outbound" | "message.failed";
 
@@ -98,6 +99,8 @@ async function attemptDelivery(
 	let error: string | null = null;
 
 	try {
+		// Re-checked on every attempt: DNS can change after the hook was saved.
+		await assertPublicUrl(hook.url);
 		const signature = await signPayload(hook.secret, delivery.payload);
 		const res = await fetch(hook.url, {
 			method: "POST",

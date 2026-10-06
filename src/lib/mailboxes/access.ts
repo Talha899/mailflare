@@ -18,13 +18,14 @@ export function hasMailboxPermission(permission: MailboxPermission, required: Ma
 
 export async function getMailboxAccessLevel(
 	db: AppDatabase,
-	user: Pick<SessionUser, "id" | "role">,
+	user: Pick<SessionUser, "id" | "role" | "sessionMailboxId">,
 	mailboxId: string,
 ): Promise<MailboxAccessLevel | null> {
 	const [mailbox] = await db.select().from(mailboxes).where(eq(mailboxes.id, mailboxId)).limit(1);
 	if (!mailbox || mailbox.disabled) return null;
 
-	const isOwner = mailbox.userId === user.id;
+	// A webmail session owns only the mailbox whose password signed it in.
+	const isOwner = mailbox.userId === user.id && ownedMailboxAllowed(user, mailbox.id);
 	if (isOwner) return buildAccess(mailbox, "full_access", true);
 	if (mailbox.type !== "shared" || !(await isTeamMailboxSharingEnabled(db))) return null;
 
@@ -38,7 +39,7 @@ export async function getMailboxAccessLevel(
 	return null;
 }
 
-export async function listAccessibleMailboxes(db: AppDatabase, user: Pick<SessionUser, "id" | "email" | "role">) {
+export async function listAccessibleMailboxes(db: AppDatabase, user: Pick<SessionUser, "id" | "email" | "role" | "sessionMailboxId">) {
 	const ownedRows = await db
 		.select({
 			id: mailboxes.id,
@@ -61,6 +62,7 @@ export async function listAccessibleMailboxes(db: AppDatabase, user: Pick<Sessio
 		.innerJoin(domains, eq(mailboxes.domainId, domains.id))
 		.where(and(eq(mailboxes.userId, user.id), eq(mailboxes.disabled, false)));
 	const owned = ownedRows
+		.filter((row) => ownedMailboxAllowed(user, row.id))
 		.map((row) => {
 			const { avatarKey, ...mailbox } = row;
 			return {
@@ -113,9 +115,14 @@ export async function listAccessibleMailboxes(db: AppDatabase, user: Pick<Sessio
 	return [...owned, ...shared];
 }
 
-export async function listAccessibleMailboxIds(db: AppDatabase, user: Pick<SessionUser, "id" | "email" | "role">) {
+export async function listAccessibleMailboxIds(db: AppDatabase, user: Pick<SessionUser, "id" | "email" | "role" | "sessionMailboxId">) {
 	const rows = await listAccessibleMailboxes(db, user);
 	return rows.map((row) => row.id);
+}
+
+/** Mailbox-scope sessions are pinned to one owned mailbox; every other session sees all owned ones. */
+export function ownedMailboxAllowed(user: Pick<SessionUser, "sessionMailboxId">, mailboxId: string): boolean {
+	return !user.sessionMailboxId || user.sessionMailboxId === mailboxId;
 }
 
 function buildAccess(

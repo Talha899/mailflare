@@ -1,4 +1,4 @@
-import { and, count, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 		if (accessibleMailboxIds.length > 0) {
 			conditions.push(inArray(messages.mailboxId, accessibleMailboxIds));
 		} else {
-			conditions.push(eq(messages.userId, user.id));
+			conditions.push(sql`0 = 1` /* no accessible mailbox: show nothing rather than rows from disabled or unshared ones */);
 		}
 	}
 

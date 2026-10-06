@@ -24,7 +24,12 @@ export function ChangePasswordForm() {
 
 		setLoading(true);
 		try {
-			await updatePassword(currentPassword, newPassword);
+			const signedOut = await updatePassword(currentPassword, newPassword);
+			if (signedOut) {
+				// A mailbox password change ends every webmail session for that mailbox.
+				window.location.href = "/login?passwordChanged=1";
+				return;
+			}
 			setCurrentPassword("");
 			setNewPassword("");
 			setConfirmPassword("");

@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 import { getSecurityHeaders } from "./src/lib/security/headers";
 
 const nextConfig: NextConfig = {
-	distDir: process.env.MAILFLARE_RUNTIME === "node" ? ".next-node" : undefined,
+	// MAILFLARE_DIST_DIR lets a second dev server (e.g. an isolated test instance) run beside the usual one.
+	distDir: process.env.MAILFLARE_DIST_DIR || (process.env.MAILFLARE_RUNTIME === "node" ? ".next-node" : undefined),
 	turbopack: {
 		root: import.meta.dirname,
 		resolveAlias: process.env.MAILFLARE_RUNTIME === "node" ? {

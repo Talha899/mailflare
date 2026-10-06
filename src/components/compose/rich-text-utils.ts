@@ -10,6 +10,15 @@ export const QUOTE_ATTRIBUTE = "data-mailflare-quote";
 const QUOTE_OPEN = `<div class="mailflare-quote" ${QUOTE_ATTRIBUTE}="1">`;
 const SIGNATURE_ATTRIBUTE = "data-mailflare-signature";
 
+/**
+ * Stored draft HTML is not trusted: drafts also arrive through IMAP APPEND and
+ * JMAP, so a draft can carry markup nobody typed in this composer. Everything
+ * loaded into the editor goes through the reader's allowlist first.
+ */
+export function sanitizeComposerHtml(html: string | null | undefined): string {
+	return sanitizeEmailHtml(html ?? null, { forOutgoing: true }) ?? "";
+}
+
 export function escapeHtml(value: string): string {
 	return value
 		.replace(/&/g, "&amp;")

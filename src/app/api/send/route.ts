@@ -10,7 +10,7 @@ import { getDb } from "@/db";
 import { agentDraftMetadata, messages } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { loadMessageAttachmentContents } from "@/lib/email/attachments";
-import { userOwnsDraft } from "@/app/api/drafts/utils";
+import { userCanUseDraft } from "@/app/api/drafts/utils";
 
 export async function POST(request: Request) {
 	const env = getEnv();
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 	if (draftId) {
 		const db = getDb(env);
 		const [draft] = await db.select().from(messages).where(eq(messages.id, draftId)).limit(1);
-		if (!userOwnsDraft(draft, user.id)) {
+		if (!(await userCanUseDraft(db, user, draft))) {
 			return NextResponse.json({ error: "Draft not found" }, { status: 404 });
 		}
 		const [agent] = await db.select({ draftId: agentDraftMetadata.draftId }).from(agentDraftMetadata).where(eq(agentDraftMetadata.draftId, draftId)).limit(1);
@@ -43,8 +43,9 @@ export async function POST(request: Request) {
 
 	try {
 		const result = await sendEmail(env, {
-			userId: user.id,
 			...parsed.data,
+			userId: user.id,
+			sessionMailboxId: user.sessionMailboxId ?? null,
 			attachments,
 			publicOrigin: new URL(request.url).origin,
 		});

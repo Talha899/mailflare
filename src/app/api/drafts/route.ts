@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { getEnv } from "@/lib/cloudflare";
 import { getDb } from "@/db";
 import { messages } from "@/db/schema";
@@ -8,7 +8,7 @@ import { newId } from "@/lib/ids";
 import { buildSnippet } from "@/lib/email/parse";
 import { readJsonBody } from "@/lib/http/request";
 import { copyMessageAttachments } from "@/lib/email/attachments";
-import { getMailboxAccessLevel } from "@/lib/mailboxes/access";
+import { getMailboxAccessLevel, listAccessibleMailboxIds } from "@/lib/mailboxes/access";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
 import type { DraftPayload } from "./types";
 import { getDraftSender } from "./utils";
@@ -19,8 +19,12 @@ export async function GET(request: Request) {
 	const url = new URL(request.url);
 	const mailboxId = url.searchParams.get("mailboxId");
 	const db = getDb(env);
+	// Own drafts, and only in mailboxes this session may still open.
+	const accessibleIds = await listAccessibleMailboxIds(db, user);
+	if (accessibleIds.length === 0) return NextResponse.json({ drafts: [] });
 	const conditions = [
 		eq(messages.userId, user.id),
+		inArray(messages.mailboxId, accessibleIds),
 		eq(messages.direction, "outbound" as const),
 		eq(messages.status, "draft"),
 	];
@@ -47,7 +51,7 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Invalid draft request" }, { status });
 	}
 	const db = getDb(env);
-	const sender = await getDraftSender(env, user.id, input);
+	const sender = await getDraftSender(env, user, input);
 	if ("error" in sender) {
 		return NextResponse.json({ error: sender.error }, { status: 403 });
 	}

@@ -5,7 +5,7 @@ import { getDb } from "@/db";
 import { agentDraftMetadata, messages } from "@/db/schema";
 import { requireUser } from "@/lib/auth/cookies";
 import { deleteMessageAttachment } from "@/lib/email/attachments";
-import { userOwnsDraft } from "../../../utils";
+import { userCanUseDraft } from "../../../utils";
 
 type DraftAttachmentRouteParams = {
 	params: Promise<{ id: string; attachmentId: string }>;
@@ -19,7 +19,7 @@ export async function DELETE(request: Request, { params }: DraftAttachmentRouteP
 	const db = getDb(env);
 	const [draft] = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
 
-	if (!userOwnsDraft(draft, user.id)) {
+	if (!(await userCanUseDraft(db, user, draft))) {
 		return NextResponse.json({ error: "Draft not found" }, { status: 404 });
 	}
 

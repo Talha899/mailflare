@@ -14,7 +14,7 @@ export async function GET(request: Request, { params }: AccountRouteParams) {
 	const access = await requireTeamAdmin(request);
 	if (access.error) return access.error;
 	const { id } = await params;
-	const account = await selectAccountById(getDb(access.env), id);
+	const account = await selectAccountById(getDb(access.env), id, access.user!.organizationId);
 	if (!account) {
 		return NextResponse.json({ error: "Account not found" }, { status: 404 });
 	}
@@ -45,7 +45,7 @@ export async function PATCH(request: Request, { params }: AccountRouteParams) {
 	if (access.error) return access.error;
 	const { id } = await params;
 	const db = getDb(access.env);
-	const account = await selectAccountById(db, id);
+	const account = await selectAccountById(db, id, access.user!.organizationId);
 	if (!account) {
 		return NextResponse.json({ error: "Account not found" }, { status: 404 });
 	}

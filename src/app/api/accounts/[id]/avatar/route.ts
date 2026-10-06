@@ -13,7 +13,7 @@ export async function GET(request: Request, { params }: AccountRouteParams) {
 	const { id } = await params;
 	const access = await requireTeamAdmin(request);
 	if (access.error) return access.error;
-	const account = await selectAccountById(getDb(access.env), id);
+	const account = await selectAccountById(getDb(access.env), id, access.user!.organizationId);
 	if (!account?.avatarKey) return new Response("Not found", { status: 404 });
 	return getAvatarImageResponse(request, access.env.BUCKET, account.avatarKey);
 }

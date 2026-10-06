@@ -24,6 +24,7 @@ import {
 	hasMeaningfulHtml,
 	htmlToPlainText,
 	joinQuotedHtml,
+	sanitizeComposerHtml,
 	splitQuotedHtml,
 	textToHtml,
 } from "./rich-text-utils";
@@ -153,8 +154,8 @@ export function ComposeForm({
 				);
 				setSubject(draft.subject ?? "");
 				const stored = splitQuotedHtml(draft.htmlBody || textToHtml(draft.textBody));
-				setHtml(stored.body);
-				setQuotedHtml(stored.quoted);
+				setHtml(sanitizeComposerHtml(stored.body));
+				setQuotedHtml(stored.quoted ? sanitizeComposerHtml(stored.quoted) : stored.quoted);
 				setStoredAttachments(draft.attachments?.filter((item) => item.disposition === "attachment") ?? []);
 				setLoadedDraftMailboxId(draft.mailboxId);
 				setLoadedDraftFrom(getEmailAddress(draft.fromAddr).toLowerCase());

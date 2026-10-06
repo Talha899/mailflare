@@ -8,11 +8,19 @@ import type { SessionUser } from "@/lib/auth/types";
 
 export async function ensurePersonalMailbox(env: CloudflareEnv, db: AppDatabase, user: SessionUser) {
 	const current = await listAccessibleMailboxes(db, user);
+	// A webmail session is pinned to the mailbox it signed in with; never mint another.
+	if (user.sessionScope === "mailbox") return current;
 	if (current.some((mailbox) => mailbox.userId === user.id && mailbox.type === "personal")) return current;
 
 	const [localPart, hostname] = user.email.toLowerCase().split("@");
 	if (!localPart || !hostname) return current;
-	const [domain] = await db.select().from(domains).where(eq(domains.hostname, hostname)).limit(1);
+	// Only the caller's own organization's domains. In SaaS mode the signup email is
+	// unverified, so matching any org's domain let a stranger claim that address.
+	const [domain] = await db
+		.select()
+		.from(domains)
+		.where(and(eq(domains.hostname, hostname), eq(domains.organizationId, user.organizationId)))
+		.limit(1);
 	if (!domain) return current;
 
 	const [existing] = await db
@@ -31,6 +39,7 @@ export async function ensurePersonalMailbox(env: CloudflareEnv, db: AppDatabase,
 			localPart,
 			displayName: user.name || localPart,
 			type: "personal",
+			organizationId: user.organizationId,
 		});
 	} catch {
 		return current;

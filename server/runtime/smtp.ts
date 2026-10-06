@@ -4,6 +4,13 @@ import type { SMTPServerSession } from "smtp-server";
 import { intakeIncomingMail } from "@/lib/email/intake";
 import { inboundAttachmentLimitReasonFromRaw } from "@/lib/email/inbound-attachments";
 import type { Mailer } from "./mailer";
+import { getDb } from "@/db";
+import { resolveInboundAddress } from "@/lib/email/routing";
+
+/** Recipients accepted per message; RFC 5321 requires servers to accept at least 100. */
+const MAX_RECIPIENTS = 100;
+/** Concurrent inbound connections. */
+const MAX_CLIENTS = 200;
 
 /**
  * Receive mail directly on port 25 (or wherever SMTP_INBOUND_PORT points).
@@ -25,6 +32,28 @@ export function startSmtpListener(
 		...(options.tls ? { key: readFileSync(options.tls.keyPath), cert: readFileSync(options.tls.certPath) } : {}),
 		size: options.maxSize,
 		banner: "Dispatch",
+		maxClients: MAX_CLIENTS,
+		// Refuse unroutable recipients up front. Accepting every RCPT let anyone
+		// make the server store a full copy of a large message per bogus address.
+		onRcptTo(address, session: SMTPServerSession, callback) {
+			if (session.envelope.rcptTo.length >= MAX_RECIPIENTS) {
+				callback(Object.assign(new Error("Too many recipients"), { responseCode: 452 }));
+				return;
+			}
+			const sender = session.envelope.mailFrom ? session.envelope.mailFrom.address : null;
+			resolveInboundAddress(getDb(env), address.address, sender)
+				.then((decision) => {
+					if (!decision) {
+						callback(Object.assign(new Error("No such recipient here"), { responseCode: 550 }));
+						return;
+					}
+					callback();
+				})
+				.catch((error) => {
+					console.error(`SMTP recipient check failed for ${address.address}`, error);
+					callback(Object.assign(new Error("Temporary failure, try again later"), { responseCode: 451 }));
+				});
+		},
 		onData(stream, session: SMTPServerSession, callback) {
 			const chunks: Buffer[] = [];
 			stream.on("data", (chunk: Buffer) => chunks.push(chunk));

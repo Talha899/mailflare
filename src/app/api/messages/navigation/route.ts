@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, desc, eq, gt, inArray, isNull, lte, or } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import { messages } from "@/db/schema";
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 		const accessibleIds = await listAccessibleMailboxIds(db, user);
 		conditions.push(accessibleIds.length > 0
 			? inArray(messages.mailboxId, accessibleIds)
-			: eq(messages.userId, user.id));
+			: sql`0 = 1` /* no accessible mailbox: show nothing rather than rows from disabled or unshared ones */);
 	}
 
 	if (folder === "inbox") {

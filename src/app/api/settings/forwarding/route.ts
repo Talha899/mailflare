@@ -4,6 +4,7 @@ import { ZodError } from "zod";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { requireUser } from "@/lib/auth/cookies";
+import { rejectMailboxSession } from "@/lib/auth/session-scope";
 import { getEnv } from "@/lib/cloudflare";
 import { getLicenseEntitlements } from "@/lib/licenses/service";
 import type { UpdateForwardingEmailInput } from "./types";
@@ -12,6 +13,9 @@ import { parseUpdateForwardingEmailRequest } from "./utils";
 export async function PATCH(request: Request) {
 	const env = getEnv();
 	const user = await requireUser(env, request);
+	// Account forwarding copies every mailbox's mail; a webmail session cannot set it.
+	const scopeError = rejectMailboxSession(user);
+	if (scopeError) return scopeError;
 	let input: UpdateForwardingEmailInput;
 	try {
 		input = await parseUpdateForwardingEmailRequest(request);

@@ -9,7 +9,7 @@ import type { DraftPayload, DraftRouteParams } from "./types";
 import { selectDraftWithBody } from "./utils";
 import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
-import { getDraftSender, userOwnsDraft } from "../utils";
+import { getDraftSender, userCanUseDraft } from "../utils";
 import { listMessageAttachments } from "@/lib/email/attachments";
 import { deleteMessageWithObjects } from "@/lib/email/message-cleanup";
 import { parseAgentScheduledAt } from "@/lib/agent/schedule";
@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: DraftRouteParams) {
 	const db = getDb(env);
 	const draft = await selectDraftWithBody(db, user.id, id);
 
-	if (!draft) {
+	if (!draft || !(await userCanUseDraft(db, user, draft))) {
 		return NextResponse.json({ error: "Draft not found" }, { status: 404 });
 	}
 
@@ -44,7 +44,7 @@ export async function PATCH(request: Request, { params }: DraftRouteParams) {
 	const db = getDb(env);
 	const [draft] = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
 
-	if (!userOwnsDraft(draft, user.id)) {
+	if (!(await userCanUseDraft(db, user, draft))) {
 		return NextResponse.json({ error: "Draft not found" }, { status: 404 });
 	}
 	const [agent] = await db.select({ mailboxId: agentDraftMetadata.mailboxId }).from(agentDraftMetadata).where(eq(agentDraftMetadata.draftId, id)).limit(1);
@@ -56,7 +56,7 @@ export async function PATCH(request: Request, { params }: DraftRouteParams) {
 		try { scheduledAt = parseAgentScheduledAt(input.scheduledAt); }
 		catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid schedule" }, { status: 400 }); }
 	}
-	const sender = await getDraftSender(env, user.id, input);
+	const sender = await getDraftSender(env, user, input);
 	if ("error" in sender) {
 		return NextResponse.json({ error: sender.error }, { status: 403 });
 	}
@@ -89,7 +89,7 @@ export async function DELETE(request: Request, { params }: DraftRouteParams) {
 	const db = getDb(env);
 	const [draft] = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
 
-	if (!userOwnsDraft(draft, user.id)) {
+	if (!(await userCanUseDraft(db, user, draft))) {
 		return NextResponse.json({ error: "Draft not found" }, { status: 404 });
 	}
 

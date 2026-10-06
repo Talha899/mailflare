@@ -20,7 +20,7 @@ export async function POST(request: Request, { params }: AccountRouteParams) {
 	}
 	const { id } = await params;
 	const db = getDb(access.env);
-	const target = await selectAccountById(db, id);
+	const target = await selectAccountById(db, id, actor.organizationId);
 	if (!target) {
 		return NextResponse.json({ error: "Account not found" }, { status: 404 });
 	}

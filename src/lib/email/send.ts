@@ -16,6 +16,8 @@ import { prepareCloudflareAttachments } from "@/lib/email/cloud-attachment-utils
 
 export type SendEmailInput = {
 	userId: string;
+	/** Set when a webmail session sends: it may only use the mailbox it signed in to. */
+	sessionMailboxId?: string | null;
 	from: string;
 	/** One header-style list or an array; each entry may carry a display name. */
 	to: string | string[];

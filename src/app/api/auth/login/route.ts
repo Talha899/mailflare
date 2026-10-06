@@ -3,8 +3,8 @@ import { eq } from "drizzle-orm";
 import { getEnv } from "@/lib/cloudflare";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
-import { verifyPassword } from "@/lib/auth/password";
-import { createSession, SESSION_COOKIE } from "@/lib/auth/session";
+import { burnPasswordCheck, verifyPasswordAsync } from "@/lib/auth/password";
+import { createSession, SESSION_COOKIE, type SessionOptions } from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validators";
 import { allowLoginAttempt } from "@/lib/auth/rate-limit";
 import { readJsonBody } from "@/lib/http/request";
@@ -40,26 +40,32 @@ export async function POST(request: Request) {
 
 	let userId: string | null = null;
 	let redirect: "/admin" | "/inbox";
+	let sessionOptions: SessionOptions;
 
 	if (adminPortal) {
 		// Admin portal: users.password_hash only — never mailbox auth.
 		const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-		if (!user || !verifyPassword(password, user.passwordHash) || user.disabled) {
+		const valid = user
+			? await verifyPasswordAsync(password, user.passwordHash)
+			: await burnPasswordCheck(password);
+		// Same answer for "no such admin", "wrong password" and "not an admin", so
+		// the admin login cannot be used to discover which accounts are admins.
+		if (!user || !valid || user.disabled || user.role !== "admin") {
 			return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-		}
-		if (user.role !== "admin") {
-			return NextResponse.json({ error: "Admin access required" }, { status: 403 });
 		}
 		userId = user.id;
 		redirect = "/admin";
+		sessionOptions = { scope: "admin" };
 	} else {
 		// Mailbox webmail: mailboxes.password_hash only — never users.password_hash.
+		// The session is pinned to this mailbox and carries no admin rights.
 		const mailboxAuth = await authenticateMailboxAddress(env, email, password);
 		if (!mailboxAuth) {
 			return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 		}
 		userId = mailboxAuth.userId;
 		redirect = "/inbox";
+		sessionOptions = { scope: "mailbox", mailboxId: mailboxAuth.mailboxId };
 	}
 
 	const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -68,7 +74,7 @@ export async function POST(request: Request) {
 	}
 
 	if (user.totpEnabled && user.totpSecret) {
-		const challengeToken = await createLoginChallenge(env, user.id);
+		const challengeToken = await createLoginChallenge(env, user.id, sessionOptions);
 		const pending = NextResponse.json({
 			ok: true,
 			mfaRequired: true,
@@ -79,7 +85,7 @@ export async function POST(request: Request) {
 		return pending;
 	}
 
-	const token = await createSession(env, user.id);
+	const token = await createSession(env, user.id, sessionOptions);
 	await recordAuthActivity(env, { action: "auth.login", userId: user.id, request });
 	const response = NextResponse.json({
 		ok: true,

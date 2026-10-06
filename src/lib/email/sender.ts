@@ -12,6 +12,8 @@ export async function getAuthorizedSenderAddress(
 		userId: string;
 		from: string;
 		mailboxId?: string | null;
+		/** The mailbox a webmail session is pinned to, when the caller is one. */
+		sessionMailboxId?: string | null;
 	},
 ): Promise<{ fromAddr: string; mailboxId: string }> {
 	if (!input.mailboxId) throw new Error("Mailbox is required");
@@ -39,7 +41,7 @@ export async function getAuthorizedSenderAddress(
 	const [actor] = await db.select().from(users).where(eq(users.id, input.userId)).limit(1);
 	if (!actor || actor.disabled) throw new Error("Sender account not found");
 
-	const access = await getMailboxAccessLevel(db, actor, mailbox.id);
+	const access = await getMailboxAccessLevel(db, { ...actor, sessionMailboxId: input.sessionMailboxId ?? null }, mailbox.id);
 	if (!access?.canSendOnBehalf) {
 		throw new Error("You do not have permission to send from this mailbox");
 	}

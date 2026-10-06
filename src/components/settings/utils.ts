@@ -106,7 +106,8 @@ export async function updateMailboxAutoReply(
 	};
 }
 
-export async function updatePassword(currentPassword: string, newPassword: string): Promise<void> {
+/** Resolves to true when the change signed this session out (a webmail mailbox password). */
+export async function updatePassword(currentPassword: string, newPassword: string): Promise<boolean> {
 	const res = await authFetch("/api/settings/password", {
 		method: "PATCH",
 		headers: { "Content-Type": "application/json" },
@@ -117,6 +118,7 @@ export async function updatePassword(currentPassword: string, newPassword: strin
 	if (!res.ok) {
 		throw new Error(typeof data.error === "string" ? data.error : "Failed to change password");
 	}
+	return (data as { signedOut?: boolean }).signedOut === true;
 }
 
 /** An API key limited to the JMAP scope, for external mail apps. */

@@ -16,6 +16,7 @@ import {
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { RichTextEditorProps, ToolbarCommand } from "./rich-text-editor-types";
+import { sanitizeComposerHtml } from "./rich-text-utils";
 
 const COMMANDS: ToolbarCommand[] = [
 	{ command: "bold", label: "Bold (⌘B)", icon: Bold },
@@ -164,7 +165,7 @@ export function RichTextEditor({
 						{showQuoted && (
 							<div
 								className="email-body mt-2 max-w-none border-l-2 border-[var(--border)] pl-3 text-sm text-[var(--muted-foreground)]"
-								dangerouslySetInnerHTML={{ __html: quotedHtml }}
+								dangerouslySetInnerHTML={{ __html: sanitizeComposerHtml(quotedHtml) }}
 							/>
 						)}
 					</div>

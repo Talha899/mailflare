@@ -3,7 +3,7 @@ import { SMTPServer } from "smtp-server";
 import type { SMTPServerAuthentication, SMTPServerSession } from "smtp-server";
 import { sendEmail } from "@/lib/email/send";
 import { parseRawMime } from "@/lib/email/parse";
-import { getEmailAddress } from "@/lib/email/address";
+import { getEmailAddress, splitEmailAddressList } from "@/lib/email/address";
 import {
 	authenticateMailboxAddress,
 	type AuthenticatedMailbox,
@@ -116,10 +116,22 @@ export function startSmtpSubmissionServer(
 						}
 						const raw = Buffer.concat(chunks);
 						const parsed = await parseRawMime(toArrayBuffer(raw));
-						const to =
-							session.envelope.rcptTo.map((r) => r.address).filter(Boolean).join(", ") ||
-							parsed.toAddr ||
-							"";
+						// The envelope lists To, Cc and Bcc together. Visible headers come from
+						// the message itself; envelope-only recipients are the Bcc list, so they
+						// are delivered without being written into any header.
+						const envelope = session.envelope.rcptTo.map((r) => r.address.toLowerCase()).filter(Boolean);
+						const visible = new Set(
+							[...splitEmailAddressList(parsed.toAddr), ...splitEmailAddressList(parsed.ccAddr)]
+								.map((entry) => getEmailAddress(entry).toLowerCase()),
+						);
+						let bccList = Array.from(new Set(envelope.filter((address) => !visible.has(address))));
+						let to = parsed.toAddr ?? "";
+						if (!to) {
+							// No To header (e.g. "undisclosed recipients"): sending needs one, so the
+							// hidden recipients become the To list, as before this change.
+							to = bccList.join(", ");
+							bccList = [];
+						}
 						if (!to) {
 							callback(Object.assign(new Error("No recipients"), { responseCode: 554 }));
 							return;
@@ -131,7 +143,7 @@ export function startSmtpSubmissionServer(
 							from: fromAddr,
 							to,
 							cc: parsed.ccAddr ?? undefined,
-							bcc: parsed.bccAddr ?? undefined,
+							bcc: bccList.length ? bccList : undefined,
 							subject: parsed.subject ?? "(no subject)",
 							html: parsed.html ?? undefined,
 							text: parsed.text ?? undefined,

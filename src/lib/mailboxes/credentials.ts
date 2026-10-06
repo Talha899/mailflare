@@ -1,10 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { domains, mailboxes, users } from "@/db/schema";
-import {
-	hashMailboxPassword,
-	verifyMailboxPassword,
-} from "@/lib/mailboxes/credentials-utils";
+import { burnPasswordCheck, verifyPasswordAsync } from "@/lib/auth/password";
+import { deleteMailboxSessions } from "@/lib/auth/session";
+import { hashMailboxPassword } from "@/lib/mailboxes/credentials-utils";
 
 export {
 	generateMailboxPassword,
@@ -26,6 +25,8 @@ export async function setMailboxPassword(
 	const [mailbox] = await db.select().from(mailboxes).where(eq(mailboxes.id, mailboxId)).limit(1);
 	if (!mailbox) throw new Error("Mailbox not found");
 	await db.update(mailboxes).set({ passwordHash: hash }).where(eq(mailboxes.id, mailboxId));
+	// Whoever signed in to webmail with the old password is signed out.
+	await deleteMailboxSessions(env, mailboxId);
 }
 
 export type AuthenticatedMailbox = {
@@ -72,8 +73,11 @@ export async function authenticateMailboxAddress(
 		.where(and(eq(domains.hostname, hostname), eq(mailboxes.localPart, localPart)))
 		.limit(1);
 
-	if (!row || row.disabled || row.userDisabled) return null;
-	if (!row.mailboxPasswordHash || !verifyMailboxPassword(password, row.mailboxPasswordHash)) {
+	if (!row || row.disabled || row.userDisabled || !row.mailboxPasswordHash) {
+		await burnPasswordCheck(password);
+		return null;
+	}
+	if (!(await verifyPasswordAsync(password, row.mailboxPasswordHash))) {
 		return null;
 	}
 

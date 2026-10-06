@@ -23,12 +23,15 @@ export function ProfileForm({
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingRecovery, setSavingRecovery] = useState(false);
 
-  async function saveProfile(nextName: string, nextResetEmail: string) {
+  const [recoveryPassword, setRecoveryPassword] = useState("");
+  const recoveryChanged = resetEmail.trim() !== savedResetEmail;
+
+  async function saveProfile(nextName: string, nextResetEmail: string, currentPassword?: string) {
     try {
       const res = await authFetch("/api/settings/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: nextName, resetEmail: nextResetEmail }),
+        body: JSON.stringify({ name: nextName, resetEmail: nextResetEmail, currentPassword }),
       });
       const data = (await res.json()) as ProfileFormResponse;
 
@@ -75,7 +78,8 @@ export function ProfileForm({
     setSavingRecovery(true);
     setRecoveryStatus(null);
     try {
-      await saveProfile(savedName, resetEmail);
+      await saveProfile(savedName, resetEmail, recoveryPassword);
+      setRecoveryPassword("");
       setRecoveryStatus("Saved");
     } catch (error) {
       setRecoveryStatus(
@@ -162,10 +166,26 @@ export function ProfileForm({
             placeholder="recovery@example.com"
           />
         </div>
+        {recoveryChanged && (
+          <div className="space-y-2">
+            <Label htmlFor="recoveryCurrentPassword">Current account password</Label>
+            <Input
+              id="recoveryCurrentPassword"
+              type="password"
+              autoComplete="current-password"
+              value={recoveryPassword}
+              onChange={(event) => setRecoveryPassword(event.target.value)}
+              required
+            />
+            <p className="text-xs text-[var(--muted-foreground)]">
+              Password reset links go to this address, so changing it needs your password.
+            </p>
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <Button
             type="submit"
-            disabled={savingRecovery || resetEmail.trim() === savedResetEmail}
+            disabled={savingRecovery || !recoveryChanged || !recoveryPassword}
           >
             {savingRecovery ? "Saving..." : "Save recovery email"}
           </Button>

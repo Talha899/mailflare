@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { authFetch } from "@/lib/auth/client";
+import { authFetch, ensureClientSessionMarker } from "@/lib/auth/client";
 import type { AuthGuardProps } from "./auth-guard-types";
 import { LoadingTransition } from "@/components/loading-transition";
 import { saveUserTimeZonePreference } from "@/lib/time/client";
@@ -55,7 +55,10 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 					saasMode?: boolean;
 					user?: { id?: string; role?: string; isPrimaryAdmin?: boolean; timeZone?: string | null };
 				};
-				if (data.user?.id) saveUserTimeZonePreference(data.user.id, data.user.timeZone ?? null);
+				if (data.user?.id) {
+					saveUserTimeZonePreference(data.user.id, data.user.timeZone ?? null);
+					ensureClientSessionMarker();
+				}
 				if (mode === "public") {
 					// Keep portals separate: webmail public pages → inbox; admin login → admin console only for admins.
 					const onAdminLogin =

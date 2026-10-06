@@ -34,6 +34,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	const env = getEnv();
 	const user = await requireUser(env, request);
+	// Creating an address on a domain is administration: a plain user could
+	// otherwise claim postmaster@, billing@ and the like and send as them.
+	if (user.role !== "admin") {
+		return NextResponse.json({ error: "Only administrators can create mailboxes" }, { status: 403 });
+	}
 	const parsed = mailboxSchema.safeParse(await request.json());
 	if (!parsed.success) {
 		return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getEmailAddress, splitEmailAddressList } from "@/lib/email/address";
 import { DEFAULT_FOLDER_COLOR, FOLDER_COLOR_VALUES } from "@/lib/folders/colors";
+import { getPublicUrlProblem } from "@/lib/http/public-url";
 import { assertDomainHostname } from "@/lib/domains/hostname";
 
 /**
@@ -241,6 +242,8 @@ export const updateProfileSchema = z.object({
 		(value) => (typeof value === "string" ? value.trim() : value),
 		z.string().email().or(z.literal("")).optional().transform((value) => value === undefined ? undefined : value || null),
 	),
+	/** Required when the recovery email changes: it decides who can reset the password. */
+	currentPassword: z.string().max(256).optional(),
 });
 
 export const updateForwardingEmailSchema = z.object({
@@ -336,7 +339,7 @@ export const domainRoutingRuleSchema = z
 	});
 
 export const webhookSchema = z.object({
-	url: z.string().url().max(2048),
+	url: z.string().url().max(2048).superRefine((value, ctx) => { const problem = getPublicUrlProblem(value); if (problem) ctx.addIssue({ code: "custom", message: problem }); }),
 	description: z.string().trim().max(200).optional(),
 	events: z
 		.array(z.enum(["message.inbound", "message.outbound", "message.failed"]))
@@ -346,7 +349,7 @@ export const webhookSchema = z.object({
 });
 
 export const webhookUpdateSchema = z.object({
-	url: z.string().url().max(2048).optional(),
+	url: z.string().url().max(2048).superRefine((value, ctx) => { const problem = getPublicUrlProblem(value); if (problem) ctx.addIssue({ code: "custom", message: problem }); }).optional(),
 	description: z.string().trim().max(200).nullish(),
 	events: z
 		.array(z.enum(["message.inbound", "message.outbound", "message.failed"]))
