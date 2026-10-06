@@ -1,7 +1,8 @@
 /**
- * AWS SDK v3 GetObject Body in Node is a Smithy SdkStream (ChecksumStream),
- * not a Web ReadableStream. Readable.fromWeb() throws ERR_INVALID_ARG_TYPE.
- * Prefer transformToByteArray(); otherwise iterate the Node stream.
+ * `@aws-sdk/client-s3` talks to any S3-compatible endpoint (Hostinger, MinIO,
+ * s3.codenak.com). GetObject Body in Node is a Smithy stream (often named
+ * ChecksumStream), not a Web ReadableStream. Readable.fromWeb() throws
+ * ERR_INVALID_ARG_TYPE. Prefer transformToByteArray(); else iterate the stream.
  */
 export async function s3BodyToBuffer(body: unknown): Promise<Buffer> {
 	if (body == null) return Buffer.alloc(0);
@@ -34,5 +35,5 @@ export async function s3BodyToBuffer(body: unknown): Promise<Buffer> {
 		return chunks.length === 1 ? chunks[0]! : Buffer.concat(chunks);
 	}
 
-	throw new TypeError(`Unsupported S3 GetObject body: ${Object.prototype.toString.call(body)}`);
+	throw new TypeError(`Unsupported object-store GetObject body: ${Object.prototype.toString.call(body)}`);
 }

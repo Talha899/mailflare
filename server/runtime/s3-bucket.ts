@@ -144,6 +144,10 @@ export class S3Bucket {
 				secretAccessKey: config.secretAccessKey,
 			},
 			forcePathStyle: config.forcePathStyle ?? false,
+			// Amazon-only flexible checksums wrap GetObject in ChecksumStream and
+			// break MinIO / Hostinger / custom endpoints. Keep CRC32 for S3 APIs.
+			requestChecksumCalculation: "WHEN_REQUIRED",
+			responseChecksumValidation: "WHEN_REQUIRED",
 		};
 		this.client = new S3Client(clientConfig);
 	}
