@@ -18,6 +18,23 @@ export function getMessageParty(
 	return message.fromContactName ?? (message.fromAddr ? getEmailDisplayName(message.fromAddr) : "Unknown sender");
 }
 
+/** Whose avatar a list row shows: the sender for received mail, the first recipient for sent mail and drafts. */
+export function getMessageAvatarIdentity(
+	message: Message,
+	folder: MessageFolderConfig["folder"],
+): { address: string; name: string } {
+	const useRecipient = folder === "sent" || folder === "drafts" || message.direction === "outbound";
+	if (useRecipient) {
+		const [first] = splitEmailAddressList(message.toAddr);
+		const address = first ?? "";
+		return { address, name: message.toContactName ?? (address ? getEmailDisplayName(address) : "?") };
+	}
+	return {
+		address: message.fromAddr ?? "",
+		name: message.fromContactName ?? (message.fromAddr ? getEmailDisplayName(message.fromAddr) : "?"),
+	};
+}
+
 /** "Maya Chen, +2" for a multi-recipient message, or just the one name. */
 export function formatRecipientSummary(toAddr: string, firstContactName?: string | null): string {
 	const entries = splitEmailAddressList(toAddr);
