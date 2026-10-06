@@ -9,13 +9,25 @@
 	--muted: #eef2f7;
 	--muted-foreground: #6b7280;
 	--border: #e5e7eb;
-	--primary: #0b57d0;
+	--primary: #0f766e;
 	--primary-foreground: #ffffff;
-	--accent: #e8f0fe;
+	--accent: #f0fdfa;
 	--destructive: #dc2626;
-	--ring: #0b57d0;
+	--ring: #0f766e;
 	--sidebar: #f8fafc;
 	--success: #059669;
+	/* Brand accent: remap Tailwind blue utilities to Postora teal/ink */
+	--color-blue-50: #f0fdfa;
+	--color-blue-100: #ccfbf1;
+	--color-blue-200: #99f6e4;
+	--color-blue-300: #5eead4;
+	--color-blue-400: #2dd4bf;
+	--color-blue-500: #14b8a6;
+	--color-blue-600: #0f766e;
+	--color-blue-700: #0f766e;
+	--color-blue-800: #115e59;
+	--color-blue-900: #134e4a;
+	--color-blue-950: #042f2e;
 }
 
 .dark {
@@ -25,11 +37,11 @@
 	--muted: #1f2430;
 	--muted-foreground: #9ca3af;
 	--border: #2a3140;
-	--primary: #8ab4f8;
-	--primary-foreground: #0f1115;
-	--accent: #1a2333;
+	--primary: #2dd4bf;
+	--primary-foreground: #134e4a;
+	--accent: #1a2e2c;
 	--destructive: #f87171;
-	--ring: #8ab4f8;
+	--ring: #2dd4bf;
 	--sidebar: #12151c;
 	--success: #34d399;
 }
@@ -234,8 +246,8 @@ button {
 	--card: #292a2d;
 	--muted: #303134;
 	--border: #3c4043;
-	--primary: #8ab4f8;
-	--primary-foreground: #202124;
+	--primary: #2dd4bf;
+	--primary-foreground: #134e4a;
 	--color-white: #292a2d;
 	--color-black: #000;
 	--color-neutral-50: #303134;
@@ -293,17 +305,17 @@ button {
 	--color-slate-800: #e8eaed;
 	--color-slate-900: #f1f3f4;
 	--color-slate-950: #ffffff;
-	--color-blue-50: #2c3d57;
-	--color-blue-100: #33486a;
-	--color-blue-200: oklch(42.4% 0.199 265.638);
-	--color-blue-300: oklch(48.8% 0.243 264.376);
-	--color-blue-400: oklch(54.6% 0.245 262.881);
-	--color-blue-500: oklch(62.3% 0.214 259.815);
-	--color-blue-600: oklch(70.7% 0.165 254.624);
-	--color-blue-700: oklch(80.9% 0.105 251.813);
-	--color-blue-800: oklch(88.2% 0.059 254.128);
-	--color-blue-900: oklch(93.2% 0.032 255.585);
-	--color-blue-950: oklch(97% 0.014 254.604);
+	--color-blue-50: #134e4a;
+	--color-blue-100: #115e59;
+	--color-blue-200: #0f766e;
+	--color-blue-300: #0d9488;
+	--color-blue-400: #14b8a6;
+	--color-blue-500: #2dd4bf;
+	--color-blue-600: #5eead4;
+	--color-blue-700: #99f6e4;
+	--color-blue-800: #ccfbf1;
+	--color-blue-900: #f0fdfa;
+	--color-blue-950: #f8fffc;
 	--color-red-50: oklch(25.8% 0.092 26.042);
 	--color-red-100: oklch(39.6% 0.141 25.723);
 	--color-red-200: oklch(44.4% 0.177 26.899);
@@ -477,8 +489,8 @@ button {
 /* Dark chips with white text (tooltip, compose header): the chip turns light, the text turns dark */
 .dark .bg-neutral-900.text-white, .dark .bg-neutral-800.text-white, .dark .bg-neutral-950.text-white { color: var(--color-neutral-50); }
 /* Buttons and highlights with white text keep their original saturated background, not the inverted one */
-.dark .bg-blue-600 { background-color: oklch(54.6% 0.245 262.881); }
-.dark .bg-blue-700, .dark .hover\:bg-blue-700:hover { background-color: oklch(48.8% 0.243 264.376); }
+.dark .bg-blue-600 { background-color: #0f766e; }
+.dark .bg-blue-700, .dark .hover\:bg-blue-700:hover { background-color: #134e4a; }
 .dark .bg-red-600 { background-color: oklch(57.7% 0.245 27.325); }
 .dark .bg-red-700, .dark .hover\:bg-red-700:hover { background-color: oklch(50.5% 0.213 27.518); }
 .dark .bg-green-600 { background-color: oklch(62.7% 0.194 149.214); }

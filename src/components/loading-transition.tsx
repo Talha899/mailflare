@@ -102,7 +102,7 @@ export function LoadingTransition({ children, ready }: LoadingTransitionProps) {
 					<div className="flex w-64 flex-col items-center gap-6">
 						<img
 							src={iconUrl}
-							onError={() => setIconUrl("/icon-96.png")}
+							onError={() => setIconUrl("/logo.svg")}
 							alt={`${branding.appName} icon`}
 							className="h-20 w-20 rounded-2xl object-contain"
 						/>

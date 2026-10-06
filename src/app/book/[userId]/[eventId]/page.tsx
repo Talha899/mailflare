@@ -124,7 +124,7 @@ export default function PublicBookingEventPage() {
 						<span className="flex-1" />
 						<div className="flex min-w-0 items-center gap-3">
 
-							<img src={branding.iconUrl} width={24} height={24} alt={branding.appName || "Mailflare"} />
+							<img src={branding.iconUrl} width={24} height={24} alt={branding.appName || "Postora"} />
 
 							<span className="truncate font-semibold">{branding.appName}</span>
 						</div>

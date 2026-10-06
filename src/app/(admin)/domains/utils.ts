@@ -5,8 +5,8 @@ import { recordsForAuthCheck } from "./domain-dns-details-utils";
 export const dnsAuthRecords = ["mx", "spf", "dkim", "dmarc"] as const;
 
 export const dnsAuthDescriptions = {
-	mx: "Routes incoming email to Mailflare",
-	spf: "Authorizes Mailflare to send email",
+	mx: "Routes incoming email to Postora",
+	spf: "Authorizes Postora to send email",
 	dkim: "Signs outgoing email for deliverability",
 	dmarc: "Helps prevent email spoofing",
 } as const;

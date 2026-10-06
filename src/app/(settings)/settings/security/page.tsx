@@ -11,7 +11,9 @@ export default function SecuritySettingsPage() {
 			<div className="space-y-4 rounded-3xl bg-white p-6">
 				<div>
 					<h2 className="text-lg font-semibold text-neutral-900">Change password</h2>
-					<p className="mt-1 text-sm text-neutral-500">Use at least 8 characters for your new password.</p>
+					<p className="mt-1 text-sm text-neutral-500">
+						Updates your account password (admin portal / dashboard). Mailbox IMAP and webmail passwords are separate.
+					</p>
 				</div>
 				<ChangePasswordForm />
 			</div>

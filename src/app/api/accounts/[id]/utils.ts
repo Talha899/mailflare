@@ -35,11 +35,9 @@ export async function updateAccountCredentials(
 		})
 		.where(eq(users.id, id));
 
+	// Display name only — mailbox passwords are managed separately via mailbox password API.
 	await db
 		.update(mailboxes)
-		.set({
-			displayName: input.name,
-			...(passwordHash ? { passwordHash } : {}),
-		})
+		.set({ displayName: input.name })
 		.where(and(eq(mailboxes.userId, id), eq(mailboxes.type, "personal")));
 }

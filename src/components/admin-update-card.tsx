@@ -94,7 +94,7 @@ export function AdminUpdateCard() {
 				<div>
 					<CardTitle className="text-base">Application update</CardTitle>
 					<p className="mt-1 text-sm text-neutral-500">
-						Sync the latest Mailflare release and keep its database schema up to date.
+						Sync the latest Postora release and keep its database schema up to date.
 					</p>
 				</div>
 			</CardHeader>
@@ -132,8 +132,8 @@ export function AdminUpdateCard() {
 							)}
 							<p className="min-w-0 text-sm text-neutral-700">
 								{status.available
-									? `Mailflare v${status.targetVersion} is available. You are using v${status.currentVersion}.`
-									: `Mailflare v${status.currentVersion} is up to date.`}
+									? `Postora v${status.targetVersion} is available. You are using v${status.currentVersion}.`
+									: `Postora v${status.currentVersion} is up to date.`}
 							</p>
 							{status.available && (
 								<button
@@ -142,7 +142,7 @@ export function AdminUpdateCard() {
 									disabled={isPending}
 									className="ml-auto shrink-0 text-sm font-medium text-blue-700 hover:underline disabled:pointer-events-none disabled:opacity-50"
 								>
-									{isPending ? "Starting update..." : "Update Mailflare"}
+									{isPending ? "Starting update..." : "Update Postora"}
 								</button>
 							)}
 						</div>
@@ -174,7 +174,7 @@ export function AdminUpdateCard() {
 						{!isCheckingMigrations && !!migrationStatus?.unknown.length && (
 							<div className="flex items-center gap-3 px-4 py-4 text-sm text-red-600">
 								<CircleX className="h-4 w-4 shrink-0" />
-								Deploy the matching Mailflare release before changing this database.
+								Deploy the matching Postora release before changing this database.
 							</div>
 						)}
 					</div>

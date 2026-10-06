@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Mailflare",
+	title: "Postora",
 	description: "Multi-tenant email on Cloudflare",
 	icons: { icon: "/api/branding/icon" },
 	robots: {

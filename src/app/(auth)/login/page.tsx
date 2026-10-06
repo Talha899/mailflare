@@ -5,7 +5,7 @@ import { hasAdminAccount } from "@/lib/auth/setup";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth/session";
 import { getEnv } from "@/lib/cloudflare";
 import { isSaasModeEnabled } from "@/lib/runtime";
-import { LoginClient } from "./login-client";
+import { MailboxLoginClient } from "./mailbox-login-client";
 
 export const dynamic = "force-dynamic";
 
@@ -16,13 +16,14 @@ export default async function LoginPage() {
 	const cookieStore = await cookies();
 	const user = await getUserFromSession(env, cookieStore.get(SESSION_COOKIE)?.value);
 	if (user && !user.disabled) {
-		redirect(user.role === "admin" ? "/admin" : "/inbox");
+		// Webmail surface: always land in the inbox, even for admins who also have a mailbox.
+		redirect("/inbox");
 	}
 
 	return (
 		<AuthGuard mode="public">
-			{/* Mailbox login never offers signup — mailboxes are created in /admin */}
-			<LoginClient showSignupLink={false} />
+			{/* Mailbox webmail — separate product surface from /admin/login */}
+			<MailboxLoginClient />
 		</AuthGuard>
 	);
 }

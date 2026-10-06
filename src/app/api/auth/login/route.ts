@@ -40,18 +40,30 @@ export async function POST(request: Request) {
 	const db = getDb(env);
 	const email = parsed.data.email.trim().toLowerCase();
 	const password = parsed.data.password;
+	const adminPortal = Boolean(parsed.data.adminPortal);
 
-	// Prefer mailbox password (IMAP/SMTP AUTH identity); fall back to users.password_hash.
-	const mailboxAuth = await authenticateMailboxAddress(env, email, password);
-	let userId: string | null = mailboxAuth?.userId ?? null;
-	if (!userId) {
+	let userId: string | null = null;
+	let redirect: "/admin" | "/inbox";
+
+	if (adminPortal) {
+		// Admin portal: users.password_hash only — never mailbox auth.
 		const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
-		if (user && verifyPassword(password, user.passwordHash) && !user.disabled) {
-			userId = user.id;
+		if (!user || !verifyPassword(password, user.passwordHash) || user.disabled) {
+			return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 		}
-	}
-	if (!userId) {
-		return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+		if (user.role !== "admin") {
+			return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+		}
+		userId = user.id;
+		redirect = "/admin";
+	} else {
+		// Mailbox webmail: mailboxes.password_hash only — never users.password_hash.
+		const mailboxAuth = await authenticateMailboxAddress(env, email, password);
+		if (!mailboxAuth) {
+			return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+		}
+		userId = mailboxAuth.userId;
+		redirect = "/inbox";
 	}
 
 	const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -59,20 +71,20 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Account disabled" }, { status: 403 });
 	}
 
-	if (parsed.data.adminPortal && user.role !== "admin") {
-		return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-	}
-
 	if (user.totpEnabled && user.totpSecret) {
 		const challengeToken = await createLoginChallenge(env, user.id);
-		const pending = NextResponse.json({ ok: true, mfaRequired: true, challengeToken });
+		const pending = NextResponse.json({
+			ok: true,
+			mfaRequired: true,
+			challengeToken,
+			redirect,
+		});
 		pending.headers.set("Cache-Control", "no-store");
 		return pending;
 	}
 
 	const token = await createSession(env, user.id);
 	await recordAuthActivity(env, { action: "auth.login", userId: user.id, request });
-	const redirect = user.role === "admin" ? "/admin" : "/inbox";
 	const response = NextResponse.json({
 		ok: true,
 		token,

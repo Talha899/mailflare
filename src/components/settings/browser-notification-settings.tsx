@@ -32,7 +32,7 @@ export function BrowserNotificationSettings() {
 				<span className="flex-1">
 					<span className="block text-sm font-medium text-neutral-900">Browser notifications</span>
 					<span className="mt-1 block text-sm text-neutral-500">
-						Show a notification for new email while Mailflare is open in a background tab.
+						Show a notification for new email while Postora is open in a background tab.
 					</span>
 				</span>
 				<Switch

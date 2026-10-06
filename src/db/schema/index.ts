@@ -91,7 +91,7 @@ export const mailboxes = sqliteTable(
 		type: text("type", { enum: ["personal", "shared"] }).notNull().default("personal"),
 		useAllDomains: integer("use_all_domains", { mode: "boolean" }).notNull().default(true),
 		disabled: integer("disabled", { mode: "boolean" }).notNull().default(false),
-		/** bcrypt hash for IMAP/SMTP AUTH and mailbox web login; null = fall back to users.password_hash */
+		/** bcrypt hash for IMAP/SMTP AUTH and mailbox webmail login only; never synced with users.password_hash */
 		passwordHash: text("password_hash"),
 		createdAt: integer("created_at", { mode: "timestamp" })
 			.notNull()
@@ -651,7 +651,7 @@ export const backupSettings = sqliteTable("backup_settings", {
 
 export const appSettings = sqliteTable("app_settings", {
 	id: text("id").primaryKey(),
-	appName: text("app_name").notNull().default("Mailflare"),
+	appName: text("app_name").notNull().default("Postora"),
 	outboundAttachmentMaxMb: integer("outbound_attachment_max_mb").notNull().default(25),
 	iconKey: text("icon_key"),
 	agentEnabled: integer("agent_enabled", { mode: "boolean" }).notNull().default(true),

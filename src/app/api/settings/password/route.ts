@@ -34,12 +34,11 @@ export async function PATCH(request: Request) {
 
 	const db = getDb(env);
 	const passwordHash = hashPassword(parsed.newPassword);
+	// Account / admin password only — never sync to mailboxes.password_hash.
 	await db
 		.update(users)
 		.set({ passwordHash })
 		.where(eq(users.id, user.id));
-	const { syncMailboxPasswordsForUser } = await import("@/lib/mailboxes/credentials");
-	await syncMailboxPasswordsForUser(env, user.id, passwordHash);
 	// Anyone else holding a session for this account is signed out; this one stays.
 	await deleteUserSessions(env, user.id, getSessionTokenFromRequestHeaders(request));
 

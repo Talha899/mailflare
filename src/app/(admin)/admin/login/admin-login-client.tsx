@@ -1,0 +1,204 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { ServerCog, ShieldCheck } from "lucide-react";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { TurnstileField } from "@/components/auth/turnstile";
+import {
+	formatLoginError,
+	formatLoginNetworkError,
+	submitLogin,
+	submitMfaCode,
+} from "@/app/(auth)/login/utils";
+
+export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: boolean }) {
+	const router = useRouter();
+	const [error, setError] = useState<string | null>(null);
+	const [loading, setLoading] = useState(false);
+	const [turnstileReset, setTurnstileReset] = useState(0);
+	const [challengeToken, setChallengeToken] = useState<string | null>(null);
+	const [code, setCode] = useState("");
+
+	function finish(redirect?: string) {
+		router.replace(redirect ?? "/admin");
+		router.refresh();
+	}
+
+	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		setLoading(true);
+		setError(null);
+
+		try {
+			const { ok, data } = await submitLogin(new FormData(e.currentTarget), { adminPortal: true });
+			if (!ok) {
+				setError(formatLoginError(data.error, "admin"));
+				setTurnstileReset((value) => value + 1);
+				return;
+			}
+			if (data.mfaRequired && data.challengeToken) {
+				setChallengeToken(data.challengeToken);
+				return;
+			}
+			finish(data.redirect);
+		} catch (err) {
+			setError(formatLoginNetworkError(err, "admin"));
+			setTurnstileReset((value) => value + 1);
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	async function onSubmitCode(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		if (!challengeToken) return;
+		setLoading(true);
+		setError(null);
+		try {
+			const { ok, data } = await submitMfaCode(challengeToken, code, { adminPortal: true });
+			if (!ok) {
+				setError(data.error ?? "That code did not match");
+				if (data.error?.includes("expired")) {
+					setChallengeToken(null);
+					setCode("");
+				}
+				return;
+			}
+			finish(data.redirect);
+		} catch {
+			setError("Unable to reach the admin console. Please try again.");
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	if (challengeToken) {
+		return (
+			<AuthShell
+				variant="admin"
+				icon={ShieldCheck}
+				title="Second factor required"
+				description="Enter a TOTP or recovery code to finish operator authentication."
+				steps={[
+					{ label: "Credentials", active: false },
+					{ label: "MFA", active: true },
+				]}
+			>
+				<form onSubmit={onSubmitCode} className="space-y-4">
+					<div className="space-y-2">
+						<Label htmlFor="code">One-time code</Label>
+						<Input
+							id="code"
+							name="code"
+							value={code}
+							onChange={(event) => setCode(event.target.value)}
+							inputMode="numeric"
+							autoComplete="one-time-code"
+							autoFocus
+							placeholder="123456"
+							className="font-mono"
+							required
+						/>
+					</div>
+					{error && (
+						<p className="rounded-md border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm text-[var(--destructive)]">
+							{error}
+						</p>
+					)}
+					<Button type="submit" className="h-10 w-full rounded-md" disabled={loading}>
+						{loading ? "Verifying..." : "Confirm access"}
+					</Button>
+					<button
+						type="button"
+						className="w-full text-center text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+						onClick={() => {
+							setChallengeToken(null);
+							setCode("");
+							setError(null);
+						}}
+					>
+						Back to credentials
+					</button>
+				</form>
+			</AuthShell>
+		);
+	}
+
+	return (
+		<AuthShell
+			variant="admin"
+			icon={ServerCog}
+			title="Operator sign-in"
+			description="Use your administrator account password — not your mailbox IMAP/webmail password — to manage domains, mailboxes, DNS, and routing."
+			footer={
+				<div className="space-y-2 text-center text-xs text-[var(--muted-foreground)]">
+					{showSignupLink && (
+						<p>
+							New organization?{" "}
+							<Link href="/signup" className="underline-offset-2 hover:underline">
+								Create a workspace
+							</Link>
+						</p>
+					)}
+					<p>
+						Looking for your inbox?{" "}
+						<Link href="/login" className="underline-offset-2 hover:underline">
+							Webmail sign-in
+						</Link>
+					</p>
+				</div>
+			}
+		>
+			<form method="post" onSubmit={onSubmit} className="space-y-4">
+				<div className="space-y-2">
+					<Label htmlFor="email">Admin email</Label>
+					<Input
+						id="email"
+						name="email"
+						type="email"
+						autoComplete="username"
+						placeholder="admin@your-domain.com"
+						className="rounded-md"
+						required
+					/>
+				</div>
+				<div className="space-y-2">
+					<div className="flex items-center justify-between gap-3">
+						<Label htmlFor="password">Admin password</Label>
+						<Link
+							href="/forgot-password"
+							className="text-[11px] font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:underline"
+						>
+							Reset password
+						</Link>
+					</div>
+					<Input
+						id="password"
+						name="password"
+						type="password"
+						autoComplete="current-password"
+						className="rounded-md"
+						required
+					/>
+					<p className="text-[11px] text-[var(--muted-foreground)]">
+						Separate from mailbox passwords used for webmail and IMAP/SMTP.
+					</p>
+				</div>
+				{error && (
+					<p className="rounded-md border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm text-[var(--destructive)]">
+						{error}
+					</p>
+				)}
+				<TurnstileField resetSignal={turnstileReset} />
+				<Button type="submit" className="h-10 w-full rounded-md" disabled={loading}>
+					{loading ? "Authenticating..." : "Enter admin console"}
+				</Button>
+			</form>
+		</AuthShell>
+	);
+}

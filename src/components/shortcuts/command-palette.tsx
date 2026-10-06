@@ -140,7 +140,7 @@ function CommandPaletteDialog({
               to select
             </span>
           </div>
-          <span className="text-[11px]">Mailflare Actions</span>
+          <span className="text-[11px]">Postora Actions</span>
         </div>
       </div>
     </div>

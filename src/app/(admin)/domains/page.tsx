@@ -284,7 +284,7 @@ export default function DomainsPage() {
               <DialogDescription>
                 {saasMode
                   ? "Enter a hostname. Cloudflare zones on this account are auto-configured; other domains get TXT verification and DNS records to publish."
-                  : "Connect a Cloudflare zone and choose whether Mailflare should provision Email Sending."}
+                  : "Connect a Cloudflare zone and choose whether Postora should provision Email Sending."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">

@@ -242,7 +242,7 @@ export function RegisterClient() {
       {step === 1 ? (
         <div className="space-y-5">
           <p className="text-sm leading-6 text-neutral-600">
-            Mailflare checks its required Cloudflare configuration and initializes a clean D1 database before setup continues.
+            Postora checks its required Cloudflare configuration and initializes a clean D1 database before setup continues.
           </p>
           <div className="space-y-2">
             {loading && checks.length === 0 && (
@@ -415,6 +415,11 @@ export function RegisterClient() {
               autoComplete="new-password"
               required
             />
+            <p className="text-xs leading-5 text-neutral-500">
+              Sets your administrator account password and the first mailbox password to the same value at setup. After
+              setup they are independent — webmail and IMAP/SMTP use the mailbox password; /admin/login uses the account
+              password.
+            </p>
           </div>
 
           <div className="space-y-2">

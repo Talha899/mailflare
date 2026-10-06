@@ -5,11 +5,11 @@ import { hasAdminAccount } from "@/lib/auth/setup";
 import { getUserFromSession, SESSION_COOKIE } from "@/lib/auth/session";
 import { getEnv } from "@/lib/cloudflare";
 import { isSaasModeEnabled } from "@/lib/runtime";
-import { LoginClient } from "@/app/(auth)/login/login-client";
+import { AdminLoginClient } from "./admin-login-client";
 
 export const dynamic = "force-dynamic";
 
-/** Admin portal sign-in (and SaaS signup link). Separate from mailbox /login. */
+/** Admin console sign-in (and SaaS signup link). Separate product surface from mailbox /login. */
 export default async function AdminLoginPage() {
 	const env = getEnv();
 	const saas = isSaasModeEnabled(env);
@@ -17,12 +17,14 @@ export default async function AdminLoginPage() {
 	const cookieStore = await cookies();
 	const user = await getUserFromSession(env, cookieStore.get(SESSION_COOKIE)?.value);
 	if (user && !user.disabled) {
-		redirect(user.role === "admin" ? "/admin" : "/inbox");
+		if (user.role === "admin") redirect("/admin");
+		// Non-admin sessions belong on webmail, not the operator console.
+		redirect("/inbox");
 	}
 
 	return (
 		<AuthGuard mode="public">
-			<LoginClient showSignupLink={saas} adminPortal />
+			<AdminLoginClient showSignupLink={saas} />
 		</AuthGuard>
 	);
 }

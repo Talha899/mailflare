@@ -55,7 +55,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 							<LayoutDashboard className="h-4 w-4" />
 						</div>
 						<div>
-							<p className="text-sm font-semibold tracking-tight">Mailflare Admin</p>
+							<p className="text-sm font-semibold tracking-tight">Postora Admin</p>
 							<p className="text-[11px] text-[var(--muted-foreground)]">Infrastructure</p>
 						</div>
 					</div>

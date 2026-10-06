@@ -51,7 +51,9 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 
 	const userId = newId("usr");
 	const mailboxId = newId("mbx");
-	const passwordHash = hashPassword(input.password);
+	// Independent hashes from the same create-time password; they must not stay synced later.
+	const userPasswordHash = hashPassword(input.password);
+	const mailboxPasswordHash = hashPassword(input.password);
 	const mailbox = {
 		id: mailboxId,
 		userId,
@@ -60,13 +62,13 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 		localPart: username,
 		displayName: username,
 		useAllDomains: input.useAllDomains,
-		passwordHash,
+		passwordHash: mailboxPasswordHash,
 	};
 	const changes: CfEmailRoutingRuleChange[] = [];
 	let inserted = false;
 	try {
 		const accountInsert = db.insert(users).values({
-			id: userId, email, passwordHash, name: username,
+			id: userId, email, passwordHash: userPasswordHash, name: username,
 			role: input.role, createdByUserId: adminUserId, organizationId,
 		}).returning();
 		const mailboxInsert = db.insert(mailboxes).values(mailbox);

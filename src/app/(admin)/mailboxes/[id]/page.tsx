@@ -176,7 +176,8 @@ export default function MailboxSettingsPage() {
         <CardHeader>
           <CardTitle>Client connection</CardTitle>
           <CardDescription>
-            IMAP and SMTP AUTH for this mailbox. Password is only shown when you regenerate it.
+            IMAP and SMTP AUTH for this mailbox use the mailbox password below — not your administrator account
+            password. A new mailbox password is only shown when you regenerate it.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
@@ -220,8 +221,12 @@ export default function MailboxSettingsPage() {
             disabled={resetPassword.isPending}
             onClick={() => resetPassword.mutate()}
           >
-            {resetPassword.isPending ? "Regenerating..." : "Regenerate password"}
+            {resetPassword.isPending ? "Regenerating..." : "Regenerate mailbox password"}
           </Button>
+          <p className="text-xs text-[var(--muted-foreground)]">
+            Regenerating updates webmail, IMAP, and SMTP AUTH only. It does not change any user&apos;s admin console
+            password.
+          </p>
         </CardContent>
       </Card>
 

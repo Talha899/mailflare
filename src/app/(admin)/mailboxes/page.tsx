@@ -59,7 +59,8 @@ export default function MailboxesPage() {
 				<div>
 					<h1 className="text-3xl font-semibold tracking-tight">Mailboxes</h1>
 					<p className="mt-1 text-sm text-[var(--muted-foreground)]">
-						Create addresses with passwords for webmail, IMAP, and SMTP AUTH.
+						Create addresses with mailbox passwords for webmail, IMAP, and SMTP AUTH — separate from administrator
+						account passwords.
 					</p>
 				</div>
 				<Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -73,7 +74,8 @@ export default function MailboxesPage() {
 						<DialogHeader>
 							<DialogTitle>Create mailbox</DialogTitle>
 							<DialogDescription>
-								Generates a login password and shows IMAP/SMTP settings once after create.
+								Sets a mailbox password for webmail, IMAP, and SMTP AUTH (not your admin sign-in). Connection
+								settings are shown once after create.
 							</DialogDescription>
 						</DialogHeader>
 						<CreateMailboxWizard

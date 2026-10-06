@@ -121,6 +121,7 @@ export const passwordResetConfirmSchema = z.object({
 export const mfaVerifySchema = z.object({
 	challengeToken: z.string().min(8).max(200),
 	code: z.string().trim().min(6).max(32),
+	adminPortal: z.boolean().optional(),
 });
 
 export const mfaEnrollSchema = z.object({

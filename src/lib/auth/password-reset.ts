@@ -69,9 +69,8 @@ export async function completePasswordReset(
 	if (!row) return { ok: false, error: "This reset link is invalid or has expired. Request a new one." };
 
 	const passwordHash = hashPassword(newPassword);
+	// Account password only — mailbox IMAP/webmail passwords stay independent.
 	await db.update(users).set({ passwordHash }).where(eq(users.id, row.userId));
-	const { syncMailboxPasswordsForUser } = await import("@/lib/mailboxes/credentials");
-	await syncMailboxPasswordsForUser(env, row.userId, passwordHash);
 	await db.update(passwordResetTokens).set({ usedAt: new Date() }).where(eq(passwordResetTokens.id, row.id));
 	await deleteUserSessions(env, row.userId);
 	await createAuditLog(env, {

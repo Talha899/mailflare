@@ -109,7 +109,8 @@ export function CreateMailboxWizard({
 		return (
 			<div className="space-y-4">
 				<div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
-					Mailbox created. Copy these credentials now — the password is shown only once.
+					Mailbox created. Copy these credentials now — the mailbox password is shown only once. It is only for
+					webmail, IMAP, and SMTP AUTH, not for signing in to the admin console.
 				</div>
 				<CopyRow label="Mailbox" value={credentials.address} />
 				<CopyRow label="Password" value={credentials.password} />
@@ -145,7 +146,8 @@ export function CreateMailboxWizard({
 					<p className="text-xs text-amber-700">{credentials.connection.note}</p>
 				)}
 				<p className="text-xs text-[var(--muted-foreground)]">
-					Webmail: sign in at /login with the same email and password.
+					Webmail: sign in at /login with this mailbox address and mailbox password. IMAP and SMTP AUTH use the same
+					mailbox password. The admin console at /admin/login uses a separate administrator account password.
 				</p>
 				<Button type="button" className="w-full" onClick={onCancel}>
 					Done
@@ -238,7 +240,8 @@ export function CreateMailboxWizard({
 							</Button>
 						</div>
 						<p className="text-xs text-[var(--muted-foreground)]">
-							Used for webmail, IMAP, and SMTP AUTH. Shown once after create.
+							Mailbox password for webmail, IMAP, and SMTP AUTH only — not your admin account password. Changing one
+							does not change the other. Shown once after create.
 						</p>
 					</div>
 					{error && <p className="text-sm text-red-600">{error}</p>}

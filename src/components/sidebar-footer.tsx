@@ -1,6 +1,7 @@
 "use client";
 
 import packageJson from "../../package.json";
+import { DEFAULT_PRODUCT_URL } from "@/lib/branding/constants";
 import { useSidebar } from "./sidebar-state";
 import { useShortcuts } from "./shortcuts";
 import { Keyboard } from "lucide-react";
@@ -32,12 +33,12 @@ export function SidebarFooter() {
 			<p className="px-1 text-[11px] text-[var(--muted-foreground)]">
 				Powered by{" "}
 				<a
-					href={`https://mailflare.co/?ref=${typeof window !== "undefined" ? location.hostname : ""}&v=${packageJson.version}`}
+					href={`${DEFAULT_PRODUCT_URL}?ref=${typeof window !== "undefined" ? location.hostname : ""}&v=${packageJson.version}`}
 					target="_blank"
 					className="text-[var(--muted-foreground)] hover:underline"
 					rel="noreferrer"
 				>
-					Mailflare v{packageJson.version}
+					Postora v{packageJson.version}
 				</a>
 			</p>
 		</div>

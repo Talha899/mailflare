@@ -12,7 +12,10 @@ export {
 	verifyMailboxPassword,
 } from "@/lib/mailboxes/credentials-utils";
 
-/** Set mailbox password and keep the owning user's passwordHash in sync for web login. */
+/**
+ * Set IMAP/SMTP AUTH + mailbox webmail password for one mailbox.
+ * Never copies to users.password_hash — admin/account passwords stay independent.
+ */
 export async function setMailboxPassword(
 	env: CloudflareEnv,
 	mailboxId: string,
@@ -22,10 +25,7 @@ export async function setMailboxPassword(
 	const hash = hashMailboxPassword(password);
 	const [mailbox] = await db.select().from(mailboxes).where(eq(mailboxes.id, mailboxId)).limit(1);
 	if (!mailbox) throw new Error("Mailbox not found");
-	await db.batch([
-		db.update(mailboxes).set({ passwordHash: hash }).where(eq(mailboxes.userId, mailbox.userId)),
-		db.update(users).set({ passwordHash: hash }).where(eq(users.id, mailbox.userId)),
-	]);
+	await db.update(mailboxes).set({ passwordHash: hash }).where(eq(mailboxes.id, mailboxId));
 }
 
 export type AuthenticatedMailbox = {
@@ -39,8 +39,8 @@ export type AuthenticatedMailbox = {
 };
 
 /**
- * Resolve a full email address to a mailbox and verify IMAP/SMTP/web password.
- * Prefer mailbox.password_hash; fall back to users.password_hash for legacy rows.
+ * Resolve a full email address to a mailbox and verify its mailbox password.
+ * Uses mailboxes.password_hash only — never users.password_hash.
  */
 export async function authenticateMailboxAddress(
 	env: CloudflareEnv,
@@ -64,7 +64,6 @@ export async function authenticateMailboxAddress(
 			hostname: domains.hostname,
 			disabled: mailboxes.disabled,
 			mailboxPasswordHash: mailboxes.passwordHash,
-			userPasswordHash: users.passwordHash,
 			userDisabled: users.disabled,
 		})
 		.from(mailboxes)
@@ -74,8 +73,9 @@ export async function authenticateMailboxAddress(
 		.limit(1);
 
 	if (!row || row.disabled || row.userDisabled) return null;
-	const hash = row.mailboxPasswordHash || row.userPasswordHash;
-	if (!hash || !verifyMailboxPassword(password, hash)) return null;
+	if (!row.mailboxPasswordHash || !verifyMailboxPassword(password, row.mailboxPasswordHash)) {
+		return null;
+	}
 
 	return {
 		mailboxId: row.mailboxId,
@@ -86,14 +86,4 @@ export async function authenticateMailboxAddress(
 		address: `${row.localPart}@${row.hostname}`,
 		disabled: row.disabled,
 	};
-}
-
-/** Sync mailbox password hash when a user's password changes (reset / admin). */
-export async function syncMailboxPasswordsForUser(
-	env: CloudflareEnv,
-	userId: string,
-	passwordHash: string,
-): Promise<void> {
-	const db = getDb(env);
-	await db.update(mailboxes).set({ passwordHash }).where(eq(mailboxes.userId, userId));
 }

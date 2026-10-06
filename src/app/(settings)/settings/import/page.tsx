@@ -198,7 +198,7 @@ export default function SettingsImportPage() {
             Import mailbox
           </h2>
           <p className="mt-1 text-sm text-neutral-500">
-            Choose what to import and how Mailflare should receive it.
+            Choose what to import and how Postora should receive it.
           </p>
         </div>
         <div className="space-y-1 overflow-hidden rounded-3xl">
@@ -252,7 +252,7 @@ export default function SettingsImportPage() {
               </div>
               {/* <p className="text-xs leading-5 text-neutral-500">
             Select Folders to import every source IMAP folder into matching
-            Mailflare folders.
+            Postora folders.
           </p> */}
             </div>
 
@@ -419,7 +419,7 @@ export default function SettingsImportPage() {
                   <p className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs leading-5 text-neutral-500">
                     IMAP imports selected source sections automatically. Folders
                     are discovered from the source account and imported into
-                    matching new or existing Mailflare folders.
+                    matching new or existing Postora folders.
                   </p>
                   <Button
                     type="submit"

@@ -64,7 +64,7 @@ export function showBrowserNewMessageNotification(event: NewMessageEvent): void 
 	try {
 		const notification = new Notification(event.subject || "New email", {
 			body: `From ${event.fromName ?? event.from}`,
-			icon: "/icon-96.png",
+			icon: "/logo.svg",
 			tag: event.messageId,
 		});
 		notification.onclick = () => {

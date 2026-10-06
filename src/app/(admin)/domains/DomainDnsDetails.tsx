@@ -115,7 +115,7 @@ function authTips(dkimSelector?: string): Record<DnsAuthRecord, string> {
 		dkim:
 			dkimSelector === "mail"
 				? "Postfix generates this key automatically for every domain. Copy Content once it appears (refresh details after ~30s)."
-				: "Mailflare cannot invent this key — Cloudflare generates it when you onboard the domain for Email Sending.",
+				: "Postora cannot invent this key — Cloudflare generates it when you onboard the domain for Email Sending.",
 		dmarc: "Name is usually _dmarc (not the full hostname). Start with p=none while monitoring.",
 	};
 }
@@ -124,7 +124,7 @@ function dkimSteps(hostname: string, selector?: string): string[] {
 	if (selector === "mail") {
 		return [
 			"Ensure SMTP_URL=smtp://postfix:587 and the postfix service is running.",
-			"Add or refresh this domain in Mailflare — it is written to outbound/sender-domains.txt automatically.",
+			"Add or refresh this domain in Postora — it is written to outbound/sender-domains.txt automatically.",
 			"Wait up to ~30s for Postfix to generate OpenDKIM keys, then refresh Domain details.",
 			`Copy the Content for ${selector}._domainkey and publish it as a TXT at your DNS host.`,
 			"No POSTFIX_ALLOWED_SENDER_DOMAINS env var is required — every registered domain is included.",
@@ -172,7 +172,7 @@ export default function DomainDnsDetails({
 	const expectedMxHost = expectedMx?.content?.replace(/^\d+\s+/, "").trim();
 	const routingLabel = routingOk
 		? manual
-			? `MX points to Mailflare (${audit?.mx.found[0] ?? "ok"})`
+			? `MX points to Postora (${audit?.mx.found[0] ?? "ok"})`
 			: "Email routing is configured"
 		: manual && audit?.mx.found?.length
 			? `Wrong MX (${audit.mx.found.join(", ")}) — replace with ${expectedMxHost ?? "MAIL_HOSTNAME"}`
@@ -250,7 +250,7 @@ export default function DomainDnsDetails({
 							)}
 							<span className="min-w-0">
 								<span className="block font-medium text-neutral-900">Email Routing</span>
-								<span className="block text-xs text-neutral-500">Routes incoming email to Mailflare</span>
+								<span className="block text-xs text-neutral-500">Routes incoming email to Postora</span>
 							</span>
 							<span className="min-w-0 break-all text-neutral-500">
 								{routingOk
@@ -336,7 +336,7 @@ export default function DomainDnsDetails({
 										<>
 											{item.found.length > 0 && (
 												<span className="min-w-0 break-all text-xs text-amber-800 sm:col-start-3">
-													Found in DNS (not Mailflare): {item.found.join(", ")}
+													Found in DNS (not Postora): {item.found.join(", ")}
 												</span>
 											)}
 											<Button

@@ -25,7 +25,7 @@ const sections: AdminSection[] = [
 	{
 		href: "/mailboxes",
 		title: "Mailboxes",
-		description: "Create addresses with IMAP/SMTP passwords and connection details.",
+		description: "Create mailboxes with IMAP/SMTP/webmail passwords (separate from admin sign-in).",
 		icon: Mail,
 	},
 	{

@@ -142,7 +142,7 @@ export function LicenseActivation() {
 						autoComplete="off"
 						value={licenseKey}
 						onChange={(event) => setLicenseKey(event.target.value)}
-						placeholder="Enter your Mailflare license key"
+						placeholder="Enter your Postora license key"
 						disabled={action !== null}
 					/>
 				</div>

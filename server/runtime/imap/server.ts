@@ -175,7 +175,7 @@ async function refreshSelected(env: CloudflareEnv, session: Session): Promise<vo
 }
 
 /**
- * Minimal IMAP4rev1 server for Mailflare mailboxes (Node runtime only).
+ * Minimal IMAP4rev1 server for Postora mailboxes (Node runtime only).
  */
 export function startImapServer(
 	env: CloudflareEnv,
@@ -201,7 +201,7 @@ export function startImapServer(
 			pendingAppend: null,
 			commandChain: Promise.resolve(),
 		};
-		write(socket, `* OK Mailflare IMAP ready`);
+		write(socket, `* OK Postora IMAP ready`);
 		let buffer = Buffer.alloc(0);
 		socket.on("data", (chunk) => {
 			buffer = Buffer.concat([buffer, chunk]);
@@ -301,7 +301,7 @@ async function handleCommand(env: CloudflareEnv, session: Session, line: string)
 				write(socket, `${tag} OK NOOP completed`);
 				return;
 			case "LOGOUT":
-				write(socket, `* BYE Mailflare logging out`);
+				write(socket, `* BYE Postora logging out`);
 				write(socket, `${tag} OK LOGOUT completed`);
 				socket.end();
 				return;
