@@ -113,6 +113,19 @@ class S3Object {
 	}
 }
 
+function s3BodyToReadable(body: unknown): Readable | null {
+	if (body == null) return null;
+	if (body instanceof Readable) return body;
+	if (typeof (body as { pipe?: unknown }).pipe === "function") {
+		return Readable.from(body as AsyncIterable<Uint8Array | Buffer | string>);
+	}
+	if (typeof (body as { getReader?: unknown }).getReader === "function") {
+		return Readable.fromWeb(body as import("stream/web").ReadableStream);
+	}
+	if (body instanceof Uint8Array) return Readable.from([body]);
+	throw new TypeError(`Unsupported S3 GetObject body: ${Object.prototype.toString.call(body)}`);
+}
+
 function httpMetaFromOptions(
 	options?: { httpMetadata?: StoredHttpMeta | Headers; customMetadata?: Record<string, string> },
 ): { contentType?: string; contentDisposition?: string; cacheControl?: string; metadata?: Record<string, string> } {
@@ -197,9 +210,7 @@ export class S3Bucket {
 				},
 				customMetadata: response.Metadata,
 			};
-			const stream = response.Body
-				? Readable.fromWeb(response.Body as import("stream/web").ReadableStream)
-				: null;
+			const stream = s3BodyToReadable(response.Body ?? null);
 			return new S3Object(key, meta, stream);
 		} catch (error) {
 			const name = error && typeof error === "object" && "name" in error ? String(error.name) : "";
