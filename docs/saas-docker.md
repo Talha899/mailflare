@@ -123,19 +123,18 @@ Minimum for SaaS + Cloudflare sending + S3:
 
 ```bash
 SAAS_MODE=true
-APP_URL=https://mail.aiorders.io
-MAIL_HOSTNAME=mail.aiorders.io
+APP_URL=https://mail.codenak.com
+MAIL_HOSTNAME=mail.codenak.com
 # Coolify Mongo root user — authSource=admin is required:
 MONGO_URL=mongodb://root:PASSWORD@HOST:27017/mailflare?directConnection=true&authSource=admin
-CF_ACCOUNT_ID=...
-CF_TOKEN=...
-S3_ENDPOINT=https://s3.aiorders.io
+S3_ENDPOINT=https://s3.codenak.com
 S3_REGION=us-east-1
-S3_BUCKET=signage-media
+S3_BUCKET=healudoc
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
 S3_FORCE_PATH_STYLE=true
-S3_KEY_PREFIX=Dispatch
+S3_KEY_PREFIX=prod_mail
+# STORAGE_ENDPOINT / STORAGE_BUCKET / STORAGE_FOLDER also work if you paste those names.
 ```
 
 Copy a filled local template from `.env.coolify` (gitignored) into Coolify’s

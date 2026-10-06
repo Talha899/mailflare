@@ -279,18 +279,27 @@ export class S3Bucket {
 }
 
 export function s3ConfigFromEnv(): S3BucketConfig | null {
-	const endpoint = process.env.S3_ENDPOINT?.trim();
-	const bucket = process.env.S3_BUCKET?.trim();
-	const accessKeyId = process.env.S3_ACCESS_KEY_ID?.trim();
-	const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY?.trim();
+	const endpoint = firstEnv("S3_ENDPOINT", "STORAGE_ENDPOINT");
+	const bucket = firstEnv("S3_BUCKET", "STORAGE_BUCKET");
+	const accessKeyId = firstEnv("S3_ACCESS_KEY_ID", "STORAGE_ACCESS_KEY_ID");
+	const secretAccessKey = firstEnv("S3_SECRET_ACCESS_KEY", "STORAGE_SECRET_ACCESS_KEY");
 	if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) return null;
 	return {
 		endpoint,
-		region: process.env.S3_REGION?.trim() || "us-east-1",
+		region: firstEnv("S3_REGION", "STORAGE_REGION") || "us-east-1",
 		bucket,
 		accessKeyId,
 		secretAccessKey,
-		forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true" || process.env.S3_FORCE_PATH_STYLE === "1",
-		keyPrefix: process.env.S3_KEY_PREFIX?.trim() || undefined,
+		forcePathStyle:
+			firstEnv("S3_FORCE_PATH_STYLE", "STORAGE_FORCE_PATH_STYLE") === "true" ||
+			firstEnv("S3_FORCE_PATH_STYLE", "STORAGE_FORCE_PATH_STYLE") === "1",
+		keyPrefix: firstEnv("S3_KEY_PREFIX", "STORAGE_FOLDER", "STORAGE_KEY_PREFIX") || undefined,
 	};
+}
+
+function firstEnv(...names: string[]): string | undefined {
+	for (const name of names) {
+		const value = process.env[name]?.trim();
+		if (value) return value;
+	}
 }

@@ -8,8 +8,9 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const envPath = resolve(root, ".env.docker");
-if (existsSync(envPath)) {
+for (const name of [".env.coolify", ".env.docker"]) {
+	const envPath = resolve(root, name);
+	if (!existsSync(envPath)) continue;
 	for (const line of readFileSync(envPath, "utf8").split(/\r?\n/)) {
 		const trimmed = line.trim();
 		if (!trimmed || trimmed.startsWith("#")) continue;
@@ -59,9 +60,12 @@ async function checkHttp() {
 	if (!process.env.CF_TOKEN?.trim() || !process.env.CF_ACCOUNT_ID?.trim()) {
 		warn("CF_TOKEN + CF_ACCOUNT_ID unset — outbound may fail unless SMTP_URL is set.");
 	}
-	if (process.env.S3_ENDPOINT?.trim()) {
-		if (!process.env.S3_BUCKET?.trim() || !process.env.S3_ACCESS_KEY_ID?.trim()) {
-			fail("S3_ENDPOINT is set but S3_BUCKET or S3_ACCESS_KEY_ID is missing.");
+	if (process.env.S3_ENDPOINT?.trim() || process.env.STORAGE_ENDPOINT?.trim()) {
+		if (
+			!(process.env.S3_BUCKET?.trim() || process.env.STORAGE_BUCKET?.trim()) ||
+			!(process.env.S3_ACCESS_KEY_ID?.trim() || process.env.STORAGE_ACCESS_KEY_ID?.trim())
+		) {
+			fail("S3/STORAGE endpoint is set but bucket or access key is missing.");
 		} else {
 			try {
 				const { spawnSync } = await import("node:child_process");

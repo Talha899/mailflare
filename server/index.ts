@@ -12,6 +12,7 @@ import { processWebhookRetry, type WebhookRetryMessage } from "@/lib/email/webho
 import { isInboundQueueMessage, isWebhookRetryMessage } from "../worker-utils";
 import { createNodeRuntime, finalizeNodeRuntimeMongo } from "./runtime/env";
 import { applyMigrations } from "./runtime/migrate";
+import { s3ConfigFromEnv } from "./runtime/s3-bucket";
 import { ensureOrganizationIndexes } from "@/lib/organizations/mongo-collections";
 import { normalizeMailHostname } from "@/lib/domains/hostname";
 import { startScheduler } from "./runtime/scheduler";
@@ -29,7 +30,8 @@ async function main() {
 	const runtime = createNodeRuntime();
 	if (runtime.blobStore.kind === "s3") {
 		await runtime.blobStore.ensureReady?.();
-		console.log(`Object storage: S3 (${process.env.S3_BUCKET} @ ${process.env.S3_ENDPOINT})`);
+		const s3 = s3ConfigFromEnv();
+		console.log(`Object storage: S3 (${s3?.bucket} @ ${s3?.endpoint})`);
 	}
 	await finalizeNodeRuntimeMongo(runtime);
 	const { env } = runtime;
