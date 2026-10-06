@@ -24,18 +24,22 @@ export async function updateAccountCredentials(
 	id: string,
 	input: { email?: string; name: string; password: string | null; disabled?: boolean },
 ) {
+	const passwordHash = input.password ? hashPassword(input.password) : null;
 	await db
 		.update(users)
 		.set({
 			...(input.email ? { email: input.email.trim().toLowerCase() } : {}),
 			name: input.name,
 			...(typeof input.disabled === "boolean" ? { disabled: input.disabled } : {}),
-			...(input.password ? { passwordHash: hashPassword(input.password) } : {}),
+			...(passwordHash ? { passwordHash } : {}),
 		})
 		.where(eq(users.id, id));
 
 	await db
 		.update(mailboxes)
-		.set({ displayName: input.name })
+		.set({
+			displayName: input.name,
+			...(passwordHash ? { passwordHash } : {}),
+		})
 		.where(and(eq(mailboxes.userId, id), eq(mailboxes.type, "personal")));
 }

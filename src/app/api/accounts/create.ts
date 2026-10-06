@@ -51,6 +51,7 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 
 	const userId = newId("usr");
 	const mailboxId = newId("mbx");
+	const passwordHash = hashPassword(input.password);
 	const mailbox = {
 		id: mailboxId,
 		userId,
@@ -59,12 +60,13 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 		localPart: username,
 		displayName: username,
 		useAllDomains: input.useAllDomains,
+		passwordHash,
 	};
 	const changes: CfEmailRoutingRuleChange[] = [];
 	let inserted = false;
 	try {
 		const accountInsert = db.insert(users).values({
-			id: userId, email, passwordHash: hashPassword(input.password), name: username,
+			id: userId, email, passwordHash, name: username,
 			role: input.role, createdByUserId: adminUserId, organizationId,
 		}).returning();
 		const mailboxInsert = db.insert(mailboxes).values(mailbox);
@@ -79,7 +81,15 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 		inserted = true;
 		await ensureBookingUsername(env, userId, email);
 		await ensureMailboxDomainRouting(env, db, mailbox, changes);
-		return NextResponse.json({ account: accountListItemFromUser(accounts[0]) }, { status: 201 });
+		const { getMailboxConnectionInfo } = await import("@/lib/mailboxes/connection-info");
+		return NextResponse.json({
+			account: accountListItemFromUser(accounts[0]),
+			credentials: {
+				address: email,
+				password: input.password,
+				connection: getMailboxConnectionInfo(email),
+			},
+		}, { status: 201 });
 	} catch (error) {
 		const cleanup = await Promise.allSettled([
 			rollbackEmailRoutingRuleChanges(env, changes),

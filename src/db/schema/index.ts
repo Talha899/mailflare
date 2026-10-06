@@ -91,6 +91,8 @@ export const mailboxes = sqliteTable(
 		type: text("type", { enum: ["personal", "shared"] }).notNull().default("personal"),
 		useAllDomains: integer("use_all_domains", { mode: "boolean" }).notNull().default(true),
 		disabled: integer("disabled", { mode: "boolean" }).notNull().default(false),
+		/** bcrypt hash for IMAP/SMTP AUTH and mailbox web login; null = fall back to users.password_hash */
+		passwordHash: text("password_hash"),
 		createdAt: integer("created_at", { mode: "timestamp" })
 			.notNull()
 			.$defaultFn(() => new Date()),

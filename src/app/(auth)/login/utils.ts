@@ -1,7 +1,10 @@
 import { persistAuthSession } from "@/lib/auth/client";
 import type { LoginResult } from "./types";
 
-export async function submitLogin(form: FormData): Promise<{ ok: boolean; data: LoginResult }> {
+export async function submitLogin(
+	form: FormData,
+	options?: { adminPortal?: boolean },
+): Promise<{ ok: boolean; data: LoginResult }> {
 	const res = await fetch("/api/auth/login", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -10,6 +13,7 @@ export async function submitLogin(form: FormData): Promise<{ ok: boolean; data: 
 			email: form.get("email"),
 			password: form.get("password"),
 			turnstileToken: form.get("turnstileToken"),
+			...(options?.adminPortal ? { adminPortal: true } : {}),
 		}),
 	});
 

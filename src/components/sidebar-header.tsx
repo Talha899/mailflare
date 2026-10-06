@@ -10,13 +10,37 @@ import { Tooltip } from "./ui/tooltip";
 export function SidebarHeader({ href, label }: SidebarHeaderProps) {
 	const branding = useBranding();
 	const { minimal, toggle } = useSidebar();
-	const toggleButton = <button type="button" onClick={toggle} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-200" aria-label={minimal ? "Expand menu" : "Collapse menu"}>
-		{minimal ? <img src={branding.iconUrl} height={28} width={28} alt="" /> : <TextAlignJustify size={18} />}
-	</button>;
+	const toggleButton = (
+		<button
+			type="button"
+			onClick={toggle}
+			className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+			aria-label={minimal ? "Expand menu" : "Collapse menu"}
+		>
+			{minimal ? (
+				<img src={branding.iconUrl} height={28} width={28} alt="" />
+			) : (
+				<TextAlignJustify size={18} />
+			)}
+		</button>
+	);
 	return (
 		<div className={`mb-3 flex h-10 items-center ${minimal ? "" : "gap-2 px-1"}`}>
-			{minimal ? <Tooltip label="Expand menu" placement="right">{toggleButton}</Tooltip> : toggleButton}
-			{!minimal && <Link href={href} className="flex min-w-0 items-center gap-3"><img src={branding.iconUrl} height={28} width={28} alt="" /><span className="truncate text-lg font-semibold text-neutral-800">{label ?? branding.appName}</span></Link>}
+			{minimal ? (
+				<Tooltip label="Expand menu" placement="right">
+					{toggleButton}
+				</Tooltip>
+			) : (
+				toggleButton
+			)}
+			{!minimal && (
+				<Link href={href} className="flex min-w-0 items-center gap-3">
+					<img src={branding.iconUrl} height={28} width={28} alt="" />
+					<span className="truncate text-lg font-semibold text-[var(--foreground)]">
+						{label ?? branding.appName}
+					</span>
+				</Link>
+			)}
 		</div>
 	);
 }

@@ -112,6 +112,40 @@ export default function MailboxSettingsPage() {
   });
 
   const address = mailbox.data ? getMailboxAddress(mailbox.data) : "";
+  const [credPassword, setCredPassword] = useState<string | null>(null);
+  const [credError, setCredError] = useState<string | null>(null);
+  const connection = useQuery({
+    queryKey: ["mailbox", mailboxId, "connection"],
+    queryFn: async () => {
+      const { authFetch } = await import("@/lib/auth/client");
+      const res = await authFetch(`/api/mailboxes/${mailboxId}/connection`);
+      if (!res.ok) throw new Error("Failed to load connection info");
+      return res.json() as Promise<{
+        address: string;
+        connection: {
+          smtp: { host: string; port: number; encryption: string; configured: boolean };
+          imap: { host: string; port: number; encryption: string; configured: boolean };
+          username: string;
+          note: string | null;
+        };
+      }>;
+    },
+    enabled: !!mailboxId,
+  });
+  const resetPassword = useMutation({
+    mutationFn: async () => {
+      const { authFetch } = await import("@/lib/auth/client");
+      const res = await authFetch(`/api/mailboxes/${mailboxId}/password`, { method: "POST" });
+      const json = (await res.json()) as { password?: string; error?: string };
+      if (!res.ok) throw new Error(json.error ?? "Failed to reset password");
+      return json.password!;
+    },
+    onSuccess: (password) => {
+      setCredPassword(password);
+      setCredError(null);
+    },
+    onError: (error) => setCredError(error instanceof Error ? error.message : "Failed"),
+  });
 
   return (
     <div className="space-y-6">
@@ -137,6 +171,59 @@ export default function MailboxSettingsPage() {
           )}
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Client connection</CardTitle>
+          <CardDescription>
+            IMAP and SMTP AUTH for this mailbox. Password is only shown when you regenerate it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {connection.data && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-[var(--border)] p-3">
+                <p className="font-medium">SMTP</p>
+                {connection.data.connection.smtp.configured ? (
+                  <ul className="mt-1 space-y-0.5 font-mono text-xs text-[var(--muted-foreground)]">
+                    <li>{connection.data.connection.smtp.host}:{connection.data.connection.smtp.port}</li>
+                    <li>{connection.data.connection.smtp.encryption}</li>
+                    <li>{connection.data.connection.username}</li>
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-amber-700">Not configured</p>
+                )}
+              </div>
+              <div className="rounded-lg border border-[var(--border)] p-3">
+                <p className="font-medium">IMAP</p>
+                {connection.data.connection.imap.configured ? (
+                  <ul className="mt-1 space-y-0.5 font-mono text-xs text-[var(--muted-foreground)]">
+                    <li>{connection.data.connection.imap.host}:{connection.data.connection.imap.port}</li>
+                    <li>{connection.data.connection.imap.encryption}</li>
+                    <li>{connection.data.connection.username}</li>
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-amber-700">Not configured</p>
+                )}
+              </div>
+            </div>
+          )}
+          {credPassword && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 font-mono text-sm text-amber-950">
+              New password (copy now): {credPassword}
+            </p>
+          )}
+          {credError && <p className="text-sm text-red-600">{credError}</p>}
+          <Button
+            type="button"
+            variant="outline"
+            disabled={resetPassword.isPending}
+            onClick={() => resetPassword.mutate()}
+          >
+            {resetPassword.isPending ? "Regenerating..." : "Regenerate password"}
+          </Button>
+        </CardContent>
+      </Card>
 
       {mailbox.isError && (
         <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

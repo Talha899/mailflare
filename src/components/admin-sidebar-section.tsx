@@ -1,52 +1,35 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { LayoutDashboard } from "lucide-react";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { useBranding } from "./branding-provider";
-import { NavItem } from "./components-nav";
 import { useSidebar } from "./sidebar-state";
-import { adminNavSections, type AdminNavLink } from "./admin-nav-links";
+import { cn } from "@/lib/utils";
+import { Tooltip } from "./ui/tooltip";
 
-/** Workspace admin links shown below mail folders in the unified sidebar. */
+/** Single entry to the admin portal — keeps mail UI free of nested admin chrome. */
 export function AdminSidebarSection({ className }: { className?: string }) {
-	const branding = useBranding();
-	const { minimal } = useSidebar();
 	const user = useCurrentUser();
-
+	const { minimal } = useSidebar();
 	if (user?.role !== "admin") return null;
 
-	function canSee(link: AdminNavLink): boolean {
-		if (link.href === "/licenses") return false;
-		if (link.href === "/branding" && !branding.canCustomizeBranding) return false;
-		if (!link.permission) return true;
-		if (!user) return false;
-		if (link.permission === "primary") return user.isPrimaryAdmin;
-		if (link.permission === "domains") return user.isPrimaryAdmin || user.canManageDomains;
-		return user.isPrimaryAdmin || user.canManageUsers;
-	}
+	const link = (
+		<Link
+			href="/admin"
+			className={cn(
+				"flex h-9 items-center gap-3 rounded-r-full px-3 text-sm font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]",
+				minimal && "relative mx-auto w-10 justify-center rounded-full px-0",
+			)}
+			aria-label={minimal ? "Admin portal" : undefined}
+		>
+			<LayoutDashboard className="h-[19px] w-[19px] shrink-0" />
+			{!minimal && <span>Admin portal</span>}
+		</Link>
+	);
 
 	return (
-		<div className={cn("mt-2 border-t border-neutral-200/70 pt-2", className)}>
-			{adminNavSections.map((section, sectionIndex) => {
-				const links = section.links.filter(canSee);
-				if (links.length === 0) return null;
-
-				return (
-					<section key={section.label ?? links[0].href} className={sectionIndex > 0 ? "mt-2" : undefined}>
-						{minimal && sectionIndex > 0 && <hr className="mx-3 mb-2 border-neutral-200/70" />}
-						{!minimal && section.label && (
-							<p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-								{section.label}
-							</p>
-						)}
-						<div className="space-y-1">
-							{links.map((link) => (
-								<NavItem link={link} key={link.href} />
-							))}
-						</div>
-					</section>
-				);
-			})}
+		<div className={cn("mt-3 border-t border-[var(--border)] pt-3", className)}>
+			{minimal ? <Tooltip label="Admin portal">{link}</Tooltip> : link}
 		</div>
 	);
 }

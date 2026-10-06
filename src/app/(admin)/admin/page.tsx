@@ -25,7 +25,7 @@ const sections: AdminSection[] = [
 	{
 		href: "/mailboxes",
 		title: "Mailboxes",
-		description: "Create and manage mailbox addresses.",
+		description: "Create addresses with IMAP/SMTP passwords and connection details.",
 		icon: Mail,
 	},
 	{
@@ -71,26 +71,26 @@ export default function AdminSettingsPage() {
 	return (
 		<div>
 			<div className="mb-8">
-				<h1 className="text-3xl font-medium text-neutral-900">Admin settings</h1>
-				<p className="mt-2 text-sm text-neutral-500">
-					Manage workspace-level mail infrastructure and integrations.
+				<h1 className="text-3xl font-semibold tracking-tight">Overview</h1>
+				<p className="mt-2 text-sm text-[var(--muted-foreground)]">
+					Manage domains, mailboxes, and mail infrastructure for your organization.
 				</p>
 			</div>
-			<div className="grid lg:grid-cols-2 gap-4">
+			<div className="grid gap-4 lg:grid-cols-2">
 				{sections.filter(canSee).map((section) => {
 					const Icon = section.icon;
 
 					return (
 						<Link key={section.href} href={section.href}>
-							<Card className="h-full rounded-3xl border-0 bg-white p-6 transition-colors hover:bg-blue-50/60">
+							<Card className="h-full rounded-3xl border-0 bg-[var(--card)] p-6 transition-colors hover:bg-[var(--accent)]/60">
 								<CardHeader className="flex-row items-center gap-4 space-y-0 py-0">
-									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--primary)]">
 										<Icon className="h-5 w-5" />
 									</div>
 									<CardTitle className="text-base">{section.title}</CardTitle>
 								</CardHeader>
 								<CardContent className="pt-4">
-									<p className="text-sm text-neutral-500">{section.description}</p>
+									<p className="text-sm text-[var(--muted-foreground)]">{section.description}</p>
 								</CardContent>
 							</Card>
 						</Link>

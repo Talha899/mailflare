@@ -30,8 +30,22 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 				if (cancelled) return;
 
 				if (!response.ok) {
-					if (mode === "protected" && response.status === 401) router.replace("/login");
-					else setAuthorized(true);
+					if (mode === "protected" && response.status === 401) {
+						const adminArea =
+							requireRole === "admin" ||
+							pathname === "/admin" ||
+							pathname.startsWith("/admin/") ||
+							pathname.startsWith("/mailboxes") ||
+							pathname.startsWith("/domains") ||
+							pathname.startsWith("/accounts") ||
+							pathname.startsWith("/routing") ||
+							pathname.startsWith("/webhooks") ||
+							pathname.startsWith("/api-keys") ||
+							pathname.startsWith("/general") ||
+							pathname.startsWith("/backups") ||
+							pathname.startsWith("/branding");
+						router.replace(adminArea ? "/admin/login" : "/login");
+					} else setAuthorized(true);
 					return;
 				}
 
@@ -43,7 +57,7 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 				};
 				if (data.user?.id) saveUserTimeZonePreference(data.user.id, data.user.timeZone ?? null);
 				if (mode === "public") {
-					router.replace("/inbox");
+					router.replace(data.user?.role === "admin" ? "/admin" : "/inbox");
 					return;
 				}
 

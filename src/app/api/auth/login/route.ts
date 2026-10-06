@@ -12,6 +12,7 @@ import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
 import { recordAuthActivity } from "@/lib/auth/activity";
 import { createLoginChallenge } from "@/lib/auth/login-challenge";
+import { authenticateMailboxAddress } from "@/lib/mailboxes/credentials";
 
 export async function POST(request: Request) {
 	const env = getEnv();
@@ -37,16 +38,31 @@ export async function POST(request: Request) {
 	}
 
 	const db = getDb(env);
-	const [user] = await db.select().from(users).where(eq(users.email, parsed.data.email)).limit(1);
-	if (!user || !verifyPassword(parsed.data.password, user.passwordHash)) {
+	const email = parsed.data.email.trim().toLowerCase();
+	const password = parsed.data.password;
+
+	// Prefer mailbox password (IMAP/SMTP AUTH identity); fall back to users.password_hash.
+	const mailboxAuth = await authenticateMailboxAddress(env, email, password);
+	let userId: string | null = mailboxAuth?.userId ?? null;
+	if (!userId) {
+		const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+		if (user && verifyPassword(password, user.passwordHash) && !user.disabled) {
+			userId = user.id;
+		}
+	}
+	if (!userId) {
 		return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 	}
-	if (user.disabled) {
+
+	const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+	if (!user || user.disabled) {
 		return NextResponse.json({ error: "Account disabled" }, { status: 403 });
 	}
 
-	// The password is right but a second factor is on: hand back a short-lived
-	// challenge instead of a session and let /api/auth/mfa/verify finish.
+	if (parsed.data.adminPortal && user.role !== "admin") {
+		return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+	}
+
 	if (user.totpEnabled && user.totpSecret) {
 		const challengeToken = await createLoginChallenge(env, user.id);
 		const pending = NextResponse.json({ ok: true, mfaRequired: true, challengeToken });
@@ -56,10 +72,11 @@ export async function POST(request: Request) {
 
 	const token = await createSession(env, user.id);
 	await recordAuthActivity(env, { action: "auth.login", userId: user.id, request });
+	const redirect = user.role === "admin" ? "/admin" : "/inbox";
 	const response = NextResponse.json({
 		ok: true,
 		token,
-		redirect: "/inbox",
+		redirect,
 	});
 	response.headers.set("Cache-Control", "no-store");
 	response.cookies.set(SESSION_COOKIE, token, {

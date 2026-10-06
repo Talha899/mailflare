@@ -5,7 +5,7 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 	return (
 		<div
 			aria-hidden="true"
-			className={cn("animate-pulse rounded-md bg-neutral-200/80", className)}
+			className={cn("animate-pulse rounded-md bg-[var(--muted)]", className)}
 			{...props}
 		/>
 	);
@@ -16,7 +16,7 @@ export function SkeletonRows({
 	compact = false,
 }: SkeletonRowsProps) {
 	return (
-		<div className="divide-y divide-neutral-100">
+		<div className="divide-y divide-[var(--border)]">
 			{Array.from({ length: count }, (_, index) => (
 				<div
 					key={index}

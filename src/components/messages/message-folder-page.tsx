@@ -84,10 +84,10 @@ function MessageListRow({
 		return (
 			<div
 				className={`group grid grid-cols-[20px_minmax(0,1fr)] gap-3 border-l-2 px-4 py-3 transition-colors ${active
-					? "border-l-blue-600 bg-blue-50"
+					? "border-l-[var(--primary)] bg-[var(--accent)]"
 					: selected
-						? "border-l-transparent bg-neutral-50"
-						: "border-l-transparent hover:bg-neutral-50"
+						? "border-l-transparent bg-[var(--muted)]"
+						: "border-l-transparent hover:bg-[var(--muted)]"
 					} ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
 				draggable={draggable}
 				onDragStart={(event) => {
@@ -99,7 +99,7 @@ function MessageListRow({
 				<Checkbox
 					checked={selected}
 					onChange={(event) => onSelectedChange(message.id, event.target.checked)}
-					className="mt-1 h-4 w-4 rounded border-neutral-300"
+					className="mt-1 h-4 w-4 rounded border-[var(--border)]"
 					aria-label={`Select message from ${party}`}
 				/>
 				<Link href={href} onClick={onMessageNavigate} className="min-w-0">
@@ -108,20 +108,20 @@ function MessageListRow({
 							{party}
 
 							{(message.threadCount ?? 1) > 1 && (
-								<span className="ml-2 text-xs font-normal text-neutral-500">{message.threadCount}</span>
+								<span className="ml-2 text-xs font-normal text-[var(--muted-foreground)]">{message.threadCount}</span>
 							)}
 						</span>
-						<span className={clsx(unread ?"font-medium":"text-neutral-400","shrink-0 text-[11px]")}>
+						<span className={clsx(unread ?"font-medium":"text-[var(--muted-foreground)]","shrink-0 text-[11px]")}>
 							{formatMessageListTimestamp(message.createdAt)}
 						</span>
 					</span>
 					<span
-						className={`mt-1 block truncate text-sm ${unread ? "font-semibold text-neutral-900" : "text-neutral-700"
+						className={`mt-1 block truncate text-sm ${unread ? "font-semibold text-[var(--foreground)]" : "text-[var(--foreground)]/80"
 							}`}
 					>
 						{message.subject ?? "(no subject)"}
 					</span>
-					<span className="mt-0.5 block truncate text-xs leading-5 text-neutral-500">
+					<span className="mt-0.5 block truncate text-xs leading-5 text-[var(--muted-foreground)]">
 						{preview}
 					</span>
 				</Link>
@@ -130,7 +130,7 @@ function MessageListRow({
 	}
 
 	const className =
-		`group relative grid min-h-12 w-full grid-cols-[24px_32px_minmax(160px,260px)_1fr_auto] items-center gap-3 px-6 text-left text-sm hover:z-10 hover:bg-[#f2f6fc] hover:shadow-sm ${active || selected ? "bg-blue-50" : ""
+		`group relative grid min-h-12 w-full grid-cols-[24px_32px_minmax(160px,260px)_1fr_auto] items-center gap-3 px-6 text-left text-sm hover:z-10 hover:bg-[var(--accent)] hover:shadow-sm ${active || selected ? "bg-[var(--accent)]" : ""
 		} ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`;
 	const content = (
 		<>
@@ -147,29 +147,29 @@ function MessageListRow({
 						}}
 						aria-label={starred ? "Starred" : "Not starred"}
 					>
-						<Icon className={`h-4 w-4 ${starred ? "fill-amber-400 text-amber-400" : "text-neutral-300"}`} />
+						<Icon className={`h-4 w-4 ${starred ? "fill-amber-400 text-amber-400" : "text-[var(--border)]"}`} />
 					</Button>
 				</Tooltip>
 			)}
 			{(config.folder !== "inbox" || message.direction !== "inbound") && (
-				<Icon className="h-4 w-4 text-neutral-300" />
+				<Icon className="h-4 w-4 text-[var(--border)]" />
 			)}
 			<span className={clsx(unread && "font-semibold", getMessagePartyClassName(rowMessage, config.folder))}>
 				{party}
 
 				{(message.threadCount ?? 1) > 1 && (
-					<span className="ml-2 text-xs text-neutral-500">{message.threadCount}</span>
+					<span className="ml-2 text-xs text-[var(--muted-foreground)]">{message.threadCount}</span>
 				)}
 			</span>
-			<span className="truncate text-neutral-700">
-				<span className={unread ? "font-semibold text-neutral-900" : ""}>
+			<span className="truncate text-[var(--foreground)]/80">
+				<span className={unread ? "font-semibold text-[var(--foreground)]" : ""}>
 					{rowMessage.subject ?? "(no subject)"}
 				</span>
-				<span className="text-neutral-500"> - {getMessagePreview(rowMessage, config.folder)}</span>
+				<span className="text-[var(--muted-foreground)]"> - {getMessagePreview(rowMessage, config.folder)}</span>
 			</span>
 			<time
 				dateTime={message.createdAt}
-				className={`min-w-[96px] whitespace-nowrap text-right text-xs group-hover:opacity-0 ${unread ? "font-semibold text-neutral-800" : "text-neutral-500"
+				className={`min-w-[96px] whitespace-nowrap text-right text-xs group-hover:opacity-0 ${unread ? "font-semibold text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
 					}`}
 			>
 				{formatMessageListTimestamp(message.createdAt)}
@@ -183,7 +183,7 @@ function MessageListRow({
 				<Checkbox
 					checked={selected}
 					onChange={(event) => onSelectedChange(message.id, event.target.checked)}
-					className="h-4 w-4 rounded border-neutral-300"
+					className="h-4 w-4 rounded border-[var(--border)]"
 					aria-label="Select message"
 				/>
 				<Link href={href} className="contents text-left">
@@ -206,7 +206,7 @@ function MessageListRow({
 			<Checkbox
 				checked={selected}
 				onChange={(event) => onSelectedChange(message.id, event.target.checked)}
-				className="h-4 w-4 rounded border-neutral-300"
+				className="h-4 w-4 rounded border-[var(--border)]"
 				aria-label="Select message"
 			/>
 			<Link href={href} onClick={onMessageNavigate} className="contents">
@@ -371,14 +371,14 @@ export function MessageFolderPage({
 
 	return (
 		<div className="flex h-full min-h-0 flex-col">
-			<div className={`flex h-14 shrink-0 items-center justify-between border-b border-neutral-200 ${compact ? "px-4" : "px-6"}`}>
+			<div className={`flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] ${compact ? "px-4" : "px-6"}`}>
 				<div className="flex items-center gap-3 w-full">
 					<Tooltip label="Select all visible messages">
 						<Checkbox
 							checked={allVisibleSelected}
 							disabled={messages.length === 0}
 							onChange={(event) => toggleAllVisible(event.target.checked)}
-							className="h-4 w-4 rounded border-neutral-300"
+							className="h-4 w-4 rounded border-[var(--border)]"
 							aria-label="Select all visible messages"
 						/>
 					</Tooltip>
@@ -393,7 +393,7 @@ export function MessageFolderPage({
 					) : (
 						compact && (
 							<>
-								{/* <h1 className="truncate text-sm font-semibold text-neutral-900">
+								{/* <h1 className="truncate text-sm font-semibold text-[var(--foreground)]">
 									{config.title}
 								</h1>
 								<Badge variant="secondary">{total}</Badge> */}
@@ -402,8 +402,8 @@ export function MessageFolderPage({
 					)}
 				</div>
 				{(selectedIds.length === 0 || compact) && (
-					<div className="flex items-center gap-2 text-neutral-500">
-						<span className="text-xs text-neutral-500 whitespace-nowrap">
+					<div className="flex items-center gap-2 text-[var(--muted-foreground)]">
+						<span className="text-xs text-[var(--muted-foreground)] whitespace-nowrap">
 							{pageRange.start} - {pageRange.end} of {pageRange.total}
 						</span>
 						<Tooltip label="Previous page">
@@ -437,7 +437,7 @@ export function MessageFolderPage({
 									aria-label="Show unread emails only"
 									aria-pressed={unreadOnly}
 									onClick={() => setUnreadOnly((current) => !current)}
-									className={unreadOnly ? "bg-blue-100 text-blue-700 hover:bg-blue-100" : undefined}
+									className={unreadOnly ? "bg-[var(--accent)] text-[var(--primary)] hover:bg-[var(--accent)]" : undefined}
 								>
 									<ListFilter className="h-4 w-4" />
 								</Button>
@@ -450,7 +450,7 @@ export function MessageFolderPage({
 				)}
 			</div>
 
-			<div className="min-h-0 flex-1 divide-y divide-neutral-100 overflow-y-auto overscroll-contain scrollbar-gutter-stable">
+			<div className="min-h-0 flex-1 divide-y divide-[var(--border)] overflow-y-auto overscroll-contain scrollbar-gutter-stable">
 				{messages.map((message) => (
 					<MessageListRow
 						key={message.id}
@@ -468,7 +468,7 @@ export function MessageFolderPage({
 					/>
 				))}
 				{!isLoading && messages.length === 0 && (
-					<p className="px-6 py-4 text-sm text-neutral-500">
+					<p className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
 						{hasActiveFilters ? "No messages match these filters" : config.emptyText}
 					</p>
 				)}

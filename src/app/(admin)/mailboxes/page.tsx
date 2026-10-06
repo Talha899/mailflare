@@ -2,7 +2,6 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Plus, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,51 +13,19 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { List, ListRow } from "@/components/ui/list";
 import { SectionRowSkeleton } from "@/components/page-skeletons";
 import { clearMailboxesCache } from "@/components/mailbox-provider-utils";
 import { ProgressiveAvatarImage } from "@/components/progressive-avatar-image";
+import { CreateMailboxWizard } from "@/components/admin/create-mailbox-wizard";
 import { authFetch } from "@/lib/auth/client";
-import type { CurrentAccountResponse, Domain, MailboxOwner, MailboxesResponse } from "./types";
+import type { Domain, MailboxesResponse } from "./types";
 import { getMailboxAddress, getMailboxName } from "./utils";
 
 export default function MailboxesPage() {
 	const qc = useQueryClient();
-	const router = useRouter();
-	const [displayName, setDisplayName] = useState("");
-	const [localPart, setLocalPart] = useState("");
-	const [domainId, setDomainId] = useState("");
-	const [ownerUserId, setOwnerUserId] = useState("");
-	const [mailboxType, setMailboxType] = useState<"personal" | "shared">("personal");
 	const [createOpen, setCreateOpen] = useState(false);
 	const [autoOpenedCreate, setAutoOpenedCreate] = useState(false);
-
-	const account = useQuery({
-		queryKey: ["auth", "me"],
-		queryFn: async () => {
-			const res = await authFetch("/api/auth/me", { redirectOnUnauthorized: false });
-			return (await res.json()) as CurrentAccountResponse;
-		},
-	});
-
-	useEffect(() => {
-		if (!createOpen) return;
-		setDisplayName((currentName) => currentName || account.data?.user?.name?.trim() || "");
-		setOwnerUserId((currentId) => currentId || account.data?.user?.id || "");
-	}, [account.data?.user?.id, account.data?.user?.name, createOpen]);
-
-	const accounts = useQuery({
-		queryKey: ["accounts", "mailbox-owners"],
-		queryFn: async () => {
-			const res = await authFetch("/api/accounts");
-			if (!res.ok) return { accounts: [] as MailboxOwner[] };
-			return (await res.json()) as { accounts: MailboxOwner[] };
-		},
-		enabled: createOpen,
-	});
 
 	const domains = useQuery({
 		queryKey: ["domains"],
@@ -84,55 +51,17 @@ export default function MailboxesPage() {
 		}
 	}, [autoOpenedCreate, mailboxes.data, mailboxes.isLoading]);
 
-	const create = useMutation({
-		mutationFn: async () => {
-			const res = await authFetch("/api/mailboxes", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					domainId,
-					...(mailboxType === "personal" ? { ownerUserId } : {}),
-					localPart,
-					displayName: displayName.trim(),
-					type: mailboxType,
-				}),
-			});
-			const json = (await res.json()) as { id?: string; error?: string };
-			if (!res.ok) throw new Error(json.error ?? "Failed");
-			setDisplayName("");
-			setLocalPart("");
-			setDomainId("");
-			setOwnerUserId("");
-			return json.id;
-		},
-		onSuccess: (mailboxId) => {
-			clearMailboxesCache();
-			setCreateOpen(false);
-			qc.invalidateQueries({ queryKey: ["mailboxes"] });
-			if (mailboxType === "shared" && mailboxId) router.push(`/mailboxes/${mailboxId}`);
-			setMailboxType("personal");
-		},
-	});
-
-	const domainMap = new Map(
-		(domains.data?.domains ?? []).map((d) => [d.id, d.hostname]),
-	);
-	const activeDomains = (domains.data?.domains ?? []).filter((domain) => !domain.status || domain.status === "active");
-	const pendingDomains = (domains.data?.domains ?? []).filter((domain) => domain.status && domain.status !== "active");
-	const mailboxOwners = [...(accounts.data?.accounts ?? [])];
-	if (account.data?.user?.id && !mailboxOwners.some((owner) => owner.id === account.data?.user?.id)) {
-		mailboxOwners.unshift({
-			id: account.data.user.id,
-			email: account.data.user.email ?? "",
-			name: account.data.user.name ?? account.data.user.email ?? "Current account",
-			role: "admin",
-		});
-	}
+	const domainMap = new Map((domains.data?.domains ?? []).map((d) => [d.id, d.hostname]));
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center justify-between gap-4">
-				<h1 className="text-3xl font-medium">Mailboxes</h1>
+			<div className="flex flex-wrap items-center justify-between gap-4">
+				<div>
+					<h1 className="text-3xl font-semibold tracking-tight">Mailboxes</h1>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">
+						Create addresses with passwords for webmail, IMAP, and SMTP AUTH.
+					</p>
+				</div>
 				<Dialog open={createOpen} onOpenChange={setCreateOpen}>
 					<DialogTrigger asChild>
 						<Button>
@@ -140,132 +69,30 @@ export default function MailboxesPage() {
 							New mailbox
 						</Button>
 					</DialogTrigger>
-					<DialogContent>
+					<DialogContent className="max-h-[calc(100vh-4rem)] overflow-y-auto sm:max-w-lg">
 						<DialogHeader>
 							<DialogTitle>Create mailbox</DialogTitle>
-							<DialogDescription>Add an address and provision its routing rule automatically.</DialogDescription>
+							<DialogDescription>
+								Generates a login password and shows IMAP/SMTP settings once after create.
+							</DialogDescription>
 						</DialogHeader>
-						<div className="space-y-4">
-							{mailboxes.data?.canCreateShared && (
-								<div className="space-y-2">
-									<Label htmlFor="mailbox-type">Type</Label>
-									<Select
-										id="mailbox-type"
-										value={mailboxType}
-										onChange={(event) => setMailboxType(event.target.value as "personal" | "shared")}
-										className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm shadow-sm shadow-neutral-200/50 focus-visible:border-blue-600 focus-visible:outline-none"
-									>
-										<option value="personal">Personal inbox</option>
-										<option value="shared">Shared inbox</option>
-									</Select>
-								</div>
-							)}
-							{mailboxType === "personal" ? (
-							<div className="space-y-2">
-								<Label htmlFor="mailbox-owner">Account</Label>
-								<Select
-									id="mailbox-owner"
-									value={ownerUserId}
-									onChange={(event) => {
-										const owner = mailboxOwners.find((item) => item.id === event.target.value);
-										setOwnerUserId(event.target.value);
-										if (owner) setDisplayName(owner.name);
-									}}
-									className="flex h-10 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm shadow-sm shadow-neutral-200/50 focus-visible:border-blue-600 focus-visible:outline-none"
-								>
-									{mailboxOwners.map((owner) => (
-										<option key={owner.id} value={owner.id}>
-											{owner.name} ({owner.email})
-										</option>
-									))}
-								</Select>
-							</div>
-							) : (
-								<p className="rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-800">
-									After creating the shared inbox, choose which Team accounts can access it.
-								</p>
-							)}
-							<div className="space-y-2">
-								<Label htmlFor="mailbox-name">Name</Label>
-								<Input
-									id="mailbox-name"
-									value={displayName}
-									onChange={(event) => setDisplayName(event.target.value)}
-									placeholder="Mailbox name"
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="mailbox-username">Email address</Label>
-								<div className="flex h-10 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm shadow-neutral-200/50 focus-within:border-blue-600">
-									<Input
-										id="mailbox-username"
-										value={localPart}
-										onChange={(event) => setLocalPart(event.target.value)}
-										placeholder="support"
-										className="min-w-0 flex-1 rounded-none border-0 shadow-none focus-visible:border-0"
-									/>
-									<span className="flex items-center text-sm text-neutral-400">@</span>
-									<Select
-										aria-label="Domain"
-										className="min-w-0 max-w-[55%] bg-transparent px-3 text-sm text-neutral-700 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-										value={domainId}
-										onChange={(event) => setDomainId(event.target.value)}
-									>
-										<option value="">Select domain</option>
-										{activeDomains.map((domain) => (
-											<option key={domain.id} value={domain.id}>
-												{domain.hostname}
-											</option>
-										))}
-									</Select>
-								</div>
-								{activeDomains.length === 0 && (
-									<p className="text-sm text-amber-700">
-										{pendingDomains.length > 0 ? (
-											<>
-												Verify your domain first on{" "}
-												<Link href="/domains" className="underline">
-													Domains
-												</Link>{" "}
-												before creating a mailbox.
-											</>
-										) : (
-											<>
-												Add and verify a domain on{" "}
-												<Link href="/domains" className="underline">
-													Domains
-												</Link>{" "}
-												first.
-											</>
-										)}
-									</p>
-								)}
-							</div>
-							{create.isError && (
-								<p className="text-sm text-red-600">{(create.error as Error).message}</p>
-							)}
-							<Button
-								onClick={() => create.mutate()}
-								disabled={(mailboxType === "personal" && !ownerUserId) || !displayName.trim() || !domainId || !localPart || create.isPending}
-							>
-								{create.isPending ? "Creating..." : "Create mailbox"}
-							</Button>
-						</div>
+						<CreateMailboxWizard
+							domains={domains.data?.domains ?? []}
+							onCreated={() => {
+								clearMailboxesCache();
+								qc.invalidateQueries({ queryKey: ["mailboxes"] });
+								qc.invalidateQueries({ queryKey: ["accounts"] });
+							}}
+							onCancel={() => setCreateOpen(false)}
+						/>
 					</DialogContent>
 				</Dialog>
 			</div>
 			<section className="space-y-3">
-				{/* <div className="flex items-center justify-between">
-					<span className="text-sm text-neutral-500">
-						{(mailboxes.data?.mailboxes ?? []).length} total
-					</span>
-				</div> */}
-				{mailboxes.isLoading && (
-					<SectionRowSkeleton />
-				)}
+				{mailboxes.isLoading && <SectionRowSkeleton />}
 				{!mailboxes.isLoading && (mailboxes.data?.mailboxes ?? []).length === 0 && (
-					<p className="rounded-2xl bg-white px-5 py-4 text-sm text-neutral-500">
-						No mailboxes yet
+					<p className="rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 py-8 text-center text-sm text-[var(--muted-foreground)]">
+						No mailboxes yet — create one to get started.
 					</p>
 				)}
 				<List>
@@ -274,12 +101,11 @@ export default function MailboxesPage() {
 							...mailbox,
 							hostname: mailbox.hostname ?? domainMap.get(mailbox.domainId) ?? "?",
 						};
-
 						return (
 							<ListRow key={mailbox.id} asChild>
 								<Link
 									href={`/mailboxes/${mailbox.id}`}
-									className="group px-5 py-4 transition-colors hover:bg-blue-50/40"
+									className="group px-5 py-4 transition-colors hover:bg-[var(--muted)]"
 								>
 									<span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
 										{getMailboxName(mailboxWithHostname).trim().charAt(0).toUpperCase() || "?"}
@@ -293,7 +119,7 @@ export default function MailboxesPage() {
 									</span>
 									<span className="min-w-0">
 										<span className="flex min-w-0 items-center gap-2">
-											<span className="block truncate text-sm font-semibold text-neutral-900">
+											<span className="block truncate text-sm font-semibold">
 												{getMailboxName(mailboxWithHostname)}
 											</span>
 											{mailbox.type === "shared" && (
@@ -303,7 +129,7 @@ export default function MailboxesPage() {
 												</span>
 											)}
 										</span>
-										<span className="block truncate no-font-mono text-sm text-neutral-500">
+										<span className="block truncate font-mono text-sm text-[var(--muted-foreground)]">
 											{getMailboxAddress(mailboxWithHostname)}
 										</span>
 									</span>

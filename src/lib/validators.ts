@@ -106,6 +106,7 @@ export const domainSchema = z.object({
 export const loginSchema = z.object({
 	email: z.string().email(),
 	password: z.string().min(1),
+	adminPortal: z.boolean().optional(),
 });
 
 export const passwordResetRequestSchema = z.object({

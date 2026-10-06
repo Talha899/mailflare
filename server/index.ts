@@ -105,6 +105,46 @@ async function main() {
 			tls: process.env.SMTP_TLS_KEY && process.env.SMTP_TLS_CERT ? { keyPath: process.env.SMTP_TLS_KEY, certPath: process.env.SMTP_TLS_CERT } : null,
 		});
 	}
+
+	const mailHostname =
+		normalizeMailHostname(process.env.MAIL_HOSTNAME ?? process.env.APP_URL ?? "mail.example.com") ||
+		"mail.example.com";
+	const tls =
+		process.env.SMTP_TLS_KEY && process.env.SMTP_TLS_CERT
+			? { keyPath: process.env.SMTP_TLS_KEY, certPath: process.env.SMTP_TLS_CERT }
+			: null;
+
+	const submissionPort = Number(process.env.SMTP_SUBMISSION_PORT ?? 587);
+	if (submissionPort > 0) {
+		const { startSmtpSubmissionServer } = await import("./runtime/smtp-submission");
+		startSmtpSubmissionServer(env, {
+			port: submissionPort,
+			hostname: mailHostname,
+			tls,
+		});
+	}
+	const submissionTlsPort = Number(process.env.SMTP_SUBMISSION_TLS_PORT ?? 0);
+	if (submissionTlsPort > 0 && tls) {
+		const { startSmtpSubmissionServer } = await import("./runtime/smtp-submission");
+		startSmtpSubmissionServer(env, {
+			port: submissionTlsPort,
+			hostname: mailHostname,
+			secure: true,
+			tls,
+		});
+	}
+
+	const imapPort = Number(process.env.IMAP_PORT ?? 143);
+	if (imapPort > 0) {
+		const { startImapServer } = await import("./runtime/imap/server");
+		startImapServer(env, { port: imapPort, hostname: mailHostname, tls });
+	}
+	const imapsPort = Number(process.env.IMAPS_PORT ?? 0);
+	if (imapsPort > 0 && tls) {
+		const { startImapServer } = await import("./runtime/imap/server");
+		startImapServer(env, { port: imapsPort, hostname: mailHostname, secure: true, tls });
+	}
+
 	const stopScheduler = startScheduler(env);
 
 	const shutdown = () => {

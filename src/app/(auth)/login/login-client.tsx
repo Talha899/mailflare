@@ -11,7 +11,13 @@ import { Label } from "@/components/ui/label";
 import { TurnstileField } from "@/components/auth/turnstile";
 import { submitLogin, submitMfaCode } from "./utils";
 
-export function LoginClient({ showSignupLink = false }: { showSignupLink?: boolean }) {
+export function LoginClient({
+	showSignupLink = false,
+	adminPortal = false,
+}: {
+	showSignupLink?: boolean;
+	adminPortal?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +27,8 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
   const [code, setCode] = useState("");
 
   function finish(redirect?: string) {
-    router.replace(redirect ?? "/inbox");
+    const fallback = adminPortal ? "/admin" : "/inbox";
+    router.replace(redirect ?? fallback);
     router.refresh();
   }
 
@@ -31,7 +38,7 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
     setError(null);
 
     try {
-      const { ok, data } = await submitLogin(new FormData(e.currentTarget));
+      const { ok, data } = await submitLogin(new FormData(e.currentTarget), { adminPortal });
       if (!ok) {
         setError(data.error ?? "Login failed");
         setTurnstileReset((value) => value + 1);
@@ -101,7 +108,7 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
             />
           </div>
           {error && (
-            <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <p className="rounded-2xl border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
               {error}
             </p>
           )}
@@ -110,7 +117,7 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
           </Button>
           <button
             type="button"
-            className="w-full text-center text-sm text-neutral-500 hover:text-neutral-800"
+            className="w-full text-center text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             onClick={() => {
               setChallengeToken(null);
               setCode("");
@@ -127,8 +134,12 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
   return (
     <AuthShell
       icon={Mail}
-      title="Sign in"
-      description="Open your mailbox and continue from the same inbox workspace."
+      title={adminPortal ? "Admin sign in" : "Sign in to your mailbox"}
+      description={
+        adminPortal
+          ? "Manage domains, mailboxes, and mail infrastructure."
+          : "Enter the email address and password created for your mailbox. There is no self-service signup."
+      }
     >
       <form method="post" onSubmit={onSubmit} className="space-y-5">
         <div className="space-y-2">
@@ -144,7 +155,7 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link href="/forgot-password" className="text-xs font-medium text-blue-600 hover:underline">
+            <Link href="/forgot-password" className="text-xs font-medium text-[var(--primary)] hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -157,7 +168,7 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
           />
         </div>
         {error && (
-          <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <p className="rounded-2xl border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
             {error}
           </p>
         )}
@@ -169,11 +180,27 @@ export function LoginClient({ showSignupLink = false }: { showSignupLink?: boole
         >
           {loading ? "Signing in..." : "Sign in"}
         </Button>
-        {showSignupLink && (
-          <p className="text-center text-sm text-neutral-600">
-            New here?{" "}
-            <Link href="/signup" className="font-medium text-blue-600 hover:underline">
+        {adminPortal && showSignupLink && (
+          <p className="text-center text-sm text-[var(--muted-foreground)]">
+            New organization?{" "}
+            <Link href="/signup" className="font-medium text-[var(--primary)] hover:underline">
               Create a workspace
+            </Link>
+          </p>
+        )}
+        {adminPortal && (
+          <p className="text-center text-sm text-[var(--muted-foreground)]">
+            Mailbox users:{" "}
+            <Link href="/login" className="font-medium text-[var(--primary)] hover:underline">
+              Webmail sign in
+            </Link>
+          </p>
+        )}
+        {!adminPortal && (
+          <p className="text-center text-sm text-[var(--muted-foreground)]">
+            Administrator?{" "}
+            <Link href="/admin/login" className="font-medium text-[var(--primary)] hover:underline">
+              Admin portal
             </Link>
           </p>
         )}
