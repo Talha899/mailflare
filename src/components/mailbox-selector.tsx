@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { CalendarDays, Check, Inbox, LogOut, Settings, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CalendarDays, Check, Inbox, LogOut, Settings, UserRound, UsersRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelectedMailbox } from "@/components/mailbox-provider";
 import { ProgressiveAvatarImage } from "@/components/progressive-avatar-image";
@@ -31,7 +31,6 @@ import {
 	getAccountInitial,
 	getMailboxAddress,
 	getMailboxName,
-	isAdminPath,
 } from "./mailbox-selector-utils";
 
 function AccountAvatar({
@@ -113,7 +112,6 @@ function MailboxAccountRow({ mailbox, unread, avatarUrl, onSelect }: MailboxAcco
 
 export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 	const { selectedMailbox, setSelectedMailbox, mailboxes, isLoading } = useSelectedMailbox();
-	const pathname = usePathname();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [user, setUser] = useState<MailboxSelectorUser | null>(initialUser ?? null);
@@ -204,8 +202,6 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 		? selectedMailboxAvatarUrl ?? `/api/mailboxes/${selectedMailbox.id}/avatar`
 		: avatarUrl;
 	const otherMailboxes = mailboxes.filter((mailbox) => mailbox.id !== selectedMailbox?.id);
-	const adminActive = isAdminPath(pathname);
-
 	async function logout() {
 		await logoutClientSession();
 		setOpen(false);
@@ -315,17 +311,6 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 					)}
 
 					<div className="mt-2 overflow-hidden rounded-[22px] bg-white">
-						{user?.role === "admin" && (
-							<Link
-								href="/admin"
-								onClick={() => setOpen(false)}
-								className={`flex items-center gap-3 border-t border-[var(--border)] px-5 py-4 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)] ${adminActive ? "bg-[var(--accent)]" : ""}`}
-							>
-								<ShieldCheck size={18} className="text-[var(--muted-foreground)]" />
-								Admin
-								{adminActive && <Check className="ml-auto h-4 w-4 text-[var(--primary)]" />}
-							</Link>
-						)}
 						<button
 							type="button"
 							onClick={logout}

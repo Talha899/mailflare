@@ -57,7 +57,14 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 				};
 				if (data.user?.id) saveUserTimeZonePreference(data.user.id, data.user.timeZone ?? null);
 				if (mode === "public") {
-					router.replace(data.user?.role === "admin" ? "/admin" : "/inbox");
+					// Keep portals separate: webmail public pages → inbox; admin login → admin console only for admins.
+					const onAdminLogin =
+						pathname === "/admin/login" || pathname.startsWith("/admin/login/");
+					if (onAdminLogin) {
+						router.replace(data.user?.role === "admin" ? "/admin" : "/inbox");
+					} else {
+						router.replace("/inbox");
+					}
 					return;
 				}
 
@@ -71,6 +78,7 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 					pathname.startsWith("/mailboxes") ||
 					pathname.startsWith("/domains") ||
 					pathname.startsWith("/accounts");
+				const inAdminShell = requireRole === "admin";
 
 				// No domain yet — keep admins in domain onboarding (SaaS) or setup.
 				if (
@@ -83,14 +91,22 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 					return;
 				}
 
-				// Domain exists but no mailbox — send admins to create one (not an empty inbox).
-				if (isAdmin && isSetup && !hasMailboxes && !onAdminSetupPath && !onSetupPath) {
+				// Domain exists but no mailbox — only the admin console sends them to create one.
+				// Webmail must never bridge into /mailboxes.
+				if (
+					inAdminShell &&
+					isAdmin &&
+					isSetup &&
+					!hasMailboxes &&
+					!onAdminSetupPath &&
+					!onSetupPath
+				) {
 					router.replace("/mailboxes");
 					return;
 				}
 
 				if (onSetupPath && isSetup) {
-					router.replace(hasMailboxes ? "/inbox" : "/mailboxes");
+					router.replace(hasMailboxes ? "/inbox" : inAdminShell ? "/mailboxes" : "/inbox");
 					return;
 				}
 
@@ -100,7 +116,7 @@ export function AuthGuard({ children, mode = "protected", requireMailbox, requir
 				}
 
 				if (requirePrimary && !data.user?.isPrimaryAdmin) {
-					router.replace("/admin");
+					router.replace(inAdminShell ? "/admin" : "/inbox");
 					return;
 				}
 

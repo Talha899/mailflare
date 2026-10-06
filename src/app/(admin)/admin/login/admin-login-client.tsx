@@ -136,22 +136,14 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 			title="Operator sign-in"
 			description="Use your administrator account password — not your mailbox IMAP/webmail password — to manage domains, mailboxes, DNS, and routing."
 			footer={
-				<div className="space-y-2 text-center text-xs text-[var(--muted-foreground)]">
-					{showSignupLink && (
-						<p>
-							New organization?{" "}
-							<Link href="/signup" className="underline-offset-2 hover:underline">
-								Create a workspace
-							</Link>
-						</p>
-					)}
-					<p>
-						Looking for your inbox?{" "}
-						<Link href="/login" className="underline-offset-2 hover:underline">
-							Webmail sign-in
+				showSignupLink ? (
+					<p className="text-center text-xs text-[var(--muted-foreground)]">
+						New organization?{" "}
+						<Link href="/signup" className="underline-offset-2 hover:underline">
+							Create a workspace
 						</Link>
 					</p>
-				</div>
+				) : undefined
 			}
 		>
 			<form method="post" onSubmit={onSubmit} className="space-y-4">

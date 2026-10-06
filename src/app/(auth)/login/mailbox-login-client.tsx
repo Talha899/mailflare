@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Inbox, ShieldCheck } from "lucide-react";
@@ -134,14 +133,6 @@ export function MailboxLoginClient() {
 			icon={Inbox}
 			title="Open your inbox"
 			description="Use your mailbox address and mailbox password (IMAP/SMTP use the same password). This is not your admin account password."
-			footer={
-				<p className="mt-8 text-center text-xs text-[var(--muted-foreground)]">
-					Need the operator tools?{" "}
-					<Link href="/admin/login" className="underline-offset-2 hover:underline">
-						Admin console
-					</Link>
-				</p>
-			}
 		>
 			<form method="post" onSubmit={onSubmit} className="space-y-5">
 				<div className="space-y-2">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut, Mail } from "lucide-react";
+import { LayoutDashboard, LogOut } from "lucide-react";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { adminNavSections, type AdminNavLink } from "@/components/admin-nav-links";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -105,16 +105,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 							<LogOut className="h-4 w-4" />
 							Sign out
 						</button>
-						<Link
-							href="/inbox"
-							className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
-						>
-							<Mail className="h-4 w-4" />
-							Open webmail
-						</Link>
 					</div>
-				</aside>
-				<div className="flex min-w-0 flex-1 flex-col">
+				</aside>				<div className="flex min-w-0 flex-1 flex-col">
 					<header className="flex h-14 items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-4 md:hidden">
 						<p className="font-semibold">Admin</p>
 						<ThemeToggle />
