@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
 
@@ -158,8 +158,60 @@ export class FileBucket {
 		}
 	}
 
-	async list() {
-		throw new Error("FileBucket.list is not implemented");
+	async list(options?: { prefix?: string; cursor?: string; limit?: number }) {
+		let entries: string[] = [];
+		try {
+			entries = await readdir(this.root, { recursive: true });
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+				return { objects: [], truncated: false, delimitedPrefixes: [] as string[] };
+			}
+			throw error;
+		}
+		const prefix = options?.prefix ?? "";
+		const objects: Array<{
+			key: string;
+			version: string;
+			size: number;
+			etag: string;
+			httpEtag: string;
+			uploaded: Date;
+			httpMetadata?: StoredMeta["httpMetadata"];
+			customMetadata?: Record<string, string>;
+			checksums: Record<string, never>;
+			writeHttpMetadata: () => void;
+		}> = [];
+		for (const rel of entries) {
+			const key = rel.replaceAll("\\", "/");
+			if (key.endsWith(".meta.json")) continue;
+			if (prefix && !key.startsWith(prefix)) continue;
+			const info = await stat(join(this.root, rel));
+			if (!info.isFile()) continue;
+			const meta = await this.readMeta(key);
+			const etag = meta?.etag ?? String(info.mtimeMs);
+			objects.push({
+				key,
+				version: etag,
+				size: meta?.size ?? info.size,
+				etag,
+				httpEtag: `"${etag}"`,
+				uploaded: new Date(meta?.uploaded ?? info.mtime.toISOString()),
+				httpMetadata: meta?.httpMetadata,
+				customMetadata: meta?.customMetadata,
+				checksums: {},
+				writeHttpMetadata() {},
+			});
+		}
+		const limit = options?.limit ?? 1000;
+		const start = options?.cursor ? Number(options.cursor) || 0 : 0;
+		const slice = objects.slice(start, start + limit);
+		const next = start + limit;
+		return {
+			objects: slice,
+			truncated: next < objects.length,
+			cursor: next < objects.length ? String(next) : undefined,
+			delimitedPrefixes: [] as string[],
+		};
 	}
 }
 

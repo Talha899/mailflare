@@ -1,13 +1,14 @@
 import {
+	DeleteObjectCommand,
+	GetObjectCommand,
 	HeadBucketCommand,
 	HeadObjectCommand,
-	GetObjectCommand,
+	ListObjectsV2Command,
 	PutObjectCommand,
-	DeleteObjectCommand,
 	S3Client,
 	type S3ClientConfig,
 } from "@aws-sdk/client-s3";
-import { Readable } from "node:stream";
+import { s3BodyToBuffer } from "./s3-body";
 
 type StoredHttpMeta = {
 	contentType?: string;
@@ -49,7 +50,7 @@ class S3Object {
 	constructor(
 		readonly key: string,
 		private readonly meta: StoredMeta,
-		private readonly bodyStream: Readable | null,
+		private readonly bodyBuffer: Buffer | null,
 	) {}
 
 	get size() {
@@ -74,26 +75,23 @@ class S3Object {
 		return this.meta.etag;
 	}
 	get body(): ReadableStream<Uint8Array> {
-		if (!this.bodyStream) {
-			return new ReadableStream({
-				start(controller) {
-					controller.close();
-				},
-			});
-		}
-		return Readable.toWeb(this.bodyStream) as ReadableStream<Uint8Array>;
+		const buffer = this.bodyBuffer ?? Buffer.alloc(0);
+		return new ReadableStream({
+			start(controller) {
+				controller.enqueue(new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength));
+				controller.close();
+			},
+		});
 	}
 	get bodyUsed() {
 		return false;
 	}
 	async arrayBuffer(): Promise<ArrayBuffer> {
-		if (!this.bodyStream) return new ArrayBuffer(0);
-		const chunks: Buffer[] = [];
-		for await (const chunk of this.bodyStream) {
-			chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-		}
-		const buffer = Buffer.concat(chunks);
-		return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+		if (!this.bodyBuffer) return new ArrayBuffer(0);
+		return this.bodyBuffer.buffer.slice(
+			this.bodyBuffer.byteOffset,
+			this.bodyBuffer.byteOffset + this.bodyBuffer.byteLength,
+		) as ArrayBuffer;
 	}
 	async text(): Promise<string> {
 		return Buffer.from(await this.arrayBuffer()).toString("utf8");
@@ -111,19 +109,6 @@ class S3Object {
 		}
 		if (this.meta.httpMetadata?.cacheControl) headers.set("Cache-Control", this.meta.httpMetadata.cacheControl);
 	}
-}
-
-function s3BodyToReadable(body: unknown): Readable | null {
-	if (body == null) return null;
-	if (body instanceof Readable) return body;
-	if (typeof (body as { pipe?: unknown }).pipe === "function") {
-		return Readable.from(body as AsyncIterable<Uint8Array | Buffer | string>);
-	}
-	if (typeof (body as { getReader?: unknown }).getReader === "function") {
-		return Readable.fromWeb(body as import("stream/web").ReadableStream);
-	}
-	if (body instanceof Uint8Array) return Readable.from([body]);
-	throw new TypeError(`Unsupported S3 GetObject body: ${Object.prototype.toString.call(body)}`);
 }
 
 function httpMetaFromOptions(
@@ -210,8 +195,9 @@ export class S3Bucket {
 				},
 				customMetadata: response.Metadata,
 			};
-			const stream = s3BodyToReadable(response.Body ?? null);
-			return new S3Object(key, meta, stream);
+			const buffer = await s3BodyToBuffer(response.Body ?? null);
+			if (!meta.size) meta.size = buffer.byteLength;
+			return new S3Object(key, meta, buffer);
 		} catch (error) {
 			const name = error && typeof error === "object" && "name" in error ? String(error.name) : "";
 			if (name === "NoSuchKey" || name === "NotFound") return null;
@@ -284,8 +270,42 @@ export class S3Bucket {
 		);
 	}
 
-	async list() {
-		throw new Error("S3Bucket.list is not implemented");
+	async list(options?: { prefix?: string; cursor?: string; limit?: number }) {
+		const prefix = options?.prefix ?? "";
+		const response = await this.client.send(
+			new ListObjectsV2Command({
+				Bucket: this.config.bucket,
+				Prefix: this.objectKey(prefix),
+				ContinuationToken: options?.cursor,
+				MaxKeys: options?.limit ?? 1000,
+			}),
+		);
+		return {
+			objects: (response.Contents ?? []).map((object) => {
+				const key = this.appKey(object.Key ?? "");
+				const etag = (object.ETag ?? "").replace(/"/g, "");
+				return {
+					key,
+					version: etag,
+					size: object.Size ?? 0,
+					etag,
+					httpEtag: etag ? `"${etag}"` : '""',
+					uploaded: object.LastModified ?? new Date(),
+					checksums: {},
+					writeHttpMetadata() {},
+				};
+			}),
+			truncated: Boolean(response.IsTruncated),
+			cursor: response.NextContinuationToken,
+			delimitedPrefixes: [] as string[],
+		};
+	}
+
+	private appKey(storageKey: string): string {
+		const prefix = this.config.keyPrefix?.replace(/^\/+|\/+$/g, "") ?? "";
+		if (!prefix) return storageKey;
+		const withSlash = `${prefix}/`;
+		return storageKey.startsWith(withSlash) ? storageKey.slice(withSlash.length) : storageKey;
 	}
 }
 

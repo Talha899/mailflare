@@ -17,6 +17,7 @@ import { ensureOrganizationIndexes } from "@/lib/organizations/mongo-collections
 import { normalizeMailHostname } from "@/lib/domains/hostname";
 import { startScheduler } from "./runtime/scheduler";
 import { startSmtpListener } from "./runtime/smtp";
+import { replayUnprocessedInbound } from "./runtime/inbound-replay";
 import { applyTrustedClientIp, isSameHostWebSocketOrigin } from "./runtime/client-ip";
 
 /**
@@ -64,6 +65,11 @@ async function main() {
 	runtime.agentQueue.setConsumer(async (body) => {
 		if (typeof body === "object" && body !== null && (body as { kind?: unknown }).kind === "agent.draft" && typeof (body as { jobId?: unknown }).jobId === "string") await processAgentDraftJob(env, (body as { jobId: string }).jobId);
 	});
+	try {
+		await replayUnprocessedInbound(env);
+	} catch (error) {
+		console.warn("Inbound replay failed", error);
+	}
 
 	const app = next({ dev, dir: process.cwd(), hostname: host, port });
 	const handle = app.getRequestHandler();
