@@ -1,9 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import type { AppDatabase } from "@/db";
-import { domains, mailboxAccess, mailboxes } from "@/db/schema";
+import { domains, mailboxAccess, mailboxes, users } from "@/db/schema";
 import type { SessionUser } from "@/lib/auth/types";
 import { isTeamMailboxSharingEnabled } from "./access-utils";
 import type { MailboxAccessLevel, MailboxPermission } from "./types";
+
+export { canAdministerOrganizationMailboxes } from "./admin-scope";
 
 const permissionRank: Record<MailboxPermission, number> = {
 	read_only: 1,
@@ -113,6 +115,82 @@ export async function listAccessibleMailboxes(db: AppDatabase, user: Pick<Sessio
 	});
 
 	return [...owned, ...shared];
+}
+
+/**
+ * Every mailbox on a domain in this organization, including ones owned by
+ * other accounts. Used by the admin console. Does not grant mail read access.
+ */
+export async function listOrganizationMailboxes(
+	db: AppDatabase,
+	user: Pick<SessionUser, "id" | "email" | "organizationId">,
+) {
+	const rows = await db
+		.select({
+			id: mailboxes.id,
+			userId: mailboxes.userId,
+			domainId: mailboxes.domainId,
+			localPart: mailboxes.localPart,
+			displayName: mailboxes.displayName,
+			signature: mailboxes.signature,
+			autoReplyEnabled: mailboxes.autoReplyEnabled,
+			autoReplySubject: mailboxes.autoReplySubject,
+			autoReplyBody: mailboxes.autoReplyBody,
+			useAllDomains: mailboxes.useAllDomains,
+			avatarKey: mailboxes.avatarKey,
+			type: mailboxes.type,
+			disabled: mailboxes.disabled,
+			createdAt: mailboxes.createdAt,
+			hostname: domains.hostname,
+		})
+		.from(mailboxes)
+		.innerJoin(domains, eq(mailboxes.domainId, domains.id))
+		.innerJoin(users, eq(mailboxes.userId, users.id))
+		.where(
+			or(
+				eq(users.organizationId, user.organizationId),
+				eq(domains.organizationId, user.organizationId),
+				eq(mailboxes.organizationId, user.organizationId),
+			),
+		);
+	return rows.map((row) => {
+		const { avatarKey, ...mailbox } = row;
+		return {
+			...mailbox,
+			hasAvatar: !!avatarKey,
+			permission: "full_access" as MailboxPermission,
+			isPrimary: `${row.localPart}@${row.hostname}` === user.email,
+		};
+	});
+}
+
+export async function getOrganizationMailbox(
+	db: AppDatabase,
+	organizationId: string,
+	mailboxId: string,
+) {
+	const [row] = await db
+		.select({
+			id: mailboxes.id,
+			userId: mailboxes.userId,
+			domainId: mailboxes.domainId,
+			localPart: mailboxes.localPart,
+		})
+		.from(mailboxes)
+		.innerJoin(domains, eq(mailboxes.domainId, domains.id))
+		.innerJoin(users, eq(mailboxes.userId, users.id))
+		.where(
+			and(
+				eq(mailboxes.id, mailboxId),
+				or(
+					eq(users.organizationId, organizationId),
+					eq(domains.organizationId, organizationId),
+					eq(mailboxes.organizationId, organizationId),
+				),
+			),
+		)
+		.limit(1);
+	return row ?? null;
 }
 
 export async function listAccessibleMailboxIds(db: AppDatabase, user: Pick<SessionUser, "id" | "email" | "role" | "sessionMailboxId">) {

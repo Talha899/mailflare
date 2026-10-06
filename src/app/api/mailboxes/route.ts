@@ -8,6 +8,7 @@ import { newId } from "@/lib/ids";
 import { getLicenseEntitlements } from "@/lib/licenses/service";
 import { tracksAccountIdentity } from "@/lib/profile/identity-utils";
 import { mailboxSchema } from "@/lib/validators";
+import { canAdministerOrganizationMailboxes, listOrganizationMailboxes } from "@/lib/mailboxes/access";
 import { ensureMailboxDomainRouting, getMailboxDomainAddresses } from "@/lib/mailboxes/domain-addresses";
 import { isSaasMode } from "@/lib/organizations/service";
 import { ensurePersonalMailbox } from "./utils";
@@ -16,7 +17,9 @@ export async function GET(request: Request) {
 	const env = getEnv();
 	const user = await requireUser(env, request);
 	const db = getDb(env);
-	const rows = await ensurePersonalMailbox(env, db, user);
+	const rows = canAdministerOrganizationMailboxes(user)
+		? await listOrganizationMailboxes(db, user)
+		: await ensurePersonalMailbox(env, db, user);
 	const entitlements = await getLicenseEntitlements(env);
 	const saas = isSaasMode(env);
 	return NextResponse.json({

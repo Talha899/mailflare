@@ -1,10 +1,14 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { mailboxes, users } from "@/db/schema";
+import { mailboxes } from "@/db/schema";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
-import { getMailboxAccessLevel } from "@/lib/mailboxes/access";
+import {
+	canAdministerOrganizationMailboxes,
+	getMailboxAccessLevel,
+	getOrganizationMailbox,
+} from "@/lib/mailboxes/access";
 import { ensureMailboxDomainRouting, removeMailboxDomainRouting } from "@/lib/mailboxes/domain-addresses";
 import { isPrimaryMailbox, tracksAccountIdentity } from "@/lib/profile/identity-utils";
 import { syncPersonalIdentity } from "@/lib/profile/sync";
@@ -18,7 +22,11 @@ export async function GET(request: Request, { params }: MailboxRouteParams) {
 	const user = await requireUser(env, request);
 	const db = getDb(env);
 	const access = await getMailboxAccessLevel(db, user, id);
-	if (!access?.canRead) {
+	const orgMailbox =
+		!access?.canRead && canAdministerOrganizationMailboxes(user)
+			? await getOrganizationMailbox(db, user.organizationId, id)
+			: null;
+	if (!access?.canRead && !orgMailbox) {
 		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
 	}
 	const [mailbox] = await selectMailboxForUser(db, user.id, id);
@@ -34,7 +42,7 @@ export async function GET(request: Request, { params }: MailboxRouteParams) {
 			...mailboxDetails,
 			displayName: identity ? ownerName : mailbox.displayName,
 			hasAvatar: identity ? !!ownerAvatarKey : !!avatarKey,
-			permission: access.permission,
+			permission: access?.permission ?? "full_access",
 			isPrimary: isPrimaryMailbox(mailbox, user.email),
 		},
 	});
@@ -53,8 +61,12 @@ export async function PATCH(request: Request, { params }: MailboxRouteParams) {
 	const db = getDb(env);
 	const access = await getMailboxAccessLevel(db, user, id);
 	const [existing] = await selectMailboxForUser(db, user.id, id);
+	const orgMailbox =
+		(!existing || !access?.canManage) && canAdministerOrganizationMailboxes(user)
+			? await getOrganizationMailbox(db, user.organizationId, id)
+			: null;
 
-	if (!existing || !access?.canManage) {
+	if (!existing || (!access?.canManage && !orgMailbox)) {
 		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
 	}
 
@@ -105,7 +117,7 @@ export async function PATCH(request: Request, { params }: MailboxRouteParams) {
 			...mailboxDetails,
 			displayName: identity ? ownerName : mailbox!.displayName,
 			hasAvatar: identity ? !!ownerAvatarKey : !!avatarKey,
-			permission: access.permission,
+			permission: access?.permission ?? "full_access",
 			isPrimary: isPrimaryMailbox(mailbox!, user.email),
 		},
 	});
@@ -120,9 +132,8 @@ export async function DELETE(request: Request, { params }: MailboxRouteParams) {
 	if (!mailbox) return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
 
 	let allowed = mailbox.userId === user.id && user.canManageMailboxes;
-	if (!allowed && user.role === "admin") {
-		const [owner] = await db.select({ createdByUserId: users.createdByUserId }).from(users).where(eq(users.id, mailbox.userId)).limit(1);
-		allowed = mailbox.userId === user.id || owner?.createdByUserId === user.id;
+	if (!allowed && canAdministerOrganizationMailboxes(user)) {
+		allowed = !!(await getOrganizationMailbox(db, user.organizationId, mailbox.id));
 	}
 	if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

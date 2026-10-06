@@ -5,7 +5,7 @@ import { domains, mailboxAliases, mailboxes } from "@/db/schema";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
 import { newId } from "@/lib/ids";
-import { getMailboxAccessLevel } from "@/lib/mailboxes/access";
+import { getMailboxAccessLevel, canAdministerOrganizationMailboxes, getOrganizationMailbox } from "@/lib/mailboxes/access";
 import { createMailboxAliasSchema } from "@/lib/validators";
 import type { MailboxRouteParams } from "../types";
 
@@ -15,13 +15,16 @@ async function getManagedMailbox(
 	mailboxId: string,
 ) {
 	const access = await getMailboxAccessLevel(db, user, mailboxId);
-	if (!access?.canManage) return null;
-	const [mailbox] = await db
-		.select({ id: mailboxes.id, domainId: mailboxes.domainId, localPart: mailboxes.localPart })
-		.from(mailboxes)
-		.where(eq(mailboxes.id, mailboxId))
-		.limit(1);
-	return mailbox ?? null;
+	if (access?.canManage) {
+		const [mailbox] = await db
+			.select({ id: mailboxes.id, domainId: mailboxes.domainId, localPart: mailboxes.localPart })
+			.from(mailboxes)
+			.where(eq(mailboxes.id, mailboxId))
+			.limit(1);
+		return mailbox ?? null;
+	}
+	if (!canAdministerOrganizationMailboxes(user)) return null;
+	return getOrganizationMailbox(db, user.organizationId, mailboxId);
 }
 
 async function getDomainOwnerId(db: ReturnType<typeof getDb>, domainId: string) {
