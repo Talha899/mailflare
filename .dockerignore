@@ -12,6 +12,6 @@ coverage
 .dev.vars
 .env
 .env.*
-!.env.docker.example
+!.env.example
 docs/screenshots
 docs/demo.mp4

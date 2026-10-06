@@ -7,8 +7,8 @@ and aliases. Mail stays in SQLite; organization metadata lives in MongoDB.
 ## Quick start
 
 ```bash
-cp .env.docker.example .env.docker
-# Set SMTP_URL (or Cloudflare sending), APP_URL, and keep:
+cp .env.example .env
+# Set SMTP_URL, APP_URL, and keep:
 #   SAAS_MODE=true
 #   MONGO_URL=mongodb://mongo:27017/mailflare
 docker compose up -d --build
@@ -109,9 +109,10 @@ For **send/receive DNS** on customer domains, see [saas-mail.md](./saas-mail.md)
 1. In Coolify: **+ New Resource → Docker Compose**.
 2. Connect the Git repo (or push this project to a private Git source Coolify can read).
 3. Set **Docker Compose Location** to `/docker-compose.coolify.yml`.
-4. Under **Environment Variables**, paste production values (see below). Do **not**
-   put secrets in the compose file. Coolify injects them at deploy time.
-5. Assign a domain to the **`Dispatch`** service, port **`3000`**, with HTTPS.
+4. Under **Environment Variables**, paste `.env`. Do **not** put `DATA_DIR` in
+   Coolify — it is baked into the image as `/mailflare-data`. Coolify cannot
+   delete a variable that still exists in the Compose `environment:` block.
+5. Assign a domain to the **`mailflare`** service, port **`3000`**, with HTTPS.
 6. Deploy. Open `https://your-domain/signup` (SaaS) or `/setup` if `SAAS_MODE` is off.
 
 ### Coolify environment variables
@@ -119,13 +120,12 @@ For **send/receive DNS** on customer domains, see [saas-mail.md](./saas-mail.md)
 `docker-compose.coolify.yml` expects a **managed Mongo** URI (Coolify Mongo
 resource or Atlas). Do not use the bundled `mongo` service from local compose.
 
-Minimum for SaaS + Cloudflare sending + S3:
+Use the single `.env` file (see `.env.example`). Minimum:
 
 ```bash
 SAAS_MODE=true
 APP_URL=https://mail.codenak.com
 MAIL_HOSTNAME=mail.codenak.com
-# Coolify Mongo root user — authSource=admin is required:
 MONGO_URL=mongodb://root:PASSWORD@HOST:27017/mailflare?directConnection=true&authSource=admin
 S3_ENDPOINT=https://s3.codenak.com
 S3_REGION=us-east-1
@@ -134,17 +134,17 @@ S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
 S3_FORCE_PATH_STYLE=true
 S3_KEY_PREFIX=prod_mail
-# STORAGE_ENDPOINT / STORAGE_BUCKET / STORAGE_FOLDER also work if you paste those names.
+SMTP_URL=smtp://postfix:587
 ```
 
-Copy a filled local template from `.env.coolify` (gitignored) into Coolify’s
-Environment Variables UI. Domain on the `Dispatch` service: port **3000**.
+If Coolify says it cannot delete `DATA_DIR`, save this Compose file first
+(it no longer defines `DATA_DIR`), then paste `.env` again.
 
 ### Coolify mail / ports
 
 | Traffic | How |
 |---------|-----|
-| HTTPS web + JMAP + WebSocket `/api/realtime` | Coolify domain → service `Dispatch:3000` (enable WebSockets if your Coolify version asks) |
+| HTTPS web + JMAP + WebSocket `/api/realtime` | Coolify domain → service `mailflare:3000` (enable WebSockets if your Coolify version asks) |
 | Inbound SMTP | Host port **25** must reach the container (`25:25` in the compose). Many clouds block 25 — open it on the VPS firewall. |
 | Port 25 blocked | Open TCP 25 on the VPS (or host elsewhere that can accept MX). Set `SMTP_INBOUND_PORT=0` only if you intentionally disable inbound SMTP. |
 

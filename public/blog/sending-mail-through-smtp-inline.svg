@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#1c1917"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#fb923c" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><path d="M340 420 L860 250 L700 500 L620 390 Z" fill="none" stroke="#fb923c" stroke-width="10"/></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#fb923c">sending mail through smtp</text>
+</svg>

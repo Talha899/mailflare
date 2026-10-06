@@ -117,7 +117,7 @@ export function OnboardingClient() {
 			title={step === 1 ? "Connect mail routing" : "Create your first mailbox"}
 			description={
 				step === 1
-					? "Add the Cloudflare domain that will receive mail and optionally send through this workspace."
+					? "Add the domain that will receive mail and optionally send through this workspace."
 					: "Choose the mailbox address that should open directly into the inbox."
 			}
 			steps={[
@@ -135,8 +135,8 @@ export function OnboardingClient() {
 				{step === 1 && (
 					<>
 						<p className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm leading-6 text-[var(--foreground)]">
-							Zones on your Cloudflare account are configured automatically. Other domains use TXT
-							ownership verification and a manual MX/SPF/DMARC checklist.
+							Publish a TXT ownership record in SaaS mode, then paste MX, SPF, DKIM, and DMARC
+							from the domain checklist at your DNS host.
 						</p>
 						<div className="space-y-2">
 							<Label htmlFor="domain">Domain</Label>

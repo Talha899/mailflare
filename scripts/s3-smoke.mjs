@@ -21,8 +21,7 @@ function loadEnvFile(path) {
 	}
 }
 
-loadEnvFile(resolve(".env.coolify"));
-loadEnvFile(resolve(".env.docker"));
+loadEnvFile(resolve(".env"));
 
 function firstEnv(...names) {
 	for (const name of names) {

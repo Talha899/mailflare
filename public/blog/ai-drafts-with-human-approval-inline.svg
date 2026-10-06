@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#1e1b4b"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#c4b5fd" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><path d="M600 160 L640 300 L790 330 L640 370 L600 520 L560 370 L410 330 L560 300 Z" fill="none" stroke="#c4b5fd" stroke-width="10"/></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#c4b5fd">ai drafts with human approval</text>
+</svg>

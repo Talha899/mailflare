@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#292524"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#fdba74" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><rect x="420" y="180" width="280" height="360" rx="8" fill="none" stroke="#fdba74" stroke-width="8"/>
+				<path d="M470 280 H650 M470 330 H650 M470 380 H590" stroke="#fdba74" stroke-width="8"/>
+				<circle cx="760" cy="470" r="54" fill="none" stroke="#fdba74" stroke-width="8"/>
+				<path d="M760 430 V470 H790" fill="none" stroke="#fdba74" stroke-width="8"/></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#fdba74">attachment download links</text>
+</svg>

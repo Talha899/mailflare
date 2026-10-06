@@ -55,7 +55,7 @@ export async function DELETE(request: Request, { params }: AdminMailboxRoutePara
 	try {
 		await removeMailboxDomainRouting(access.env, db, access.mailbox!);
 	} catch (error) {
-		return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to remove Cloudflare routing rule" }, { status: 502 });
+		return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to remove mailbox routing" }, { status: 502 });
 	}
 	await db.delete(mailboxes).where(eq(mailboxes.id, access.mailbox!.id));
 	return NextResponse.json({ ok: true });

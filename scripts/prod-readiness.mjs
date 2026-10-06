@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Smoke checks for Docker/Node production deploys. Loads .env.docker when present.
+ * Smoke checks for Docker/Node production deploys. Loads .env when present.
  * Usage: node scripts/prod-readiness.mjs [baseUrl]
  */
 import { readFileSync, existsSync } from "node:fs";
@@ -8,7 +8,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-for (const name of [".env.coolify", ".env.docker"]) {
+for (const name of [".env"]) {
 	const envPath = resolve(root, name);
 	if (!existsSync(envPath)) continue;
 	for (const line of readFileSync(envPath, "utf8").split(/\r?\n/)) {

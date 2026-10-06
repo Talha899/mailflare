@@ -134,7 +134,7 @@ export async function DELETE(request: Request, { params }: MailboxRouteParams) {
 			useAllDomains: mailbox.useAllDomains,
 		});
 	} catch (err) {
-		const message = err instanceof Error ? err.message : "Failed to remove Cloudflare routing rule";
+		const message = err instanceof Error ? err.message : "Failed to remove mailbox routing";
 		return NextResponse.json({ error: message }, { status: 502 });
 	}
 

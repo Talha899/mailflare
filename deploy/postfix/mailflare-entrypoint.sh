@@ -4,6 +4,11 @@
 # customer domains and no POSTFIX_ALLOWED_SENDER_DOMAINS in Coolify env.
 set -eu
 
+# Coolify injects MAIL_HOSTNAME from .env; boky/postfix reads HOSTNAME.
+if [ -n "${MAIL_HOSTNAME:-}" ]; then
+	export HOSTNAME="$MAIL_HOSTNAME"
+fi
+
 MAILFLARE_DATA="${MAILFLARE_DATA_DIR:-/mailflare-data}"
 DOMAINS_FILE="${MAILFLARE_DATA}/outbound/sender-domains.txt"
 DKIM_PUB_DIR="${MAILFLARE_DATA}/outbound/dkim"

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#1e3a5f"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#7dd3fc" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><text x="430" y="380" font-family="IBM Plex Mono, ui-monospace" font-size="72" fill="#7dd3fc">JMAP</text>
+				<text x="430" y="460" font-family="IBM Plex Mono, ui-monospace" font-size="36" fill="#7dd3fc" opacity="0.55">IMAP SMTP</text></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#7dd3fc">jmap vs imap</text>
+</svg>

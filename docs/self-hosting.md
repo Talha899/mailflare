@@ -9,14 +9,14 @@ realtime WebSocket, backup schedule and an SMTP listener for inbound mail.
 
 ```bash
 git clone https://github.com/hieunc229/mailflare && cd Dispatch
-cp .env.docker.example .env.docker      # edit: how to receive and send mail
+cp .env.example .env      # edit: how to receive and send mail
 docker compose up -d --build
 ```
 
 Open `http://your-host:3000/setup` for classic single-tenant setup, or set
 `SAAS_MODE=true` with MongoDB (see [saas-docker.md](./saas-docker.md)) and use
 `/signup` for multi-organization hosting. All SQLite and blob data lives in the
-`mailflare-data` volume (`/data` in the container).
+`mailflare-data` volume (`/mailflare-data` in the container).
 
 Behind a reverse proxy, set `APP_URL=https://mail.example.com` so links in
 password-reset mail and the JMAP session point at the public address, and
@@ -58,8 +58,8 @@ and the DNS page shows what to set by hand.
 | Variable | Default | Purpose |
 |---|---|---|
 | `PORT` | `3000` | HTTP port |
-| `DATA_DIR` | `/data` | SQLite database; local blobs when S3 is unset |
-| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | unset | Optional S3-compatible object store for MIME, attachments, backups (instead of `/data/blobs`) |
+| `DATA_DIR` | `/mailflare-data` | SQLite database; local blobs when S3 is unset. Baked into the image — do not set this in Coolify. |
+| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | unset | Optional S3-compatible object store for MIME, attachments, backups (instead of `/mailflare-data/blobs`) |
 | `S3_REGION` | `us-east-1` | Region passed to the S3 client |
 | `S3_FORCE_PATH_STYLE` | `false` | Set `true` for MinIO and many custom endpoints |
 | `S3_KEY_PREFIX` | unset | Optional folder prefix inside the bucket (e.g. `Dispatch`) |
@@ -79,7 +79,7 @@ and the DNS page shows what to set by hand.
 ## Operations
 
 - **Backups.** The daily 02:00 UTC backup and the admin Backups page work
-  unchanged; files land in the blob store (`/data/blobs/backups` locally, or the
+  unchanged; files land in the blob store (`/mailflare-data/blobs/backups` locally, or the
   configured S3 bucket). Back up SQLite on the volume and the bucket separately
   when using S3.
 - **Updates.** Pull the new image and recreate the container; migrations run

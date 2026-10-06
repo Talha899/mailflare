@@ -91,7 +91,7 @@ Dispatch also runs as one container on any server, with SQLite and local files i
 For **multi-organization SaaS** (public signup, per-customer domains and mailboxes), see [docs/saas-docker.md](docs/saas-docker.md).
 
 ```bash
-cp .env.docker.example .env.docker
+cp .env.example .env
 docker compose up -d --build
 ```
 

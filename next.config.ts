@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
 			"cloudflare:workers": "./server/runtime/cloudflare-workers.ts",
 		} : {},
 	},
-  allowedDevOrigins: ['mail.dev'],
+  allowedDevOrigins: ["mail.dev", "127.0.0.1", "localhost"],
 	typescript: {
     // !! WARN !!
     // Dangerously allow production builds to successfully complete

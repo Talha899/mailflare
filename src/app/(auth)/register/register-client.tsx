@@ -236,7 +236,7 @@ export function RegisterClient() {
       {step === 1 ? (
         <div className="space-y-5">
           <p className="text-sm leading-6 text-[var(--muted-foreground)]">
-            Dispatch checks its required Cloudflare configuration and initializes a clean D1 database before setup continues.
+            Dispatch checks SMTP, object storage, and the database, then initializes a clean schema before setup continues.
           </p>
           <div className="space-y-2">
             {loading && checks.length === 0 && (

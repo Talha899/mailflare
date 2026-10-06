@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#0b1324"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#38bdf8" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><circle cx="600" cy="340" r="20" fill="#38bdf8"/>
+				<circle cx="600" cy="340" r="90" fill="none" stroke="#38bdf8" stroke-width="4"/>
+				<circle cx="600" cy="340" r="170" fill="none" stroke="#38bdf8" stroke-width="4" opacity="0.5"/>
+				<circle cx="600" cy="340" r="250" fill="none" stroke="#38bdf8" stroke-width="4" opacity="0.25"/></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#38bdf8">dns propagation and verify</text>
+</svg>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img">
+  <rect width="1200" height="630" fill="#164e63"/>
+  <rect x="48" y="48" width="1104" height="534" rx="28" fill="none" stroke="#67e8f9" stroke-opacity="0.18" stroke-width="2"/>
+  <text x="600" y="360" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace" font-size="42" fill="#67e8f9">mail.codenak.com</text>
+				<rect x="300" y="400" width="600" height="8" fill="#67e8f9" opacity="0.4"/>
+</svg>

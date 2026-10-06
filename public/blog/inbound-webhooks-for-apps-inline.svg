@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#0f172a"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#f472b6" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><circle cx="420" cy="330" r="36" fill="none" stroke="#f472b6" stroke-width="8"/>
+				<circle cx="780" cy="330" r="36" fill="none" stroke="#f472b6" stroke-width="8"/>
+				<path d="M456 330 H744" stroke="#f472b6" stroke-width="8"/>
+				<path d="M700 290 L744 330 L700 370" fill="none" stroke="#f472b6" stroke-width="8"/></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#f472b6">inbound webhooks for apps</text>
+</svg>

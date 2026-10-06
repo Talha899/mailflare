@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#020617"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#4ade80" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><path d="M600 150 L820 230 V390 C820 520 600 590 600 590 C600 590 380 520 380 390 V230 Z" fill="none" stroke="#4ade80" stroke-width="10"/>
+				<path d="M520 380 L580 440 L700 300" fill="none" stroke="#4ade80" stroke-width="12" stroke-linecap="round"/></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#4ade80">spf dkim dmarc checklist</text>
+</svg>

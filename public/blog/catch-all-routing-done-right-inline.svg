@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
+  <rect width="1200" height="720" fill="#14532d"/>
+  <rect x="40" y="40" width="1120" height="640" rx="32" fill="none" stroke="#bbf7d0" stroke-opacity="0.22" stroke-width="2"/>
+  <g transform="translate(0,40) scale(0.78)"><circle cx="380" cy="240" r="28" fill="none" stroke="#bbf7d0" stroke-width="8"/>
+				<circle cx="820" cy="480" r="28" fill="none" stroke="#bbf7d0" stroke-width="8"/>
+				<path d="M408 250 C520 250 520 480 792 480" fill="none" stroke="#bbf7d0" stroke-width="8"/>
+				<path d="M408 250 C700 250 500 480 792 480" fill="none" stroke="#bbf7d0" stroke-width="4" opacity="0.45"/></g>
+  <text x="80" y="640" font-family="Figtree, sans-serif" font-size="28" fill="#bbf7d0">catch all routing done right</text>
+</svg>

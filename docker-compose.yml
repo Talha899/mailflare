@@ -25,27 +25,18 @@ services:
     ports:
       - "3000:3000"   # web app and JMAP
       - "25:25"       # inbound SMTP (point your domain's MX here)
-    env_file: .env.docker
+    env_file: .env
     environment:
-      # Fixed in-compose URL so a host MONGO_URL (e.g. 127.0.0.1 for local scripts) cannot override env_file.
+      # Local compose mongo. Production Coolify uses MONGO_URL from .env instead.
       MONGO_URL: mongodb://mongo:27017/mailflare
-      SAAS_MODE: ${SAAS_MODE:-true}
-      DATA_DIR: /data
-      OPENDKIM_KEYS_DIR: /etc/opendkim/keys
     volumes:
-      - mailflare-data:/data
+      - mailflare-data:/mailflare-data
       - postfix-dkim:/etc/opendkim/keys:ro
 
   postfix:
     build: ./deploy/postfix
     restart: unless-stopped
-    environment:
-      HOSTNAME: ${MAIL_HOSTNAME:-mail.example.com}
-      DKIM_BACKEND: opendkim
-      DKIM_AUTOGENERATE: "true"
-      DKIM_SELECTOR: mail
-      MAILFLARE_DATA_DIR: /mailflare-data
-      POSTFIX_DOMAIN_SYNC_INTERVAL: "30"
+    env_file: .env
     volumes:
       - mailflare-data:/mailflare-data
       - postfix-dkim:/etc/opendkim/keys

@@ -244,7 +244,7 @@ export default function DomainDnsDetails({
 								</span>
 							)}
 							<span className="min-w-0">
-								<span className="block font-medium text-[var(--foreground)]">Email Routing</span>
+								<span className="block font-medium text-[var(--foreground)]">Inbound mail</span>
 								<span className="block text-xs text-[var(--muted-foreground)]">Routes incoming email to Dispatch</span>
 							</span>
 							<span className="min-w-0 break-all text-[var(--muted-foreground)]">

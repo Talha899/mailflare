@@ -1,5 +1,5 @@
 # Mailflare self-hosted image: Next.js app, SMTP listener, job queues and
-# backups in one Node process. Data lives in /data (mount a volume).
+# backups in one Node process. Data lives in /mailflare-data (mount a volume).
 FROM node:22-bookworm-slim AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1 MAILFLARE_RUNTIME=node
@@ -22,7 +22,9 @@ RUN npm prune --omit=dev --ignore-scripts \
 	&& rm -rf node_modules/wrangler node_modules/miniflare node_modules/workerd node_modules/@cloudflare node_modules/cloudflare node_modules/esbuild node_modules/@esbuild node_modules/typescript
 
 FROM base AS runtime
-ENV NODE_ENV=production DATA_DIR=/data PORT=3000 SMTP_INBOUND_PORT=25
+# DATA_DIR is an image path that must match the compose volume. Do not set it
+# in Coolify's environment UI — Coolify cannot delete compose-owned DATA_DIR.
+ENV NODE_ENV=production DATA_DIR=/mailflare-data PORT=3000 SMTP_INBOUND_PORT=25 OPENDKIM_KEYS_DIR=/etc/opendkim/keys
 COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/.next-node ./.next-node
 COPY --chown=node:node --from=build /app/dist ./dist
@@ -30,9 +32,9 @@ COPY --chown=node:node --from=build /app/public ./public
 COPY --chown=node:node --from=build /app/drizzle ./drizzle
 COPY --chown=node:node --from=build /app/package.json /app/next.config.ts ./
 COPY --chown=node:node --from=build /app/src/lib/security/headers.ts ./src/lib/security/headers.ts
-RUN mkdir -p /data && chown node:node /data
+RUN mkdir -p /mailflare-data && chown node:node /mailflare-data
 USER node
-VOLUME ["/data"]
+VOLUME ["/mailflare-data"]
 EXPOSE 3000 25
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/api/setup/status').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "dist/server.mjs"]

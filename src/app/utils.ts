@@ -2,9 +2,9 @@ import { FileText, Inbox, MailCheck, Send, ShieldAlert, Trash2 } from "lucide-re
 import type { HomeAction, LandingNavItem, LandingStat, MailPreview, SidebarItem } from "./types";
 
 export const landingNavItems: LandingNavItem[] = [
-	{ href: "#workflow", label: "Workflow" },
-	{ href: "#domains", label: "Domains" },
-	{ href: "#api", label: "API" },
+	{ href: "/features", label: "Features" },
+	{ href: "/pricing", label: "Pricing" },
+	{ href: "/blog", label: "Blog" },
 ];
 
 export const sidebarItems: SidebarItem[] = [

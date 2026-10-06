@@ -483,7 +483,7 @@ export function ComposeForm({
 				</div>
 			))}
 		</div>
-		<p className="px-3 pb-2 text-[11px] leading-relaxed text-[var(--muted-foreground)]">Cloudflare limits general email messages to 5 MiB including encoding. Files over 3 MB{([...attachments.map((item) => item.file.size), ...storedAttachments.map((item) => item.size)].some((size) => size > attachmentPolicy.cloudThresholdBytes)) ? " here will" : " or files that exceed the message budget may"} be sent as 30-day R2 download links.</p>
+		<p className="px-3 pb-2 text-[11px] leading-relaxed text-[var(--muted-foreground)]">Large files are stored and sent as 30-day download links so the SMTP message stays a reasonable size. Files over 3 MB{([...attachments.map((item) => item.file.size), ...storedAttachments.map((item) => item.size)].some((size) => size > attachmentPolicy.cloudThresholdBytes)) ? " here will" : " or files that exceed the message budget may"} become links instead of MIME attachments.</p>
 		</div>
 	);
 
@@ -659,7 +659,7 @@ export function ComposeForm({
 								className="hidden"
 								onChange={(event) => addAttachments(event.target.files)}
 							/>
-							<Tooltip label={`Attach files (up to ${attachmentPolicy.maxMb} MB total). Files over 3 MB are sent as 30-day R2 download links.`}>
+							<Tooltip label={`Attach files (up to ${attachmentPolicy.maxMb} MB total). Files over 3 MB are sent as 30-day download links.`}>
 								<button
 									type="button"
 									aria-label="Attach files"

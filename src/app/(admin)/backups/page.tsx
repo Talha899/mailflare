@@ -119,7 +119,7 @@ export default function BackupsPage() {
             Database Backups
           </h1>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-            Export database records and store them in the configured R2 bucket.
+            Export database records and store them in the configured object storage bucket.
           </p>
         </div>
         <div className="flex items-center gap-2">
