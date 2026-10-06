@@ -17,6 +17,7 @@ export function MessageRowSelect({
 	mailboxId,
 	address,
 	name,
+	hasManagedAvatar = false,
 	size = "md",
 }: {
 	selected: boolean;
@@ -27,6 +28,7 @@ export function MessageRowSelect({
 	mailboxId?: string | null;
 	address: string;
 	name: string;
+	hasManagedAvatar?: boolean;
 	size?: "sm" | "md";
 }) {
 	const dimension = size === "sm" ? "h-8 w-8" : "h-9 w-9";
@@ -52,6 +54,7 @@ export function MessageRowSelect({
 				mailboxId={mailboxId ?? undefined}
 				address={address}
 				name={name}
+				hasManagedAvatar={hasManagedAvatar}
 				className={cn(
 					dimension,
 					"text-[13px] transition-opacity duration-150",

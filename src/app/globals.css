@@ -48,6 +48,7 @@
 	--warning-soft: #fdf3e2;
 	--info: #2450e6;
 	--info-soft: #e8eeff;
+	--star: #f0a51e;
 
 	/* Elevation */
 	--shadow-sm: 0 1px 2px rgb(16 19 24 / 0.06);
@@ -111,6 +112,7 @@
 	--warning-soft: #2e2210;
 	--info: #6d8cff;
 	--info-soft: #1a2340;
+	--star: #f5b84a;
 
 	--shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
 	--shadow-md: 0 6px 16px -4px rgb(0 0 0 / 0.55);
