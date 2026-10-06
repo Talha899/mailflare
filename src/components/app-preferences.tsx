@@ -2,23 +2,31 @@
 
 import packageJson from "../../package.json";
 import { DEFAULT_PRODUCT_URL } from "@/lib/branding/constants";
-import { useSidebar } from "./sidebar-state";
 import { useShortcuts } from "./shortcuts";
 import { Keyboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
 
-export function SidebarFooter() {
-	const { minimal } = useSidebar();
+/** Theme, shortcuts help, and product credit — shown from the header account menu. */
+export function AppPreferences({
+	className,
+	onOpenShortcuts,
+}: {
+	className?: string;
+	onOpenShortcuts?: () => void;
+}) {
 	const { openHelpModal, shortcutsEnabled, shortcutsPreferenceLoading } = useShortcuts();
-	if (minimal) return null;
 
 	return (
-		<div className="flex flex-col gap-2 border-t border-[var(--border)] px-3 pb-3 pt-3">
+		<div className={cn("flex flex-col gap-2", className)}>
 			<ThemeToggle />
 			{shortcutsEnabled && !shortcutsPreferenceLoading && (
 				<button
 					type="button"
-					onClick={openHelpModal}
+					onClick={() => {
+						onOpenShortcuts?.();
+						openHelpModal();
+					}}
 					className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]"
 				>
 					<span className="flex items-center gap-1.5">
@@ -30,12 +38,12 @@ export function SidebarFooter() {
 					</kbd>
 				</button>
 			)}
-			<p className="px-1 text-[11px] text-[var(--muted-foreground)]">
+			<p className="px-1 text-[11px] text-[var(--compose)]">
 				Powered by{" "}
 				<a
 					href={`${DEFAULT_PRODUCT_URL}?ref=${typeof window !== "undefined" ? location.hostname : ""}&v=${packageJson.version}`}
 					target="_blank"
-					className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:underline"
+					className="text-[var(--compose)] hover:underline"
 					rel="noreferrer"
 				>
 					Dispatch v{packageJson.version}

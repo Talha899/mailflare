@@ -1,13 +1,12 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { useCurrentUser } from "@/hooks/use-current-user";
 import { NavItem } from "./components-nav";
-import { SidebarFooter } from "./sidebar-footer";
+import { useSidebar } from "./sidebar-state";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { adminNavSections, type AdminNavLink } from "./admin-nav-links";
 import { useBranding } from "./branding-provider";
 import { SidebarHeader } from "./sidebar-header";
-import { useSidebar } from "./sidebar-state";
-import { adminNavSections, type AdminNavLink } from "./admin-nav-links";
+import { cn } from "@/lib/utils";
 
 /** @deprecated Prefer {@link DashboardNav} — admin links are merged into the mail sidebar. */
 export function AdminNav({ className }: { className?: string }) {
@@ -51,7 +50,6 @@ export function AdminNav({ className }: { className?: string }) {
 				})}
 			</div>
 			<span className="flex-1" />
-			<SidebarFooter />
 		</nav>
 	);
 }

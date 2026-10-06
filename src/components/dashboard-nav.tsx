@@ -44,7 +44,6 @@ import {
 	moveMessagesToCustomFolder,
 	moveMessagesToSystemFolder,
 } from "./dashboard-nav-utils";
-import { SidebarFooter } from "./sidebar-footer";
 import { SidebarHeader } from "./sidebar-header";
 import { useSidebar } from "./sidebar-state";
 
@@ -274,7 +273,6 @@ export function DashboardNav({ className }: { className?: string }) {
 				/>
 			))}
 			<span className="flex-1" />
-			<SidebarFooter />
 		</nav>
 	);
 }

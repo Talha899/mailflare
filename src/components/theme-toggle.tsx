@@ -56,7 +56,7 @@ export function ThemeToggle({ className }: { className?: string }) {
 						}}
 					>
 						<Icon className="h-3.5 w-3.5" />
-						<span className="sr-only sm:not-sr-only">{option.label}</span>
+						<span className="hidden min-[380px]:inline">{option.label}</span>
 					</button>
 				);
 			})}

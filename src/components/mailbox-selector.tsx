@@ -21,6 +21,7 @@ import { MAILBOX_AVATAR_CHANGED_EVENT } from "@/lib/mailboxes/avatar-client";
 import type { MailboxAvatarChangedDetail } from "@/lib/mailboxes/avatar-client-types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip } from "@/components/ui/tooltip";
+import { AppPreferences } from "@/components/app-preferences";
 import type {
 	AccountAvatarProps,
 	MailboxAccountRowProps,
@@ -316,6 +317,11 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 							})}
 						</div>
 					)}
+
+					{/* Preferences — theme / shortcuts / credit */}
+					<div className="border-b border-[var(--border)] px-3 py-3">
+						<AppPreferences onOpenShortcuts={() => setOpen(false)} />
+					</div>
 
 					<div className="p-2">
 						<button
