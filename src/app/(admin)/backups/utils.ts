@@ -82,8 +82,12 @@ export function formatBackupSize(value: number | null): string {
 }
 
 export function getStatusClass(status: BackupItem["status"]): string {
-	if (status === "completed") return "border-green-200 bg-green-50 text-green-700";
-	if (status === "failed") return "border-red-200 bg-red-50 text-red-700";
-	if (status === "running") return "border-blue-200 bg-blue-50 text-blue-700";
-	return "border-amber-200 bg-amber-50 text-amber-700";
+	if (status === "completed") {
+		return "border-[color-mix(in_oklab,var(--success)_35%,var(--border))] bg-[color-mix(in_oklab,var(--success)_12%,var(--card))] text-[var(--success)]";
+	}
+	if (status === "failed") {
+		return "border-[color-mix(in_oklab,var(--destructive)_35%,var(--border))] bg-[color-mix(in_oklab,var(--destructive)_10%,var(--card))] text-[var(--destructive)]";
+	}
+	if (status === "running") return "border-[var(--border)] bg-[var(--accent)] text-[var(--compose)]";
+	return "border-[var(--border)] bg-[var(--muted)] text-[var(--foreground)]";
 }

@@ -50,10 +50,10 @@ export function RecipientInput({
 
 	return (
 		<div
-			className="flex min-h-9 items-center gap-2 border-b border-neutral-100 px-4 py-1"
+			className="flex min-h-9 items-center gap-2 border-b border-[var(--border)] px-4 py-1"
 			onClick={() => inputRef.current?.focus()}
 		>
-			<Label htmlFor={id} className="w-8 shrink-0 text-sm text-neutral-500">
+			<Label htmlFor={id} className="w-8 shrink-0 text-[13px] text-[var(--muted-foreground)]">
 				{label}
 			</Label>
 			<div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
@@ -64,10 +64,10 @@ export function RecipientInput({
 							key={entry}
 							title={getEmailAddress(entry)}
 							className={cn(
-								"inline-flex max-w-full items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs",
+								"inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-xs tracking-tight",
 								valid
-									? "border-neutral-200 bg-neutral-50 text-neutral-800"
-									: "border-red-200 bg-red-50 text-red-700",
+									? "border-[var(--border)] bg-[var(--muted)] text-[var(--foreground)]"
+									: "border-[color-mix(in_oklab,var(--destructive)_35%,var(--border))] bg-[color-mix(in_oklab,var(--destructive)_10%,var(--card))] text-[var(--destructive)]",
 							)}
 						>
 							<span className="truncate">{getRecipientLabel(entry)}</span>
@@ -75,7 +75,7 @@ export function RecipientInput({
 								<button
 									type="button"
 									aria-label={`Remove ${getEmailAddress(entry)}`}
-									className="rounded-full p-0.5 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700"
+									className="rounded-md p-0.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--card)] hover:text-[var(--foreground)] active:scale-[0.98]"
 									onClick={(event) => {
 										event.stopPropagation();
 										onChange(value.filter((item) => item !== entry));
@@ -109,13 +109,13 @@ export function RecipientInput({
 					disabled={disabled}
 					// Native `required` would block submit while chips exist; the form checks itself.
 					aria-required={required}
-					className="h-7 min-w-32 flex-1 border-0 bg-transparent p-0 text-sm outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed"
+					className="h-7 min-w-32 flex-1 border-0 bg-transparent p-0 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] disabled:cursor-not-allowed"
 				/>
 			</div>
 			{trailing && (
 				// Toggles live inside the clickable row; keep their clicks from refocusing this field.
 				<div
-					className="flex shrink-0 items-center gap-1 text-xs text-neutral-500"
+					className="flex shrink-0 items-center gap-1 text-xs font-medium text-[var(--muted-foreground)]"
 					onClick={(event) => event.stopPropagation()}
 				>
 					{trailing}

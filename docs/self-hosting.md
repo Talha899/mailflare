@@ -1,6 +1,6 @@
-# Self-hosting Mailflare (Docker)
+# Self-hosting Dispatch (Docker)
 
-Mailflare can run as a single container on any host instead of Cloudflare
+Dispatch can run as a single container on any host instead of Cloudflare
 Workers. The same code serves both; the container provides its own database
 (SQLite on a volume), blob storage (files on the same volume), job queue,
 realtime WebSocket, backup schedule and an SMTP listener for inbound mail.
@@ -8,7 +8,7 @@ realtime WebSocket, backup schedule and an SMTP listener for inbound mail.
 ## Quick start
 
 ```bash
-git clone https://github.com/hieunc229/mailflare && cd mailflare
+git clone https://github.com/hieunc229/mailflare && cd Dispatch
 cp .env.docker.example .env.docker      # edit: how to receive and send mail
 docker compose up -d --build
 ```
@@ -55,7 +55,7 @@ certificate on a private network.
 
 **Cloudflare Email Sending.** `CF_ACCOUNT_ID` plus a `CF_TOKEN` with Email
 Sending: Edit. The domain must be a Cloudflare zone with Email Sending set
-up; Mailflare calls the REST API, no Workers plan needed.
+up; Dispatch calls the REST API, no Workers plan needed.
 
 ## Cloudflare zone management (optional)
 
@@ -73,7 +73,7 @@ and the DNS page shows what to set by hand.
 | `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | unset | Optional S3-compatible object store for MIME, attachments, backups (instead of `/data/blobs`) |
 | `S3_REGION` | `us-east-1` | Region passed to the S3 client |
 | `S3_FORCE_PATH_STYLE` | `false` | Set `true` for MinIO and many custom endpoints |
-| `S3_KEY_PREFIX` | unset | Optional folder prefix inside the bucket (e.g. `mailflare`) |
+| `S3_KEY_PREFIX` | unset | Optional folder prefix inside the bucket (e.g. `Dispatch`) |
 | `APP_URL` | request origin | Public URL behind a proxy |
 | `SMTP_INBOUND_PORT` | `25` | Inbound SMTP; `0` disables |
 | `MAIL_HOSTNAME` | `mail.<domain>` | Host the MX record points at; SMTP banner |
@@ -96,7 +96,7 @@ and the DNS page shows what to set by hand.
   when using S3.
 - **Updates.** Pull the new image and recreate the container; migrations run
   at start. The in-app update button is disabled on self-hosted installs.
-- **Logs.** `docker compose logs -f mailflare`.
+- **Logs.** `docker compose logs -f Dispatch`.
 - **Queues.** Jobs are held in memory. Inbound mail is written to the volume
   before it is queued, so a restart never loses a message; at worst one
   stays unparsed until it is re-imported.
@@ -105,7 +105,7 @@ and the DNS page shows what to set by hand.
 
 Set `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL` in the container environment to configure the built-in assistant. These values stay on the server. Assistant chat is available by default when a provider is configured; a mailbox manager can change its writing instructions and availability through the settings button in the assistant panel. Automatic reply drafts remain off until enabled there. Auto-draft work is recorded in SQLite and retried after a restart by the local scheduler. AI failure does not reject inbound mail. Out-of-office auto-replies and AI auto-drafts are separate features; turn off out-of-office replies before enabling auto-drafts for a mailbox.
 
-The MCP endpoint is `/mcp`. Create a dedicated mailbox-scoped Bearer key in **Assistant → MCP** and give the key to a client that supports custom HTTP headers. The endpoint uses Streamable HTTP; `request_send` gives the client a review URL, and only an authenticated Mailflare browser session can confirm delivery. MCP read and draft tools remain available when no AI model is configured.
+The MCP endpoint is `/mcp`. Create a dedicated mailbox-scoped Bearer key in **Assistant → MCP** and give the key to a client that supports custom HTTP headers. The endpoint uses Streamable HTTP; `request_send` gives the client a review URL, and only an authenticated Dispatch browser session can confirm delivery. MCP read and draft tools remain available when no AI model is configured.
 
 ## Running without Docker
 

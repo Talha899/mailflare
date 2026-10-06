@@ -26,26 +26,26 @@ export default function SettingsExportPage() {
 	return (
 		<div className="space-y-6">
 			{/* <div>
-				<h1 className="text-3xl font-medium text-neutral-900">Export</h1>
-				<p className="mt-1 text-sm text-neutral-500">
+				<h1 className="text-3xl font-medium text-[var(--foreground)]">Export</h1>
+				<p className="mt-1 text-sm text-[var(--muted-foreground)]">
 					Download mail from the currently selected mailbox.
 				</p>
 			</div> */}
 
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-xl font-semibold text-neutral-900">Export mailbox</h2>
-					<p className="mt-1 text-sm text-neutral-500">
+					<h2 className="text-xl font-semibold text-[var(--foreground)]">Export mailbox</h2>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">
 						Download message headers and bodies from the selected mailbox as an .mbox file.
 						Attachments are not included in this export.
 					</p>
 				</div>
-				<div className="space-y-3 rounded-3xl bg-white p-6">
+				<div className="space-y-3 rounded-3xl bg-[var(--card)] p-6">
 					<Button type="button" variant="outline" disabled={!selectedMailbox || exportState.loading} onClick={onExport}>
 						{exportState.loading ? "Preparing..." : "Download .mbox"}
 					</Button>
 					{exportState.error && (
-						<p className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+						<p className="rounded-lg border border-[color-mix(in_oklab,var(--destructive)_25%,var(--border))] bg-[color-mix(in_oklab,var(--destructive)_8%,var(--card))] px-4 py-3 text-sm text-[var(--destructive)]">
 							{exportState.error}
 						</p>
 					)}

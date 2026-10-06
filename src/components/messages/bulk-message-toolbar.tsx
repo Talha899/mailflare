@@ -16,9 +16,9 @@ export function BulkMessageToolbar({
 	pending,
 }: BulkMessageToolbarProps) {
 	return (
-		<div className="flex min-w-0 items-center gap-2 text-neutral-600 w-full">
+		<div className="flex min-w-0 items-center gap-2 text-[var(--muted-foreground)] w-full">
 			{!hideSelectedCount && (
-				<span className="mr-2 text-sm font-medium text-neutral-800">
+				<span className="mr-2 text-sm font-medium text-[var(--foreground)]">
 					{selectedCount} selected
 				</span>
 			)}
@@ -51,7 +51,7 @@ export function BulkMessageToolbar({
 			<span className="flex-1" />
 			<Tooltip label="Move selected messages">
 					<Select
-						className="bg-white text-xs font-medium py-2 text-neutral-700 outline-none"
+						className="bg-[var(--card)] text-xs font-medium py-2 text-[var(--foreground)] outline-none"
 						disabled={pending}
 						defaultValue=""
 						aria-label="Move selected messages"

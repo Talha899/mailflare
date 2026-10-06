@@ -40,8 +40,8 @@ export function MailboxSignatureForm() {
 		}
 	}
 
-	if (isLoading) return <p className="text-sm text-neutral-500">Loading inbox…</p>;
-	if (!selectedMailbox) return <p className="text-sm text-neutral-500">Select an inbox to configure its signature.</p>;
+	if (isLoading) return <p className="text-sm text-[var(--muted-foreground)]">Loading inbox…</p>;
+	if (!selectedMailbox) return <p className="text-sm text-[var(--muted-foreground)]">Select an inbox to configure its signature.</p>;
 
 	const address = `${selectedMailbox.localPart}@${selectedMailbox.hostname}`;
 	const canManage = selectedMailbox.permission === "full_access";
@@ -58,15 +58,15 @@ export function MailboxSignatureForm() {
 					rows={6}
 					disabled={!canManage || saving}
 				/>
-				<p className="text-xs leading-5 text-neutral-500">
+				<p className="text-xs leading-5 text-[var(--muted-foreground)]">
 					This signature is added when composing from the selected inbox. Plain text or HTML is supported; HTML is sanitized.
 				</p>
 			</div>
 			{isHtmlSignature(signature) && (
 				<div className="space-y-2">
-					<p className="text-xs font-medium text-neutral-500">Preview</p>
+					<p className="text-xs font-medium text-[var(--muted-foreground)]">Preview</p>
 					<div
-						className="rounded-md border border-neutral-200 bg-white p-4 text-sm text-neutral-900"
+						className="rounded-md border border-[var(--border)] bg-[var(--card)] p-4 text-sm text-[var(--foreground)]"
 						dangerouslySetInnerHTML={{ __html: signatureToHtml(signature) }}
 					/>
 				</div>
@@ -75,8 +75,8 @@ export function MailboxSignatureForm() {
 				<Button type="submit" disabled={!canManage || saving || signature.trim() === savedSignature}>
 					{saving ? "Saving..." : "Save signature"}
 				</Button>
-				{!canManage && <p className="text-sm text-neutral-500">Full access is required to edit this signature.</p>}
-				{status && <p className="text-sm text-neutral-500">{status}</p>}
+				{!canManage && <p className="text-sm text-[var(--muted-foreground)]">Full access is required to edit this signature.</p>}
+				{status && <p className="text-sm text-[var(--muted-foreground)]">{status}</p>}
 			</div>
 		</form>
 	);

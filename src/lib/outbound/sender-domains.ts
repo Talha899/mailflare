@@ -137,7 +137,7 @@ export async function describeOutboundDkimStatus(hostname: string): Promise<Outb
 	if (!root) {
 		return {
 			ready: false,
-			hint: "DATA_DIR is not set on the Postora container — DKIM cannot be read from the Postfix volume.",
+			hint: "DATA_DIR is not set on the Dispatch container — DKIM cannot be read from the Postfix volume.",
 		};
 	}
 
@@ -158,21 +158,21 @@ export async function describeOutboundDkimStatus(hostname: string): Promise<Outb
 	} catch {
 		return {
 			ready: false,
-			hint: "Postfix sync file missing. Deploy the postfix service with the shared Postora data volume (mailflare-data in Compose), then refresh this page.",
+			hint: "Postfix sync file missing. Deploy the postfix service with the shared Dispatch data volume (mailflare-data in Compose), then refresh this page.",
 		};
 	}
 
 	if (!listed) {
 		return {
 			ready: false,
-			hint: `${domain} is not in outbound/sender-domains.txt yet — refresh details to sync, or restart Postora.`,
+			hint: `${domain} is not in outbound/sender-domains.txt yet — refresh details to sync, or restart Dispatch.`,
 		};
 	}
 
 	if (!opendkimKeysDir()) {
 		return {
 			ready: false,
-			hint: "Postfix has not published DKIM yet. Ensure the postfix container is running (same compose stack), wait ~60s after domain sync, then refresh. Mount postfix keys read-only on Postora (OPENDKIM_KEYS_DIR) for faster pickup.",
+			hint: "Postfix has not published DKIM yet. Ensure the postfix container is running (same compose stack), wait ~60s after domain sync, then refresh. Mount postfix keys read-only on Dispatch (OPENDKIM_KEYS_DIR) for faster pickup.",
 		};
 	}
 

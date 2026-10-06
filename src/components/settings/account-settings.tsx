@@ -30,7 +30,7 @@ export function AccountSettings() {
 	}, []);
 
 	if (error) {
-		return <p className="py-8 text-sm text-red-600">{error}</p>;
+		return <p className="py-8 text-sm text-[var(--destructive)]">{error}</p>;
 	}
 
 	if (!user) {
@@ -45,14 +45,14 @@ export function AccountSettings() {
 	return (
 		<div className="space-y-8 py-4">
 			{/* <div>
-				<h1 className="text-3xl font-medium text-neutral-900">Account</h1>
-				<p className="mt-1 text-sm text-neutral-500">Manage your account details and sign-in password.</p>
+				<h1 className="text-3xl font-medium text-[var(--foreground)]">Account</h1>
+				<p className="mt-1 text-sm text-[var(--muted-foreground)]">Manage your account details and sign-in password.</p>
 			</div> */}
 
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-xl font-semibold text-neutral-900">Account details</h2>
-					<p className="mt-1 text-sm text-neutral-500">Manage your identity, recovery options, and email preferences.</p>
+					<h2 className="text-xl font-semibold text-[var(--foreground)]">Account details</h2>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">Manage your identity, recovery options, and email preferences.</p>
 				</div>
 				<div className="space-y-1 overflow-hidden rounded-3xl">
 					<ProfileForm
@@ -64,19 +64,19 @@ export function AccountSettings() {
 					<TimeZoneForm userId={user.id} initialTimeZone={user.timeZone} />
 
 					{user.canForwardEmail && (
-						<div className="space-y-4 rounded-lg bg-white p-6">
+						<div className="space-y-4 rounded-lg bg-[var(--card)] p-6">
 							<div>
-								<h3 className="text-lg font-semibold text-neutral-900">Forwarding email</h3>
-								<p className="mt-1 text-sm text-neutral-500">Send a copy of incoming messages to another email address.</p>
+								<h3 className="text-lg font-semibold text-[var(--foreground)]">Forwarding email</h3>
+								<p className="mt-1 text-sm text-[var(--muted-foreground)]">Send a copy of incoming messages to another email address.</p>
 							</div>
 						<ForwardingEmailForm initialForwardingEmail={user.forwardingEmail ?? ""} />
 						</div>
 					)}
 
-					<div className="space-y-4 rounded-b-3xl rounded-t-lg bg-white p-6">
+					<div className="space-y-4 rounded-b-3xl rounded-t-lg bg-[var(--card)] p-6">
 						<div>
-							<h3 className="text-lg font-semibold text-neutral-900">Email signature</h3>
-							<p className="mt-1 text-sm text-neutral-500">Configure the signature for the inbox currently selected above.</p>
+							<h3 className="text-lg font-semibold text-[var(--foreground)]">Email signature</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Configure the signature for the inbox currently selected above.</p>
 						</div>
 					<MailboxSignatureForm />
 					</div>

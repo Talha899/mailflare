@@ -13,13 +13,13 @@ export function SidebarFooter() {
 	if (minimal) return null;
 
 	return (
-		<div className="flex flex-col gap-2 px-3 pt-3">
+		<div className="flex flex-col gap-2 border-t border-[var(--border)] px-3 pb-3 pt-3">
 			<ThemeToggle />
 			{shortcutsEnabled && !shortcutsPreferenceLoading && (
 				<button
 					type="button"
 					onClick={openHelpModal}
-					className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+					className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]"
 				>
 					<span className="flex items-center gap-1.5">
 						<Keyboard className="h-3.5 w-3.5" />
@@ -35,10 +35,10 @@ export function SidebarFooter() {
 				<a
 					href={`${DEFAULT_PRODUCT_URL}?ref=${typeof window !== "undefined" ? location.hostname : ""}&v=${packageJson.version}`}
 					target="_blank"
-					className="text-[var(--muted-foreground)] hover:underline"
+					className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:underline"
 					rel="noreferrer"
 				>
-					Postora v{packageJson.version}
+					Dispatch v{packageJson.version}
 				</a>
 			</p>
 		</div>

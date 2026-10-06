@@ -225,8 +225,8 @@ export function MessageActions({
 	const moveActions = getMoveMessageActions(status, direction);
 
 	return (
-		<div className="flex flex-wrap items-center gap-3 text-neutral-600 flex-1 min-w-0">
-			{error && <span className="text-xs text-red-600">{error}</span>}
+		<div className="flex flex-wrap items-center gap-3 text-[var(--muted-foreground)] flex-1 min-w-0">
+			{error && <span className="text-xs text-[var(--destructive)]">{error}</span>}
 
 			<Tooltip label={shortcutsEnabled ? "Archive (e)" : "Archive"}>
 				<Button
@@ -261,7 +261,7 @@ export function MessageActions({
 					<Trash2 size={iconSize} />
 				</Button>
 			</Tooltip>
-			<span className="h-5 mx-2 bg-gray-200 w-px inline-block" />
+			<span className="h-5 mx-2 bg-[var(--border)] w-px inline-block" />
 
 
 			<Tooltip label={shortcutsEnabled ? "Reply (r)" : "Reply"}>
@@ -333,11 +333,11 @@ export function MessageActions({
 
 
 				{moreOpen && (
-					<div className="absolute right-0 top-8 z-20 w-54 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg">
+					<div className="absolute right-0 top-8 z-20 w-54 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-lg">
 						{direction === "inbound" && status === "received" && (
 							<button
 								type="button"
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100"
+								className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--muted)]"
 								onClick={() => { setMoreOpen(false); setSnoozeOpen(true); }}
 							>
 								<Clock className="h-4 w-4" />
@@ -348,7 +348,7 @@ export function MessageActions({
 							<>
 								<button
 									type="button"
-									className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-400"
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--muted)] disabled:cursor-not-allowed disabled:text-[var(--muted-foreground)]"
 									disabled={!unsubscribeUrl && status === "trash"}
 									onClick={() => void onUnsubscribe()}
 								>
@@ -357,32 +357,32 @@ export function MessageActions({
 								</button>
 								<button
 									type="button"
-									className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100"
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--muted)]"
 									onClick={() => void onBlockContact()}
 								>
 									<Ban className="h-4 w-4" />
 									Block contact
 								</button>
-								<hr className="my-1 border-neutral-100" />
+								<hr className="my-1 border-[var(--border)]" />
 							</>
 						)}
 						<button
 							type="button"
-							className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100"
+							className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--muted)]"
 							onClick={() => { setMoreOpen(false); setSourceOpen(true); }}
 						>
 							<FileCode2 className="h-4 w-4" />
 							Show original
 						</button>
-						<hr className="my-1 border-neutral-100" />
-						<p className="mt-1 px-3 pb-1 pt-2 text-sm font-medium text-neutral-500">
+						<hr className="my-1 border-[var(--border)]" />
+						<p className="mt-1 px-3 pb-1 pt-2 text-sm font-medium text-[var(--muted-foreground)]">
 							Move to
 						</p>
 						{moveActions.map((item) => (
 							<button
 								key={item.action}
 								type="button"
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-100"
+								className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--muted)]"
 								onClick={() => void runAction(item.action)}
 							>
 								{createElement(item.icon, { size: 16 })}

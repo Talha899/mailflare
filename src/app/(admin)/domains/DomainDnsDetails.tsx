@@ -26,22 +26,22 @@ function CopyField({ label, value, copyable, hint }: { label: string; value: str
 
 	return (
 		<div className="grid gap-1 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-start">
-			<span className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">{label}</span>
+			<span className="text-[11px] font-medium uppercase tracking-wide text-[var(--muted-foreground)]">{label}</span>
 			<div className="min-w-0">
-				<p className="break-all font-mono text-sm text-neutral-900">{value}</p>
-				{hint && <p className="mt-0.5 text-[11px] text-neutral-500">{hint}</p>}
+				<p className="break-all font-mono text-sm text-[var(--foreground)]">{value}</p>
+				{hint && <p className="mt-0.5 text-[11px] text-[var(--muted-foreground)]">{hint}</p>}
 			</div>
 			{copyable ? (
 				<Button
 					type="button"
 					variant="outline"
 					size="sm"
-					className="h-8 shrink-0 gap-1.5 bg-white px-2.5 text-xs"
+					className="h-8 shrink-0 gap-1.5 bg-[var(--card)] px-2.5 text-xs"
 					onClick={() => void onCopy()}
 				>
 					{copied ? (
 						<>
-							<CheckCheck className="h-3.5 w-3.5 text-green-600" />
+							<CheckCheck className="h-3.5 w-3.5 text-[var(--success)]" />
 							Copied
 						</>
 					) : (
@@ -52,7 +52,7 @@ function CopyField({ label, value, copyable, hint }: { label: string; value: str
 					)}
 				</Button>
 			) : (
-				<span className="text-[11px] text-amber-700">Not paste-ready yet</span>
+				<span className="text-[11px] text-[var(--muted-foreground)]">Not paste-ready yet</span>
 			)}
 		</div>
 	);
@@ -60,8 +60,8 @@ function CopyField({ label, value, copyable, hint }: { label: string; value: str
 
 function DnsInstructionCard({ instruction }: { instruction: DnsHostInstruction }) {
 	return (
-		<div className="rounded-lg border border-neutral-200 bg-white px-3 py-3 text-neutral-800">
-			<p className="mb-2 text-xs font-semibold text-neutral-900">{instruction.title}</p>
+		<div className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-3 text-[var(--foreground)]">
+			<p className="mb-2 text-xs font-semibold text-[var(--foreground)]">{instruction.title}</p>
 			<div className="space-y-2.5">
 				{instruction.fields.map((field) => (
 					<CopyField
@@ -73,7 +73,7 @@ function DnsInstructionCard({ instruction }: { instruction: DnsHostInstruction }
 					/>
 				))}
 			</div>
-			{instruction.note && <p className="mt-2 text-[11px] text-neutral-500">{instruction.note}</p>}
+			{instruction.note && <p className="mt-2 text-[11px] text-[var(--muted-foreground)]">{instruction.note}</p>}
 		</div>
 	);
 }
@@ -90,11 +90,11 @@ function ManualDnsPanel({
 	hostname: string;
 }) {
 	return (
-		<div className="col-span-full space-y-2 rounded-xl border border-blue-100 bg-blue-50/80 px-3 py-3 text-xs text-neutral-800">
-			<p className="font-medium text-neutral-900">{title}</p>
-			<p className="text-neutral-600">{body}</p>
+		<div className="col-span-full space-y-2 rounded-xl border border-[var(--border)] bg-[var(--accent)]/80 px-3 py-3 text-xs text-[var(--foreground)]">
+			<p className="font-medium text-[var(--foreground)]">{title}</p>
+			<p className="text-[var(--muted-foreground)]">{body}</p>
 			{rows.length === 0 ? (
-				<p className="text-amber-800">No suggested record yet. Refresh details after ownership is verified.</p>
+				<p className="text-[var(--muted-foreground)]">No suggested record yet. Refresh details after ownership is verified.</p>
 			) : (
 				<ul className="space-y-2">
 					{rows.map((row) => (
@@ -115,7 +115,7 @@ function authTips(dkimSelector?: string): Record<DnsAuthRecord, string> {
 		dkim:
 			dkimSelector === "mail"
 				? "Postfix generates this key automatically for every domain. Copy Content once it appears (refresh details after ~30s)."
-				: "Postora cannot invent this key — Cloudflare generates it when you onboard the domain for Email Sending.",
+				: "Dispatch cannot invent this key — Cloudflare generates it when you onboard the domain for Email Sending.",
 		dmarc: "Name is usually _dmarc (not the full hostname). Start with p=none while monitoring.",
 	};
 }
@@ -124,7 +124,7 @@ function dkimSteps(hostname: string, selector?: string): string[] {
 	if (selector === "mail") {
 		return [
 			"Ensure SMTP_URL=smtp://postfix:587 and the postfix service is running.",
-			"Add or refresh this domain in Postora — it is written to outbound/sender-domains.txt automatically.",
+			"Add or refresh this domain in Dispatch — it is written to outbound/sender-domains.txt automatically.",
 			"Wait up to ~30s for Postfix to generate OpenDKIM keys, then refresh Domain details.",
 			`Copy the Content for ${selector}._domainkey and publish it as a TXT at your DNS host.`,
 			"No POSTFIX_ALLOWED_SENDER_DOMAINS env var is required — every registered domain is included.",
@@ -172,7 +172,7 @@ export default function DomainDnsDetails({
 	const expectedMxHost = expectedMx?.content?.replace(/^\d+\s+/, "").trim();
 	const routingLabel = routingOk
 		? manual
-			? `MX points to Postora (${audit?.mx.found[0] ?? "ok"})`
+			? `MX points to Dispatch (${audit?.mx.found[0] ?? "ok"})`
 			: "Email routing is configured"
 		: manual && audit?.mx.found?.length
 			? `Wrong MX (${audit.mx.found.join(", ")}) — replace with ${expectedMxHost ?? "MAIL_HOSTNAME"}`
@@ -197,11 +197,11 @@ export default function DomainDnsDetails({
 	return (
 		<div className="px-4 pb-4 pt-4 sm:px-5 sm:pb-5">
 			{needsOwnership && (
-				<section className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-					<p className="text-sm font-medium text-amber-900">Ownership verification required</p>
-					<p className="mt-1 text-xs text-amber-800">
+				<section className="mb-4 rounded-xl border border-[color-mix(in_oklab,var(--destructive)_35%,var(--border))] bg-[color-mix(in_oklab,var(--destructive)_8%,var(--card))] px-4 py-3 text-[var(--foreground)]">
+					<p className="text-sm font-medium text-[var(--foreground)]">Ownership verification required</p>
+					<p className="mt-1 text-xs text-[var(--muted-foreground)]">
 						Add this TXT at your DNS host (Hostinger: DNS Zone → Manage → Add Record). Use Name{" "}
-						<code className="rounded bg-white/80 px-1">_mailflare-verify</code> — not the full hostname —
+						<code className="rounded bg-[var(--card)]/80 px-1">_mailflare-verify</code> — not the full hostname —
 						then click Verify ownership.
 					</p>
 					{dns.ownershipTxt ? (
@@ -215,7 +215,7 @@ export default function DomainDnsDetails({
 							/>
 						</div>
 					) : (
-						<p className="mt-3 text-xs text-amber-900">
+						<p className="mt-3 text-xs text-[var(--foreground)]">
 							No verification token found yet. Re-add the domain or refresh details after MongoDB is
 							connected.
 						</p>
@@ -230,29 +230,29 @@ export default function DomainDnsDetails({
 
 			{audit && (
 				<section>
-					<h2 className="text-base font-semibold text-neutral-900">Domain setup</h2>
-					<p className="mt-0.5 text-sm text-neutral-500">
+					<h2 className="text-base font-semibold text-[var(--foreground)]">Domain setup</h2>
+					<p className="mt-0.5 text-sm text-[var(--muted-foreground)]">
 						Review routing, sending, and DNS authentication. For manual domains, each missing check shows the
 						exact Type / Name / Value to paste at your DNS host.
 					</p>
 					<ul className="mt-3 space-y-2">
 						<li
-							className={`grid gap-3 rounded-xl px-4 py-3 text-sm sm:grid-cols-[auto_minmax(8rem,14rem)_minmax(0,1fr)_auto] sm:items-start ${routingOk ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}
+							className={`grid gap-3 rounded-xl px-4 py-3 text-sm sm:grid-cols-[auto_minmax(8rem,14rem)_minmax(0,1fr)_auto] sm:items-start ${routingOk ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--destructive)]/10 text-[var(--destructive)]"}`}
 						>
 							{routingOk ? (
-								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-600 text-white">
+								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--success)] text-[var(--card)]">
 									<Check className="h-4 w-4" />
 								</span>
 							) : (
-								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/70">
-									<AlertTriangle className="h-4 w-4 text-red-600" />
+								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--card)]/70">
+									<AlertTriangle className="h-4 w-4 text-[var(--destructive)]" />
 								</span>
 							)}
 							<span className="min-w-0">
-								<span className="block font-medium text-neutral-900">Email Routing</span>
-								<span className="block text-xs text-neutral-500">Routes incoming email to Postora</span>
+								<span className="block font-medium text-[var(--foreground)]">Email Routing</span>
+								<span className="block text-xs text-[var(--muted-foreground)]">Routes incoming email to Dispatch</span>
 							</span>
-							<span className="min-w-0 break-all text-neutral-500">
+							<span className="min-w-0 break-all text-[var(--muted-foreground)]">
 								{routingOk
 									? routingLabel
 									: manual
@@ -262,28 +262,28 @@ export default function DomainDnsDetails({
 						</li>
 
 						<li
-							className={`grid gap-3 rounded-xl px-4 py-3 text-sm sm:grid-cols-[auto_minmax(8rem,14rem)_minmax(0,1fr)_auto] sm:items-start ${sendingOk ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}
+							className={`grid gap-3 rounded-xl px-4 py-3 text-sm sm:grid-cols-[auto_minmax(8rem,14rem)_minmax(0,1fr)_auto] sm:items-start ${sendingOk ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--destructive)]/10 text-[var(--destructive)]"}`}
 						>
 							{sendingOk ? (
-								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-600 text-white">
+								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--success)] text-[var(--card)]">
 									<Check className="h-4 w-4" />
 								</span>
 							) : (
-								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/70">
-									<AlertTriangle className="h-4 w-4 text-red-600" />
+								<span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--card)]/70">
+									<AlertTriangle className="h-4 w-4 text-[var(--destructive)]" />
 								</span>
 							)}
 							<span className="min-w-0">
-								<span className="block font-medium text-neutral-900">Email Sending</span>
-								<span className="block text-xs text-neutral-500">Sends outgoing email from this domain</span>
+								<span className="block font-medium text-[var(--foreground)]">Email Sending</span>
+								<span className="block text-xs text-[var(--muted-foreground)]">Sends outgoing email from this domain</span>
 							</span>
-							<span className="min-w-0 break-all text-neutral-500">{sendingLabel}</span>
+							<span className="min-w-0 break-all text-[var(--muted-foreground)]">{sendingLabel}</span>
 							{manual && bounceRows.length > 0 && (
 								<>
 									<Button
 										variant="outline"
 										size="sm"
-										className="shrink-0 bg-white"
+										className="shrink-0 bg-[var(--card)]"
 										onClick={() => toggle("sending", true)}
 									>
 										{isOpen("sending", true) ? "Hide" : "Setup"}
@@ -313,36 +313,36 @@ export default function DomainDnsDetails({
 									className={`grid gap-3 rounded-xl px-4 py-3 text-sm sm:grid-cols-[auto_minmax(8rem,14rem)_minmax(0,1fr)_auto] sm:items-start ${getDnsAuthItemClass(item.status)}`}
 								>
 									{ok ? (
-										<span className="flex h-7 w-7 items-center justify-center rounded-full bg-green-600 text-white">
+										<span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--success)] text-[var(--card)]">
 											<Check className="h-4 w-4" />
 										</span>
 									) : (
-										<span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/70">
+										<span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--card)]/70">
 											<AlertTriangle
-												className={`h-4 w-4 ${item.status === "missing" ? "text-red-600" : "text-neutral-400"}`}
+												className={`h-4 w-4 ${item.status === "missing" ? "text-[var(--destructive)]" : "text-[var(--muted-foreground)]"}`}
 											/>
 										</span>
 									)}
 									<span className="min-w-0">
-										<span className="block font-medium text-neutral-900">{item.label} record</span>
-										<span className="block text-xs text-neutral-500">{dnsAuthDescriptions[record]}</span>
+										<span className="block font-medium text-[var(--foreground)]">{item.label} record</span>
+										<span className="block text-xs text-[var(--muted-foreground)]">{dnsAuthDescriptions[record]}</span>
 									</span>
 
 									{ok ? (
-										<span className="min-w-0 break-all text-neutral-500">
+										<span className="min-w-0 break-all text-[var(--muted-foreground)]">
 											{item.found.length > 0 ? item.found.join(", ") : item.name}
 										</span>
 									) : manual ? (
 										<>
 											{item.found.length > 0 && (
-												<span className="min-w-0 break-all text-xs text-amber-800 sm:col-start-3">
-													Found in DNS (not Postora): {item.found.join(", ")}
+												<span className="min-w-0 break-all text-xs text-[var(--muted-foreground)] sm:col-start-3">
+													Found in DNS (not Dispatch): {item.found.join(", ")}
 												</span>
 											)}
 											<Button
 												variant="outline"
 												size="sm"
-												className="shrink-0 bg-white"
+												className="shrink-0 bg-[var(--card)]"
 												onClick={() => toggle(record, defaultOpen)}
 											>
 												{open ? "Hide" : "Setup"}
@@ -352,7 +352,7 @@ export default function DomainDnsDetails({
 										<Button
 											variant="outline"
 											size="sm"
-											className="shrink-0 bg-white"
+											className="shrink-0 bg-[var(--card)]"
 											disabled={setupRecord === record}
 											onClick={() => onSetup?.(record)}
 										>
@@ -369,8 +369,8 @@ export default function DomainDnsDetails({
 												hostname={domain.hostname}
 											/>
 											{record === "dkim" && (
-												<ol className="list-decimal space-y-1.5 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 pl-8 text-xs text-amber-950">
-													<li className="font-medium text-amber-900 list-none -ml-4 mb-1">
+												<ol className="list-decimal space-y-1.5 rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 pl-8 text-xs text-[var(--foreground)]">
+													<li className="font-medium text-[var(--foreground)] list-none -ml-4 mb-1">
 														How to get the DKIM Content value
 													</li>
 													{dkimSteps(domain.hostname, dns.dkimSelector).map((step) => (
@@ -386,24 +386,24 @@ export default function DomainDnsDetails({
 					</ul>
 
 					{manual && (
-						<div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-xs text-neutral-700">
-							<p className="font-medium text-neutral-900">How to use Copy</p>
+						<div className="mt-3 rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-xs text-[var(--foreground)]">
+							<p className="font-medium text-[var(--foreground)]">How to use Copy</p>
 							<p className="mt-1">
 								Each field has its own Copy button. For MX, copy <strong>Name</strong> as{" "}
-								<code className="rounded bg-white px-1">@</code>, <strong>Priority</strong> and{" "}
+								<code className="rounded bg-[var(--card)] px-1">@</code>, <strong>Priority</strong> and{" "}
 								<strong>Mail server</strong> from the MX row above — never paste the combined{" "}
-								<code className="rounded bg-white px-1">10 hostname</code> string into the mail-server
+								<code className="rounded bg-[var(--card)] px-1">10 hostname</code> string into the mail-server
 								field.
 							</p>
 							<button
 								type="button"
-								className="mt-2 text-blue-700 underline-offset-2 hover:underline"
+								className="mt-2 text-[var(--compose)] underline-offset-2 hover:underline"
 								onClick={() => setCloudflareSetupOpen((v) => !v)}
 							>
 								{cloudflareSetupOpen ? "Hide DNS name map" : "Show DNS name map"}
 							</button>
 							{cloudflareSetupOpen && (
-								<ul className="mt-2 list-disc space-y-1 pl-4 text-neutral-600">
+								<ul className="mt-2 list-disc space-y-1 pl-4 text-[var(--muted-foreground)]">
 									<li>
 										Apex hosts use Name <code>@</code> (not {domain.hostname}).
 									</li>
@@ -433,7 +433,7 @@ export default function DomainDnsDetails({
 							)}
 						</div>
 					)}
-					{setupMessage && <p className="mt-2 text-xs text-red-600">{setupMessage}</p>}
+					{setupMessage && <p className="mt-2 text-xs text-[var(--destructive)]">{setupMessage}</p>}
 				</section>
 			)}
 		</div>

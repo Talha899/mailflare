@@ -442,16 +442,16 @@ export function ComposeForm({
 			{storedAttachments.map((attachment) => (
 				<div
 					key={attachment.id}
-					className="flex max-w-full shrink-0 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 text-xs"
+					className="flex max-w-full shrink-0 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--muted)] px-2 py-1 text-xs text-[var(--foreground)]"
 					title="Carried over from the forwarded message"
 				>
-					<FileText className="h-4 w-4 shrink-0 text-neutral-500" />
+					<FileText className="h-3.5 w-3.5 shrink-0 text-[var(--muted-foreground)]" />
 					<span className="max-w-48 truncate">{attachment.filename}</span>
-					<span className="text-xs text-neutral-400">{formatAttachmentSize(attachment.size)}</span>
+					<span className="text-[11px] text-[var(--muted-foreground)]">{formatAttachmentSize(attachment.size)}</span>
 					<button
 						type="button"
 						onClick={() => void removeStoredAttachment(attachment.id)}
-						className="rounded-full p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700"
+						className="rounded-md p-1 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--card)] hover:text-[var(--foreground)] active:scale-[0.98]"
 					>
 						<X className="h-3.5 w-3.5" />
 						<span className="sr-only">Remove attachment</span>
@@ -461,11 +461,11 @@ export function ComposeForm({
 			{attachments.map((attachment) => (
 				<div
 					key={attachment.id}
-					className="flex max-w-full shrink-0 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 text-xs"
+					className="flex max-w-full shrink-0 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--muted)] px-2 py-1 text-xs text-[var(--foreground)]"
 				>
-					<FileText className="h-4 w-4 shrink-0 text-neutral-500" />
-					<span className="max-w-48 truncate font-medium">{attachment.file.name}</span>
-					<span className="text-xs text-neutral-400">
+					<FileText className="h-3.5 w-3.5 shrink-0 text-[var(--muted-foreground)]" />
+					<span className="max-w-48 truncate font-medium tracking-tight">{attachment.file.name}</span>
+					<span className="text-[11px] text-[var(--muted-foreground)]">
 						{formatAttachmentSize(attachment.file.size)}
 					</span>
 					<button
@@ -475,7 +475,7 @@ export function ComposeForm({
 								current.filter((item) => item.id !== attachment.id),
 							)
 						}
-						className="rounded-full p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700"
+						className="rounded-md p-1 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--card)] hover:text-[var(--foreground)] active:scale-[0.98]"
 					>
 						<X className="h-3.5 w-3.5" />
 						<span className="sr-only">Remove attachment</span>
@@ -483,28 +483,30 @@ export function ComposeForm({
 				</div>
 			))}
 		</div>
-		<p className="px-3 pb-2 text-xs text-amber-700">Cloudflare limits general email messages to 5 MiB including encoding. Files over 3 MB{([...attachments.map((item) => item.file.size), ...storedAttachments.map((item) => item.size)].some((size) => size > attachmentPolicy.cloudThresholdBytes)) ? " here will" : " or files that exceed the message budget may"} be sent as 30-day R2 download links.</p>
+		<p className="px-3 pb-2 text-[11px] leading-relaxed text-[var(--muted-foreground)]">Cloudflare limits general email messages to 5 MiB including encoding. Files over 3 MB{([...attachments.map((item) => item.file.size), ...storedAttachments.map((item) => item.size)].some((size) => size > attachmentPolicy.cloudThresholdBytes)) ? " here will" : " or files that exceed the message budget may"} be sent as 30-day R2 download links.</p>
 		</div>
 	);
 
 	const frameClass =
 		mode === "popup"
 			? minimized
-				? "fixed bottom-0 right-8 z-40 flex h-9 w-[min(260px,calc(100vw-32px))] flex-col overflow-hidden rounded-t-lg border border-neutral-200 bg-white shadow-2xl"
+				? "fixed bottom-0 right-8 z-40 flex h-9 w-[min(260px,calc(100vw-32px))] flex-col overflow-hidden rounded-t-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_20px_40px_-16px_rgba(0,0,0,0.28)]"
 				: modalMode
-				? "fixed left-1/2 top-1/2 z-50 flex h-[86vh] w-[min(860px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
-				: "fixed bottom-0 right-8 z-40 flex h-[min(520px,calc(100vh-88px))] w-[min(560px,calc(100vw-32px))] flex-col overflow-hidden rounded-t-lg border border-neutral-200 bg-white shadow-2xl"
-			: "relative flex h-full min-h-[720px] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm";
+				? "fixed left-1/2 top-1/2 z-50 flex h-[86vh] w-[min(860px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_28px_56px_-20px_rgba(0,0,0,0.32)]"
+				: "fixed bottom-0 right-8 z-40 flex h-[min(520px,calc(100vh-88px))] w-[min(560px,calc(100vw-32px))] flex-col overflow-hidden rounded-t-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_20px_40px_-16px_rgba(0,0,0,0.28)]"
+			: "relative flex h-full min-h-[720px] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm";
 
 	return (
 		<>
 			{agentReview && <SendReview approvalId={agentReview.approvalId} snapshot={agentReview.snapshot} onClose={() => setAgentReview(null)} onSent={() => { setAgentReview(null); if (onClose) onClose(); else router.push("/sent"); }} />}
-			{mode === "popup" && modalMode && !minimized && <div className="fixed inset-0 z-40 bg-neutral-950/65" aria-hidden="true" />}
+			{mode === "popup" && modalMode && !minimized && <div className="fixed inset-0 z-40 bg-[color-mix(in_oklab,var(--foreground)_36%,transparent)]" aria-hidden="true" />}
 			{toast && (
 				<div
 					className={cn(
-						"fixed right-6 top-6 z-[60] rounded-lg px-4 py-3 text-sm font-medium shadow-lg",
-						toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white",
+						"fixed right-6 top-6 z-[60] rounded-lg border px-4 py-3 text-sm font-medium tracking-tight shadow-[0_12px_32px_-12px_rgba(0,0,0,0.28)]",
+						toast.type === "success"
+							? "border-[color-mix(in_oklab,var(--success)_35%,var(--border))] bg-[var(--success)] text-[var(--primary-foreground)]"
+							: "border-[color-mix(in_oklab,var(--destructive)_35%,var(--border))] bg-[var(--destructive)] text-[var(--primary-foreground)]",
 					)}
 				>
 					{toast.message}
@@ -512,14 +514,14 @@ export function ComposeForm({
 			)}
 			<form onSubmit={onSubmit} className={frameClass} role={modalMode && !minimized ? "dialog" : undefined} aria-modal={modalMode && !minimized || undefined} aria-label={modalMode && !minimized ? "Compose message" : undefined} onKeyDown={(event) => { if (modalMode && !minimized && event.key === "Escape") { event.preventDefault(); setModalMode(false); } }} onDragEnterCapture={minimized ? undefined : onFileDragEnter} onDragOverCapture={minimized ? undefined : onFileDragOver} onDragLeaveCapture={minimized ? undefined : onFileDragLeave} onDropCapture={minimized ? undefined : onFileDrop}>
 				{draggingFiles && !minimized && (
-					<div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center border-2 border-dashed border-blue-400 bg-blue-50/90 text-sm font-medium text-blue-700" aria-hidden="true">
+					<div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center border-2 border-dashed border-[var(--compose)] bg-[color-mix(in_oklab,var(--compose)_10%,var(--card))] text-sm font-medium tracking-tight text-[var(--compose)]" aria-hidden="true">
 						Drop files to attach
 					</div>
 				)}
-				<div className="flex h-9 shrink-0 items-center justify-between bg-neutral-800 px-4 text-sm font-medium text-white">
+				<div className="flex h-9 shrink-0 items-center justify-between bg-[var(--primary)] px-3.5 text-[13px] font-medium tracking-tight text-[var(--primary-foreground)]">
 					<span className="flex min-w-0 items-center gap-2 truncate">
-						{threading?.inReplyTo && <Reply className="h-3.5 w-3.5 text-neutral-300" />}
-						{!threading?.inReplyTo && /^fwd?:/i.test(subject) && <Forward className="h-3.5 w-3.5 text-neutral-300" />}
+						{threading?.inReplyTo && <Reply className="h-3.5 w-3.5 opacity-70" />}
+						{!threading?.inReplyTo && /^fwd?:/i.test(subject) && <Forward className="h-3.5 w-3.5 opacity-70" />}
 						{loadingDraft
 							? "Loading draft"
 							: threading?.inReplyTo
@@ -531,22 +533,22 @@ export function ComposeForm({
 										: "New Message"}
 					</span>
 					{mode === "popup" && (
-						<div className="flex shrink-0 items-center gap-3 text-neutral-300">
-							<button type="button" onClick={() => { setMinimized((current) => !current); setDraggingFiles(false); }} aria-label={minimized ? "Restore composer" : "Minimize composer"} title={minimized ? "Restore composer" : "Minimize composer"} className="rounded p-1 hover:bg-neutral-700 hover:text-white">
-								{minimized ? <ChevronUp className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+						<div className="flex shrink-0 items-center gap-0.5 opacity-80">
+							<button type="button" onClick={() => { setMinimized((current) => !current); setDraggingFiles(false); }} aria-label={minimized ? "Restore composer" : "Minimize composer"} title={minimized ? "Restore composer" : "Minimize composer"} className="rounded-md p-1 transition-colors hover:bg-[color-mix(in_oklab,var(--primary-foreground)_14%,transparent)] hover:opacity-100 active:scale-[0.98]">
+								{minimized ? <ChevronUp className="h-3.5 w-3.5" /> : <Minus className="h-3.5 w-3.5" />}
 							</button>
-							<button type="button" onClick={() => { if (minimized) setMinimized(false); setModalMode((current) => !current); }} aria-label={modalMode ? "Restore floating composer" : "Open composer as modal"} title={modalMode ? "Restore floating composer" : "Open composer as modal"} className="rounded p-1 hover:bg-neutral-700 hover:text-white">
-								{modalMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+							<button type="button" onClick={() => { if (minimized) setMinimized(false); setModalMode((current) => !current); }} aria-label={modalMode ? "Restore floating composer" : "Open composer as modal"} title={modalMode ? "Restore floating composer" : "Open composer as modal"} className="rounded-md p-1 transition-colors hover:bg-[color-mix(in_oklab,var(--primary-foreground)_14%,transparent)] hover:opacity-100 active:scale-[0.98]">
+								{modalMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
 							</button>
-							<button type="button" onClick={onClose} aria-label="Close composer" className="rounded p-1 hover:bg-neutral-700 hover:text-white">
-								<X className="h-4 w-4" />
+							<button type="button" onClick={onClose} aria-label="Close composer" className="rounded-md p-1 transition-colors hover:bg-[color-mix(in_oklab,var(--primary-foreground)_14%,transparent)] hover:opacity-100 active:scale-[0.98]">
+								<X className="h-3.5 w-3.5" />
 							</button>
 						</div>
 					)}
 				</div>
 				<div className={cn("flex min-h-0 flex-1 flex-col", minimized && "hidden")}>
-				<div className="border-b border-neutral-100 px-4 py-1 flex flex-row items-center">
-					<Label htmlFor={`${mode}-from`} className="text-sm text-neutral-500">From</Label>
+				<div className="flex flex-row items-center border-b border-[var(--border)] px-4 py-1">
+					<Label htmlFor={`${mode}-from`} className="text-[13px] text-[var(--muted-foreground)]">From</Label>
 					<Select
 						id={`${mode}-from`}
 						value={selectedMailbox && selectedFrom ? `${selectedMailbox.id}|${selectedFrom}` : ""}
@@ -574,12 +576,12 @@ export function ComposeForm({
 					trailing={
 						<>
 							{!showCc && (
-								<button type="button" className="rounded px-1 hover:text-neutral-800" onClick={() => setShowCc(true)}>
+								<button type="button" className="rounded-md px-1.5 py-0.5 transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]" onClick={() => setShowCc(true)}>
 									Cc
 								</button>
 							)}
 							{!showBcc && (
-								<button type="button" className="rounded px-1 hover:text-neutral-800" onClick={() => setShowBcc(true)}>
+								<button type="button" className="rounded-md px-1.5 py-0.5 transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]" onClick={() => setShowBcc(true)}>
 									Bcc
 								</button>
 							)}
@@ -608,7 +610,7 @@ export function ComposeForm({
 						autoFocus={!loadingDraft && bcc.length === 0}
 					/>
 				)}
-				<div className="border-b border-neutral-100 px-4 py-1">
+				<div className="border-b border-[var(--border)] px-4 py-1">
 					<Label htmlFor={`${mode}-subject`} className="sr-only">Subject</Label>
 					<Input
 						id={`${mode}-subject`}
@@ -617,7 +619,7 @@ export function ComposeForm({
 						placeholder="Subject"
 						required
 						disabled={loadingDraft}
-						className="h-8 border-0 px-0 py-1 shadow-none focus-visible:ring-0"
+						className="h-8 border-0 px-0 py-1 text-sm font-medium tracking-tight shadow-none focus-visible:ring-0"
 					/>
 				</div>
 				<Label htmlFor={`${mode}-text`} className="sr-only">Body</Label>
@@ -636,7 +638,7 @@ export function ComposeForm({
 									type="submit"
 									size="sm"
 									disabled={loading || loadingDraft || !fromAddr}
-									className="rounded-r-none px-4"
+									className="rounded-r-none bg-[var(--compose)] px-4 text-[var(--compose-foreground)] hover:bg-[color-mix(in_oklab,var(--compose)_88%,black)]"
 								>
 									{loading ? "Preparing…" : scheduledAt ? "Schedule" : agentRevision !== null ? "Review send" : "Send"}
 								</Button>
@@ -650,7 +652,6 @@ export function ComposeForm({
 					}
 					toolbarEnd={
 						<>
-							{/* <span className="mx-1 h-5 w-px bg-neutral-200" /> */}
 							<Input
 								ref={attachmentInput}
 								type="file"
@@ -664,7 +665,7 @@ export function ComposeForm({
 									aria-label="Attach files"
 									onClick={() => attachmentInput.current?.click()}
 									disabled={loading || loadingDraft}
-									className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-50"
+									className="rounded-lg p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]"
 								>
 									<Paperclip className="h-4 w-4" />
 								</button>
@@ -676,7 +677,7 @@ export function ComposeForm({
 									aria-label="Delete draft"
 									onClick={() => void deleteDraftAndClose()}
 									disabled={loading || loadingDraft || deletingDraft}
-									className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600 disabled:pointer-events-none disabled:opacity-50"
+									className="rounded-lg p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[color-mix(in_oklab,var(--destructive)_12%,var(--card))] hover:text-[var(--destructive)] disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]"
 								>
 									<Trash2 className="h-4 w-4" />
 								</button>

@@ -15,11 +15,11 @@ import {
 } from "./utils";
 
 const STATUS_STYLES: Record<WebhookDelivery["status"], string> = {
-	delivered: "bg-green-600/10 text-green-700",
-	failed: "bg-red-600/10 text-red-700",
-	exhausted: "bg-red-600/10 text-red-700",
-	retrying: "bg-amber-500/10 text-amber-700",
-	pending: "bg-neutral-200 text-neutral-700",
+	delivered: "bg-[color-mix(in_oklab,var(--success)_12%,var(--card))] text-[var(--success)]",
+	failed: "bg-[color-mix(in_oklab,var(--destructive)_10%,var(--card))] text-[var(--destructive)]",
+	exhausted: "bg-[color-mix(in_oklab,var(--destructive)_10%,var(--card))] text-[var(--destructive)]",
+	retrying: "bg-[var(--muted)] text-[var(--foreground)]",
+	pending: "bg-[var(--muted)] text-[var(--foreground)]",
 };
 
 export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
@@ -40,17 +40,17 @@ export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
 	});
 
 	if (deliveries.isLoading) {
-		return <p className="text-sm text-neutral-500">Loading deliveries…</p>;
+		return <p className="text-sm text-[var(--muted-foreground)]">Loading deliveries…</p>;
 	}
 
 	if (!deliveries.data?.length) {
-		return <p className="text-sm text-neutral-500">No deliveries recorded yet.</p>;
+		return <p className="text-sm text-[var(--muted-foreground)]">No deliveries recorded yet.</p>;
 	}
 
 	return (
-		<div className="overflow-x-auto rounded-xl border border-neutral-200">
+		<div className="overflow-x-auto rounded-xl border border-[var(--border)]">
 			<table className="w-full min-w-[820px] text-left text-sm">
-				<thead className="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500">
+				<thead className="bg-[var(--muted)] text-xs uppercase tracking-wide text-[var(--muted-foreground)]">
 					<tr>
 						<th className="px-3 py-2 font-medium">Event</th>
 						<th className="px-3 py-2 font-medium">Status</th>
@@ -63,10 +63,10 @@ export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
 				</thead>
 				<tbody>
 					{deliveries.data.map((delivery) => (
-						<tr key={delivery.id} className="border-t border-neutral-100 align-top">
+						<tr key={delivery.id} className="border-t border-[var(--border)] align-top">
 							<td className="px-3 py-2">
 								<span className="block">{delivery.eventType}</span>
-								<span className="block text-xs text-neutral-400">
+								<span className="block text-xs text-[var(--muted-foreground)]">
 									{formatTimestamp(delivery.createdAt)}
 								</span>
 							</td>
@@ -84,21 +84,21 @@ export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
 									{delivery.responseStatus ?? "—"}
 									{delivery.durationMs !== null && (
 										// An explicit separator: "200" next to "6ms" otherwise reads as "2006ms".
-										<span className="ml-1 text-xs text-neutral-400">
+										<span className="ml-1 text-xs text-[var(--muted-foreground)]">
 											· {formatDuration(delivery.durationMs)}
 										</span>
 									)}
 								</span>
 								{delivery.error && (
-									<span className="mt-1 block max-w-xs truncate text-xs text-red-600" title={delivery.error}>
+									<span className="mt-1 block max-w-xs truncate text-xs text-[var(--destructive)]" title={delivery.error}>
 										{delivery.error}
 									</span>
 								)}
 							</td>
-							<td className="px-3 py-2 whitespace-nowrap text-neutral-600">
+							<td className="px-3 py-2 whitespace-nowrap text-[var(--muted-foreground)]">
 								{formatTimestamp(delivery.lastAttemptAt)}
 							</td>
-							<td className="px-3 py-2 whitespace-nowrap text-neutral-600">
+							<td className="px-3 py-2 whitespace-nowrap text-[var(--muted-foreground)]">
 								{formatTimestamp(delivery.nextRetryAt)}
 							</td>
 							<td className="px-3 py-2">

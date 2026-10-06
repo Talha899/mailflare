@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useCompose } from "@/components/compose/compose-context";
-import type { OpenDraftOnRouteProps } from "./types";
+
+type OpenDraftOnRouteProps = { draftId: string };
 
 export function OpenDraftOnRoute({ draftId }: OpenDraftOnRouteProps) {
 	const { openDraftComposer } = useCompose();

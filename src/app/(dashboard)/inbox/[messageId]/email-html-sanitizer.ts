@@ -1,4 +1,6 @@
-import type { SanitizeEmailHtmlOptions } from "./email-html-sanitizer-types";
+type SanitizeEmailHtmlOptions = {
+	forOutgoing?: boolean;
+};
 
 const ALLOWED_TAGS = new Set([
 	"a",
@@ -127,7 +129,7 @@ const ALLOWED_STYLE_PROPERTIES = new Set([
 	"word-break",
 	"word-wrap",
 ]);
-const APP_FONT_FALLBACK = "var(--font-geist-sans), system-ui, sans-serif";
+const APP_FONT_FALLBACK = "var(--font-dispatch-sans), system-ui, sans-serif";
 
 function isSafeLinkUrl(value: string, options: SanitizeEmailHtmlOptions): boolean {
 	try {

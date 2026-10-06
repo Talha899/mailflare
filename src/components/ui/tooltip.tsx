@@ -30,7 +30,7 @@ export function Tooltip({ label, children, className, placement = "auto" }: Tool
 		};
 	}, [label, open, placement]);
 
-	if (!label) return children
+	if (!label) return children;
 
 	return (
 		<span
@@ -51,7 +51,12 @@ export function Tooltip({ label, children, className, placement = "auto" }: Tool
 					<span
 						ref={tooltipRef}
 						role="tooltip"
-						className="pointer-events-none fixed z-[100] max-w-[min(20rem,calc(100vw-1rem))] rounded-md bg-[var(--foreground)] px-2 py-1 text-center text-xs font-medium text-white shadow-lg"
+						className={cn(
+							"pointer-events-none fixed z-[100]",
+							"max-w-[min(20rem,calc(100vw-1rem))]",
+							"rounded-md bg-[var(--foreground)] px-2.5 py-1",
+							"text-center text-xs font-medium tracking-tight text-[var(--background)]",
+						)}
 						style={{
 							left: position?.left ?? 0,
 							top: position?.top ?? 0,

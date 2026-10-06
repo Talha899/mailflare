@@ -71,10 +71,10 @@ export function MailboxAutoReplyForm() {
   }
 
   if (isLoading)
-    return <p className="text-sm text-neutral-500">Loading inbox…</p>;
+    return <p className="text-sm text-[var(--muted-foreground)]">Loading inbox…</p>;
   if (!selectedMailbox)
     return (
-      <p className="text-sm text-neutral-500">
+      <p className="text-sm text-[var(--muted-foreground)]">
         Select an inbox to configure auto-reply.
       </p>
     );
@@ -85,12 +85,12 @@ export function MailboxAutoReplyForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <label className="flex items-start gap-3 rounded-xl bg-neutral-50 p-4">
+      <label className="flex items-start gap-3 rounded-xl bg-[var(--muted)] p-4">
         <span className="flex-1">
-          <span className="block text-sm font-medium text-neutral-900">
+          <span className="block text-sm font-medium text-[var(--foreground)]">
             Enable auto-reply for {address}
           </span>
-          <span className="mt-1 block text-sm text-neutral-500">
+          <span className="mt-1 block text-sm text-[var(--muted-foreground)]">
             Each sender receives at most one automatic response every 24 hours.
           </span>
         </span>
@@ -133,11 +133,11 @@ export function MailboxAutoReplyForm() {
               {saving ? "Saving..." : "Save"}
             </Button>
             {!canManage && (
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-[var(--muted-foreground)]">
                 Full access is required to edit auto-reply.
               </p>
             )}
-            {status && <p className="text-sm text-neutral-500">{status}</p>}
+            {status && <p className="text-sm text-[var(--muted-foreground)]">{status}</p>}
           </div>
         </>
       )}

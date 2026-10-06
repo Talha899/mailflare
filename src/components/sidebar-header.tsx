@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, TextAlignJustify } from "lucide-react";
+import { TextAlignJustify } from "lucide-react";
 import { useBranding } from "./branding-provider";
 import { useSidebar } from "./sidebar-state";
 import type { SidebarHeaderProps } from "./sidebar-state-types";
@@ -14,18 +14,18 @@ export function SidebarHeader({ href, label }: SidebarHeaderProps) {
 		<button
 			type="button"
 			onClick={toggle}
-			className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+			className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]"
 			aria-label={minimal ? "Expand menu" : "Collapse menu"}
 		>
 			{minimal ? (
-				<img src={branding.iconUrl} height={28} width={28} alt="" />
+				<img src={branding.iconUrl} height={24} width={24} alt="" className="rounded-md" />
 			) : (
 				<TextAlignJustify size={18} />
 			)}
 		</button>
 	);
 	return (
-		<div className={`mb-3 flex h-10 items-center ${minimal ? "" : "gap-2 px-1"}`}>
+		<div className={`mb-3 flex h-9 items-center ${minimal ? "" : "gap-2 px-1"}`}>
 			{minimal ? (
 				<Tooltip label="Expand menu" placement="right">
 					{toggleButton}
@@ -34,9 +34,9 @@ export function SidebarHeader({ href, label }: SidebarHeaderProps) {
 				toggleButton
 			)}
 			{!minimal && (
-				<Link href={href} className="flex min-w-0 items-center gap-3">
-					<img src={branding.iconUrl} height={28} width={28} alt="" />
-					<span className="truncate text-lg font-semibold text-[var(--foreground)]">
+				<Link href={href} className="flex min-w-0 items-center gap-2.5">
+					<img src={branding.iconUrl} height={24} width={24} alt="" className="rounded-md" />
+					<span className="truncate text-base font-semibold tracking-tight text-[var(--foreground)]">
 						{label ?? branding.appName}
 					</span>
 				</Link>

@@ -77,7 +77,7 @@ export function ChangePasswordForm() {
 				<Button type="submit" disabled={loading}>
 					{loading ? "Changing..." : "Change password"}
 				</Button>
-				{status && <p className="text-sm text-neutral-500">{status}</p>}
+				{status && <p className="text-sm text-[var(--muted-foreground)]">{status}</p>}
 			</div>
 		</form>
 	);

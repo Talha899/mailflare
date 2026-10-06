@@ -86,15 +86,15 @@ export function AdminUpdateCard() {
 	}
 
 	return (
-		<Card className="rounded-3xl border-0 bg-white p-6">
+		<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
 			<CardHeader className="flex-row items-center gap-4 space-y-0 py-0">
-				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--muted)] text-[var(--compose)]">
 					<RefreshCw className="h-5 w-5" />
 				</div>
 				<div>
 					<CardTitle className="text-base">Application update</CardTitle>
-					<p className="mt-1 text-sm text-neutral-500">
-						Sync the latest Postora release and keep its database schema up to date.
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">
+						Sync the latest Dispatch release and keep its database schema up to date.
 					</p>
 				</div>
 			</CardHeader>
@@ -103,17 +103,17 @@ export function AdminUpdateCard() {
 
 				{!isChecking && status?.configured === false && (
 					<div className="space-y-3">
-						<p className="text-sm text-neutral-600">Complete the required Cloudflare Worker configuration:</p>
-						<ul className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-100">
+						<p className="text-sm text-[var(--muted-foreground)]">Complete the required Cloudflare Worker configuration:</p>
+						<ul className="divide-y divide-[var(--border)] overflow-hidden rounded-2xl border border-[var(--border)]">
 							{status.configuration?.map((item) => (
 								<li key={item.name} className="flex items-center gap-3 px-4 py-3 text-sm">
 									{item.configured ? (
-										<CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
+										<CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--success)]" />
 									) : (
-										<CircleX className="h-4 w-4 shrink-0 text-red-600" />
+										<CircleX className="h-4 w-4 shrink-0 text-[var(--destructive)]" />
 									)}
-									<code className="text-xs font-medium text-neutral-800">{item.name}</code>
-									<span className={`ml-auto text-xs font-medium ${item.configured ? "text-green-700" : "text-red-600"}`}>
+									<code className="text-xs font-medium text-[var(--foreground)]">{item.name}</code>
+									<span className={`ml-auto text-xs font-medium ${item.configured ? "text-[var(--success)]" : "text-[var(--destructive)]"}`}>
 										{item.configured ? "Configured" : "Missing"}
 									</span>
 								</li>
@@ -123,26 +123,26 @@ export function AdminUpdateCard() {
 				)}
 
 				{!isChecking && status?.configured && (
-					<div className="divide-y divide-neutral-100 overflow-hidden rounded-2xl border border-neutral-100">
+					<div className="divide-y divide-[var(--border)] overflow-hidden rounded-2xl border border-[var(--border)]">
 						<div className="flex items-center gap-3 px-4 py-4">
 							{status.available ? (
-								<RefreshCw className={`h-4 w-4 shrink-0 text-blue-600 ${isPending ? "animate-spin" : ""}`} />
+								<RefreshCw className={`h-4 w-4 shrink-0 text-[var(--compose)] ${isPending ? "animate-spin" : ""}`} />
 							) : (
-								<CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
+								<CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--success)]" />
 							)}
-							<p className="min-w-0 text-sm text-neutral-700">
+							<p className="min-w-0 text-sm text-[var(--foreground)]">
 								{status.available
-									? `Postora v${status.targetVersion} is available. You are using v${status.currentVersion}.`
-									: `Postora v${status.currentVersion} is up to date.`}
+									? `Dispatch v${status.targetVersion} is available. You are using v${status.currentVersion}.`
+									: `Dispatch v${status.currentVersion} is up to date.`}
 							</p>
 							{status.available && (
 								<button
 									type="button"
 									onClick={handleUpdate}
 									disabled={isPending}
-									className="ml-auto shrink-0 text-sm font-medium text-blue-700 hover:underline disabled:pointer-events-none disabled:opacity-50"
+									className="ml-auto shrink-0 text-sm font-medium text-[var(--compose)] hover:underline disabled:pointer-events-none disabled:opacity-50"
 								>
-									{isPending ? "Starting update..." : "Update Postora"}
+									{isPending ? "Starting update..." : "Update Dispatch"}
 								</button>
 							)}
 						</div>
@@ -156,15 +156,15 @@ export function AdminUpdateCard() {
 
 						{!isCheckingMigrations && !!migrationStatus?.pending.length && !migrationStatus.unknown.length && (
 							<div className="flex items-center gap-3 px-4 py-4">
-								<Database className={`h-4 w-4 shrink-0 text-amber-600 ${isMigrating ? "animate-pulse" : ""}`} />
-								<p className="text-sm text-neutral-700">
+								<Database className={`h-4 w-4 shrink-0 text-[var(--compose)] ${isMigrating ? "animate-pulse" : ""}`} />
+								<p className="text-sm text-[var(--foreground)]">
 									{migrationStatus.pending.length} database {migrationStatus.pending.length === 1 ? "migration is" : "migrations are"} pending.
 								</p>
 								<button
 									type="button"
 									onClick={handleMigrate}
 									disabled={isMigrating}
-									className="ml-auto shrink-0 text-sm font-medium text-blue-700 hover:underline disabled:pointer-events-none disabled:opacity-50"
+									className="ml-auto shrink-0 text-sm font-medium text-[var(--compose)] hover:underline disabled:pointer-events-none disabled:opacity-50"
 								>
 									{isMigrating ? "Updating database..." : "Update database"}
 								</button>
@@ -172,16 +172,16 @@ export function AdminUpdateCard() {
 						)}
 
 						{!isCheckingMigrations && !!migrationStatus?.unknown.length && (
-							<div className="flex items-center gap-3 px-4 py-4 text-sm text-red-600">
+							<div className="flex items-center gap-3 px-4 py-4 text-sm text-[var(--destructive)]">
 								<CircleX className="h-4 w-4 shrink-0" />
-								Deploy the matching Postora release before changing this database.
+								Deploy the matching Dispatch release before changing this database.
 							</div>
 						)}
 					</div>
 				)}
 
 				{result?.ok && (
-					<p className="text-sm text-green-700">
+					<p className="text-sm text-[var(--success)]">
 						Update started for {result.repository}@{result.ref}. Refresh this page after Cloudflare deploys it. {" "}
 						{result.runUrl && (
 							<a className="font-medium underline" href={result.runUrl} target="_blank" rel="noreferrer">
@@ -190,8 +190,8 @@ export function AdminUpdateCard() {
 						)}
 					</p>
 				)}
-				{error && <p className="text-sm text-red-600">{error}</p>}
-				{migrationError && <p className="text-sm text-red-600">{migrationError}</p>}
+				{error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
+				{migrationError && <p className="text-sm text-[var(--destructive)]">{migrationError}</p>}
 			</CardContent>
 		</Card>
 	);

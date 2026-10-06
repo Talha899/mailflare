@@ -31,11 +31,16 @@ export function ResizeHandle({ label, onResizeStart, onResize, onResizeEnd }: Re
 			role="separator"
 			aria-label={label}
 			aria-orientation="vertical"
-			className="absolute inset-y-0 right-0 z-20 w-2 translate-x-1/2 cursor-col-resize touch-none"
+			className="group absolute inset-y-0 right-0 z-20 w-2 translate-x-1/2 cursor-col-resize touch-none"
 			onPointerDown={handlePointerDown}
 			onPointerMove={handlePointerMove}
 			onPointerUp={handlePointerEnd}
 			onPointerCancel={handlePointerEnd}
-		/>
+		>
+			<span
+				aria-hidden="true"
+				className="pointer-events-none absolute inset-y-3 left-1/2 w-px -translate-x-1/2 bg-transparent transition-colors duration-150 group-hover:bg-[var(--border)] group-active:bg-[var(--primary)]"
+			/>
+		</div>
 	);
 }

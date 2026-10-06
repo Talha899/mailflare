@@ -35,7 +35,7 @@ export function HomeHeroActions() {
 					<ArrowRight className="h-4 w-4" />
 				</Link>
 			</Button>
-			<Button size="lg" variant="outline" asChild className="rounded-full border-neutral-200 bg-white px-6">
+			<Button size="lg" variant="outline" asChild className="rounded-full border-[var(--border)] bg-[var(--card)] px-6">
 				<Link href={hasUser ? "/inbox" : "/login"}>
 					{hasUser ? "View inbox" : "Log in"}
 				</Link>

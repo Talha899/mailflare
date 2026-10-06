@@ -1,12 +1,12 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type AuthShellStep = {
+type AuthShellStep = {
 	label: string;
 	active: boolean;
 };
 
-export type AuthShellVariant = "mailbox" | "admin";
+type AuthShellVariant = "mailbox" | "admin";
 
 export type AuthShellProps = {
 	icon: LucideIcon;

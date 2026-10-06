@@ -1,7 +1,7 @@
 import type { AgentModelOption, AgentProviderPreset } from "./provider-types";
 import { getAgentProviderConfig, resolveAgentBaseUrl } from "./provider";
 
-export const CLOUDFLARE_TOOL_MODELS: AgentModelOption[] = [
+const CLOUDFLARE_TOOL_MODELS: AgentModelOption[] = [
 	{ id: "@cf/moonshotai/kimi-k2.5", name: "Kimi K2.5" },
 	{ id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast", name: "Llama 3.3 70B" },
 	{ id: "@cf/qwen/qwen3-30b-a3b-fp8", name: "Qwen3 30B" },

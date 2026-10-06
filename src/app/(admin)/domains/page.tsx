@@ -262,8 +262,8 @@ export default function DomainsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-medium">Domains</h1>
-          <p className="mt-1 text-sm text-neutral-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Domains</h1>
+          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--muted-foreground)]">
             {saasMode
               ? "Add customer domains. Zones on your Cloudflare account are configured automatically; other domains use TXT verification and a manual DNS checklist."
               : managesDns
@@ -284,7 +284,7 @@ export default function DomainsPage() {
               <DialogDescription>
                 {saasMode
                   ? "Enter a hostname. Cloudflare zones on this account are auto-configured; other domains get TXT verification and DNS records to publish."
-                  : "Connect a Cloudflare zone and choose whether Postora should provision Email Sending."}
+                  : "Connect a Cloudflare zone and choose whether Dispatch should provision Email Sending."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -309,13 +309,13 @@ export default function DomainsPage() {
                     void inspectDomain();
                   }}
                 />
-                <p className="text-xs text-neutral-500">Use example.com — not https://example.com/</p>
+                <p className="text-xs text-[var(--muted-foreground)]">Use example.com — not https://example.com/</p>
               </div>
               {!isManualDomain && (
-                <div className="flex items-center justify-between gap-4 rounded-xl bg-neutral-50 px-4 py-3">
+                <div className="flex items-center justify-between gap-4 rounded-xl bg-[var(--muted)] px-4 py-3">
                   <div>
                     <Label htmlFor="enable-sending">Enable sending</Label>
-                    <p className="mt-1 text-xs leading-5 text-neutral-500">
+                    <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
                       {domainChecking
                         ? "Checking Cloudflare access..."
                         : domainCheck
@@ -326,7 +326,7 @@ export default function DomainsPage() {
                     </p>
                   </div>
                   {domainChecking ? (
-                    <LoaderCircle className="h-4 w-4 animate-spin text-neutral-500" />
+                    <LoaderCircle className="h-4 w-4 animate-spin text-[var(--muted-foreground)]" />
                   ) : (
                     <Switch
                       id="enable-sending"
@@ -338,24 +338,24 @@ export default function DomainsPage() {
                 </div>
               )}
               {domainCheck && !isManualDomain && (
-                <div className="flex items-center gap-3 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+                <div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
                   <CheckCircle2 className="h-4 w-4" />
                   Domain found in Cloudflare as {domainCheck.zone.name}
                 </div>
               )}
               {domainCheck && isManualDomain && (
-                <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-sm text-[var(--foreground)]">
                   Not on this Cloudflare account. You can still add it — we will show a TXT
                   ownership record and MX/SPF/DMARC values to publish at your DNS provider.
                 </div>
               )}
               {domainCheckError && (
-                <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <p className="rounded-xl bg-[var(--destructive)]/10 px-4 py-3 text-sm text-[var(--destructive)]">
                   {domainCheckError}
                 </p>
               )}
               {create.isError && (
-                <div className="space-y-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="space-y-3 rounded-xl bg-[var(--destructive)]/10 px-4 py-3 text-sm text-[var(--destructive)]">
                   <p>{(create.error as Error).message}</p>
                   {!saasMode && managesDns && (
                     <div className="space-y-2">
@@ -388,14 +388,14 @@ export default function DomainsPage() {
       </div>
       <section className="space-y-3">
         {/* <div className="flex items-center justify-between">
-					<span className="text-sm text-neutral-500">{(data?.domains ?? []).length} total</span>
+					<span className="text-sm text-[var(--muted-foreground)]">{(data?.domains ?? []).length} total</span>
 				</div> */}
         {isLoading && (
           <SectionRowSkeleton />
         )}
         {!isLoading && (data?.domains ?? []).length === 0 && (
-          <p className="rounded-2xl bg-white px-5 py-4 text-sm text-neutral-500">
-            No domains yet
+          <p className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-5 py-8 text-center text-sm text-[var(--muted-foreground)]">
+            No domains yet — add one to get started.
           </p>
         )}
         <List>

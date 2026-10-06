@@ -28,11 +28,11 @@ export function BrowserNotificationSettings() {
 
 	return (
 		<div>
-			<label className="flex items-start gap-3 rounded-xl bg-neutral-50 p-4">
+			<label className="flex items-start gap-3 rounded-xl bg-[var(--muted)] p-4">
 				<span className="flex-1">
-					<span className="block text-sm font-medium text-neutral-900">Browser notifications</span>
-					<span className="mt-1 block text-sm text-neutral-500">
-						Show a notification for new email while Postora is open in a background tab.
+					<span className="block text-sm font-medium text-[var(--foreground)]">Browser notifications</span>
+					<span className="mt-1 block text-sm text-[var(--muted-foreground)]">
+						Show a notification for new email while Dispatch is open in a background tab.
 					</span>
 				</span>
 				<Switch
@@ -65,12 +65,12 @@ export function BrowserNotificationSettings() {
 				/>
 			</label>
 			{permission === "denied" && (
-				<p className="mt-2 px-4 text-sm text-neutral-500">Notifications are blocked. Allow them in your browser&apos;s site settings to enable this option.</p>
+				<p className="mt-2 px-4 text-sm text-[var(--muted-foreground)]">Notifications are blocked. Allow them in your browser&apos;s site settings to enable this option.</p>
 			)}
 			{permission === "unsupported" && (
-				<p className="mt-2 px-4 text-sm text-neutral-500">Browser notifications are unavailable here.</p>
+				<p className="mt-2 px-4 text-sm text-[var(--muted-foreground)]">Browser notifications are unavailable here.</p>
 			)}
-			{error && <p className="mt-2 px-4 text-sm text-red-600">{error}</p>}
+			{error && <p className="mt-2 px-4 text-sm text-[var(--destructive)]">{error}</p>}
 		</div>
 	);
 }

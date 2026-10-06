@@ -126,7 +126,7 @@ export function OnboardingClient() {
 				{ label: "Mailbox", active: step === 2 },
 			]}
 			footer={
-				<span className="inline-flex items-center gap-2 text-neutral-500">
+				<span className="inline-flex items-center gap-2 text-[var(--muted-foreground)]">
 					Setup completes in the inbox
 					<ArrowRight className="h-4 w-4" />
 				</span>
@@ -135,7 +135,7 @@ export function OnboardingClient() {
 			<div className="space-y-5">
 				{step === 1 && (
 					<>
-						<p className="rounded-2xl bg-[#eaf1fb] px-4 py-3 text-sm leading-6 text-neutral-700">
+						<p className="rounded-xl bg-[var(--accent)] px-4 py-3 text-sm leading-6 text-[var(--foreground)]">
 							Zones on your Cloudflare account are configured automatically. Other domains use TXT
 							ownership verification and a manual MX/SPF/DMARC checklist.
 						</p>
@@ -157,10 +157,10 @@ export function OnboardingClient() {
 							/>
 						</div>
 						{!(domainCheck?.mode === "manual" || domainCheck?.zone.id === "manual") && (
-							<div className="flex items-center justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
+							<div className="flex items-center justify-between gap-4 rounded-xl bg-[var(--muted)] px-4 py-3">
 								<div>
 									<Label htmlFor="onboarding-enable-sending">Enable sending</Label>
-									<p className="mt-1 text-xs leading-5 text-neutral-500">
+									<p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
 										{domainChecking
 											? "Checking Cloudflare access..."
 											: domainCheck
@@ -171,7 +171,7 @@ export function OnboardingClient() {
 									</p>
 								</div>
 								{domainChecking ? (
-									<LoaderCircle className="h-4 w-4 animate-spin text-neutral-500" />
+									<LoaderCircle className="h-4 w-4 animate-spin text-[var(--muted-foreground)]" />
 								) : (
 									<Switch
 										id="onboarding-enable-sending"
@@ -183,29 +183,29 @@ export function OnboardingClient() {
 							</div>
 						)}
 						{domainCheck && domainCheck.mode !== "manual" && domainCheck.zone.id !== "manual" && (
-							<div className="flex items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
+							<div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
 								<CheckCircle2 className="h-4 w-4" />
 								Domain found in Cloudflare as {domainCheck.zone.name}
 							</div>
 						)}
 						{domainCheck && (domainCheck.mode === "manual" || domainCheck.zone.id === "manual") && (
-							<div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+							<div className="rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-sm text-[var(--foreground)]">
 								Not on this Cloudflare account. Continue to get TXT verification and DNS records to
 								publish at your registrar.
 							</div>
 						)}
 						{mxConflict && (
-							<div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-900">
+							<div className="space-y-3 rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-4 text-[var(--foreground)]">
 								<div className="flex items-start gap-3">
-									<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-									<p className="text-sm leading-6">
+									<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--destructive)]" />
+									<p className="text-sm leading-6 text-[var(--muted-foreground)]">
 										Existing MX records deliver mail to another provider. Continuing deletes those records and replaces them with Cloudflare Email Routing, so the previous provider will stop receiving mail.
 									</p>
 								</div>
 								<Button
 									onClick={() => void addDomain(true)}
 									disabled={loading}
-									className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+									className="h-10 w-full rounded-xl active:scale-[0.98]"
 								>
 									{loading ? "Replacing MX records..." : "Delete MX records and continue"}
 								</Button>
@@ -215,7 +215,7 @@ export function OnboardingClient() {
 							<Button
 								onClick={() => void addDomain()}
 								disabled={!hostname || loading || domainChecking}
-								className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+								className="h-10 w-full rounded-xl active:scale-[0.98]"
 							>
 								{loading ? "Adding..." : "Add domain"}
 							</Button>
@@ -233,20 +233,20 @@ export function OnboardingClient() {
 									onChange={(e) => setLocalPart(e.target.value)}
 									className="min-w-0"
 								/>
-								<span className="max-w-36 truncate text-sm font-medium text-neutral-500">@{hostname}</span>
+								<span className="max-w-36 truncate text-sm font-medium text-[var(--muted-foreground)]">@{hostname}</span>
 							</div>
 						</div>
 						<Button
 							onClick={addMailbox}
 							disabled={!localPart || loading}
-							className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+							className="h-10 w-full rounded-xl active:scale-[0.98]"
 						>
 							{loading ? "Creating..." : "Go to inbox"}
 						</Button>
 					</>
 				)}
 				{error && (
-					<p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+					<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
 						{error}
 					</p>
 				)}

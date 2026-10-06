@@ -49,7 +49,7 @@ export function startSmtpSubmissionServer(
 	},
 ) {
 	const server = new SMTPServer({
-		name: options.hostname ?? "postora",
+		name: options.hostname ?? "Dispatch",
 		secure: options.secure ?? false,
 		authOptional: false,
 		disabledCommands: options.secure || options.tls ? [] : ["STARTTLS"],
@@ -57,7 +57,7 @@ export function startSmtpSubmissionServer(
 			? { key: readFileSync(options.tls.keyPath), cert: readFileSync(options.tls.certPath) }
 			: {}),
 		size: Number(process.env.SMTP_MAX_SIZE ?? 36 * 1024 * 1024),
-		banner: "Postora submission",
+		banner: "Dispatch submission",
 		onAuth(auth: SMTPServerAuthentication, _session, callback) {
 			const username = (auth.username ?? "").trim().toLowerCase();
 			const password = auth.password ?? "";

@@ -109,5 +109,9 @@ test("migration adds the user column off by default and the journal lists it", (
 	const entry = journal.entries.find((item) => item.tag === "0050_add_show_full_recipient_addresses");
 	assert.ok(entry, "journal is missing 0050_add_show_full_recipient_addresses");
 	assert.equal(entry.idx, 42);
-	assert.equal(journal.entries.at(-1).tag, "0052_add_mailbox_password_hash");
+	assert.ok(
+		journal.entries.some((item) => item.tag === "0052_add_mailbox_password_hash"),
+		"journal is missing 0052_add_mailbox_password_hash",
+	);
+	assert.equal(journal.entries.at(-1).tag, "0053_rename_mailflare_branding_to_Dispatch");
 });

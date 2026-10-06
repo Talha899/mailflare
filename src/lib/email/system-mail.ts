@@ -48,5 +48,5 @@ export async function pickSystemSender(env: CloudflareEnv): Promise<{ address: s
 		.limit(50);
 	const chosen = rows.find((row) => row.role === "admin") ?? rows[0];
 	if (!chosen) return null;
-	return { address: `${chosen.localPart}@${chosen.hostname}`, name: chosen.displayName ?? "Postora" };
+	return { address: `${chosen.localPart}@${chosen.hostname}`, name: chosen.displayName ?? "Dispatch" };
 }

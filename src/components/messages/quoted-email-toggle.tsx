@@ -5,7 +5,7 @@ export function QuotedEmailToggle({ html }: QuotedEmailToggleProps) {
 		<details className="email-quote-toggle">
 			<summary aria-label="Toggle quoted email" title="Show or hide quoted email" />
 			<div
-				className="email-body email-quote-content max-w-none text-sm text-neutral-600"
+				className="email-body email-quote-content max-w-none text-sm text-[var(--muted-foreground)]"
 				dangerouslySetInnerHTML={{ __html: html }}
 			/>
 		</details>

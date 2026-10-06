@@ -71,7 +71,7 @@ export default function MailboxAvatarForm({
 				type="button"
 				onClick={() => inputRef.current?.click()}
 				disabled={busy}
-				className="group relative h-24 w-24 overflow-hidden rounded-full border border-neutral-200 bg-blue-600 text-white shadow-sm outline-none ring-blue-500 transition focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-wait"
+				className="group relative h-24 w-24 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--compose)] text-[var(--compose-foreground)] shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 disabled:cursor-wait"
 				aria-label={hasAvatar ? `Change ${name} profile picture` : `Upload ${name} profile picture`}
 			>
 				{hasAvatar ? (
@@ -86,7 +86,7 @@ export default function MailboxAvatarForm({
 						<User className="h-9 w-9" />
 					</span>
 				)}
-				<span className="absolute inset-0 flex items-center justify-center bg-neutral-950/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+				<span className="absolute inset-0 flex items-center justify-center bg-[var(--foreground)]/55 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
 					{busy ? (
 						<LoaderCircle className="h-6 w-6 animate-spin" />
 					) : (
@@ -97,7 +97,7 @@ export default function MailboxAvatarForm({
 					)}
 				</span>
 			</button>
-			{status && <p className="max-w-xs text-xs text-red-600">{status}</p>}
+			{status && <p className="max-w-xs text-xs text-[var(--destructive)]">{status}</p>}
 		</div>
 	);
 }

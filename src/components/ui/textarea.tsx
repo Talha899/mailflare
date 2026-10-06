@@ -5,7 +5,13 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentPro
 	({ className, ...props }, ref) => (
 		<textarea
 			className={cn(
-				"flex min-h-[80px] w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-[var(--muted-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
+				"flex min-h-[88px] w-full rounded-lg border border-[var(--border)] bg-[var(--card)]",
+				"px-3 py-2.5 text-sm text-[var(--foreground)] leading-relaxed",
+				"placeholder:text-[var(--muted-foreground)]",
+				"transition-[border-color,box-shadow] duration-150",
+				"focus-visible:outline-none focus-visible:border-[var(--ring)] focus-visible:ring-2 focus-visible:ring-[var(--ring)]/25",
+				"disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[var(--muted)]",
+				"resize-y",
 				className,
 			)}
 			ref={ref}

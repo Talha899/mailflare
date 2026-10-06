@@ -18,11 +18,26 @@ export default function AgentReviewPage() {
 			setRequest(data);
 		}).catch((cause) => setError(cause instanceof Error ? cause.message : "Could not load review"));
 	}, [id]);
-	return <div className="p-8">
-		<h1 className="text-2xl font-semibold">AI draft review</h1>
-		{error && <p className="mt-4 text-red-600">{error}</p>}
-		{!error && !request && <p className="mt-4">Loading review…</p>}
-		{request && (request.status !== "pending" || request.stale || !request.snapshot) && <p className="mt-4">This review is {request.stale ? "out of date" : request.status}. Open the draft and request a new review if needed.</p>}
-		{request?.status === "pending" && !request.stale && request.snapshot && <SendReview approvalId={id} snapshot={request.snapshot} onClose={() => router.push("/drafts")} onSent={() => router.push("/sent")} />}
-	</div>;
+	return (
+		<div className="p-8 text-[var(--foreground)]">
+			<h1 className="text-2xl font-semibold tracking-tight">AI draft review</h1>
+			{error && <p className="mt-4 text-[var(--destructive)]">{error}</p>}
+			{!error && !request && (
+				<p className="mt-4 text-[var(--muted-foreground)]">Loading review…</p>
+			)}
+			{request && (request.status !== "pending" || request.stale || !request.snapshot) && (
+				<p className="mt-4 text-[var(--muted-foreground)]">
+					This review is {request.stale ? "out of date" : request.status}. Open the draft and request a new review if needed.
+				</p>
+			)}
+			{request?.status === "pending" && !request.stale && request.snapshot && (
+				<SendReview
+					approvalId={id}
+					snapshot={request.snapshot}
+					onClose={() => router.push("/drafts")}
+					onSent={() => router.push("/sent")}
+				/>
+			)}
+		</div>
+	);
 }

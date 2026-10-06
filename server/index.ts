@@ -92,7 +92,7 @@ async function main() {
 	});
 
 	server.listen(port, host, () => {
-		console.log(`Postora listening on http://${host}:${port} (data in ${runtime.dataDir})`);
+		console.log(`Dispatch listening on http://${host}:${port} (data in ${runtime.dataDir})`);
 	});
 
 	const smtpPort = Number(process.env.SMTP_INBOUND_PORT ?? 25);
@@ -160,6 +160,6 @@ async function main() {
 }
 
 main().catch((error) => {
-	console.error("Postora failed to start", error);
+	console.error("Dispatch failed to start", error);
 	process.exit(1);
 });

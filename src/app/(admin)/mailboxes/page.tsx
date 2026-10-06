@@ -57,8 +57,8 @@ export default function MailboxesPage() {
 		<div className="space-y-6">
 			<div className="flex flex-wrap items-center justify-between gap-4">
 				<div>
-					<h1 className="text-3xl font-semibold tracking-tight">Mailboxes</h1>
-					<p className="mt-1 text-sm text-[var(--muted-foreground)]">
+					<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Mailboxes</h1>
+					<p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--muted-foreground)]">
 						Create addresses with mailbox passwords for webmail, IMAP, and SMTP AUTH — separate from administrator
 						account passwords.
 					</p>
@@ -109,7 +109,7 @@ export default function MailboxesPage() {
 									href={`/mailboxes/${mailbox.id}`}
 									className="group px-5 py-4 transition-colors hover:bg-[var(--muted)]"
 								>
-									<span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+									<span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--muted)] text-sm font-semibold text-[var(--compose)]">
 										{getMailboxName(mailboxWithHostname).trim().charAt(0).toUpperCase() || "?"}
 										{mailbox.hasAvatar && (
 											<ProgressiveAvatarImage
@@ -125,7 +125,7 @@ export default function MailboxesPage() {
 												{getMailboxName(mailboxWithHostname)}
 											</span>
 											{mailbox.type === "shared" && (
-												<span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
+												<span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[var(--accent)] px-2 py-0.5 text-xs font-medium text-[var(--compose)]">
 													<UsersRound className="h-3 w-3" />
 													Shared
 												</span>

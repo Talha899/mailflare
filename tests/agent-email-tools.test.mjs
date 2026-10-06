@@ -39,16 +39,20 @@ await build({
 const { SqliteDatabase, applyMigrations, createAgentChatStream, runEmailTool, requestAgentSend, createSession, postAgentChat } = await import(pathToFileURL(join(bundleDirectory, "entry.mjs")).href);
 
 test("assistant reads mail, creates an editable reply draft, and invokes tools through chat", async (t) => {
-	t.after(() => rmSync(bundleDirectory, { recursive: true, force: true }));
 	const directory = mkdtempSync(join(tmpdir(), "mailflare-agent-"));
-	t.after(() => rmSync(directory, { recursive: true, force: true }));
 	const database = new SqliteDatabase(join(directory, "mailflare.sqlite"));
-	t.after(() => database.db.close());
+	t.after(() => {
+		try { database.db.close(); } catch { /* already closed */ }
+		try { rmSync(directory, { recursive: true, force: true }); } catch { /* Windows may keep a brief lock */ }
+		try { rmSync(bundleDirectory, { recursive: true, force: true }); } catch { /* best-effort */ }
+	});
 	await applyMigrations(database, join(process.cwd(), "drizzle", "migrations"));
 	database.db.exec(`
 		INSERT INTO users (id, email, password_hash, name, created_at) VALUES ('user-1', 'owner@example.com', 'hash', 'Owner', 1);
 		INSERT INTO domains (id, user_id, hostname, zone_id, status, created_at) VALUES ('domain-1', 'user-1', 'example.com', 'zone-1', 'active', 1);
 		INSERT INTO mailboxes (id, user_id, domain_id, local_part, created_at) VALUES ('mailbox-1', 'user-1', 'domain-1', 'owner', 1);
+		INSERT INTO mailbox_agent_settings (mailbox_id, enabled, auto_draft_enabled, instructions, daily_limit, updated_at)
+		VALUES ('mailbox-1', 1, 0, '', 25, 1);
 		INSERT INTO messages (id, user_id, mailbox_id, direction, provider_message_id, from_addr, to_addr, subject, text_body, status, thread_id, created_at)
 		VALUES ('email-1', 'user-1', 'mailbox-1', 'inbound', '<email-1@example.net>', 'customer@example.net', 'owner@example.com', 'Question', 'Can we meet Tuesday?', 'received', 'thread-1', 2);
 	`);
@@ -94,13 +98,15 @@ test("assistant reads mail, creates an editable reply draft, and invokes tools t
 	assert.equal(database.db.prepare("SELECT count(*) AS count FROM agent_send_approvals").get().count, 0);
 	const newDraft = await runEmailTool(context, "draft_email", { to: "customer@example.net", subject: "Follow up", body: "Hello again." });
 	assert.equal(database.db.prepare("SELECT status FROM messages WHERE id = ?").get(newDraft.draftId).status, "draft");
-	await runEmailTool(context, "discard_draft", { draftId: newDraft.draftId, expectedRevision: 1 });
-	assert.equal(database.db.prepare("SELECT id FROM messages WHERE id = ?").get(newDraft.draftId), undefined);
-	await runEmailTool(context, "mark_email_read", { emailId: "email-1", read: true });
-	assert.equal(database.db.prepare("SELECT read FROM messages WHERE id = 'email-1'").get().read, 1);
-	await runEmailTool(context, "move_email", { emailId: "email-1", destination: "archived" });
-	assert.equal(database.db.prepare("SELECT status FROM messages WHERE id = 'email-1'").get().status, "archived");
-	await runEmailTool(context, "move_email", { emailId: "email-1", destination: "inbox" });
+	const discarded = await runEmailTool(context, "discard_draft", { draftId: newDraft.draftId, expectedRevision: 1 });
+	assert.equal(discarded.status, "pending_approval");
+	assert.ok(database.db.prepare("SELECT id FROM messages WHERE id = ?").get(newDraft.draftId));
+	const marked = await runEmailTool(context, "mark_email_read", { emailId: "email-1", read: true });
+	assert.equal(marked.status, "pending_approval");
+	assert.equal(database.db.prepare("SELECT read FROM messages WHERE id = 'email-1'").get().read, 0);
+	const moved = await runEmailTool(context, "move_email", { emailId: "email-1", destination: "archived" });
+	assert.equal(moved.status, "pending_approval");
+	assert.equal(database.db.prepare("SELECT status FROM messages WHERE id = 'email-1'").get().status, "received");
 
 	const { stream } = await createAgentChatStream(context, "What arrived in my inbox?");
 	const events = (await new Response(stream).text()).trim().split("\n").map((line) => JSON.parse(line));

@@ -43,7 +43,7 @@ export function ResetPasswordClient() {
 	if (!token) {
 		return (
 			<AuthShell icon={LockKeyhole} title="Reset link missing" description="Open the link from the reset email to choose a new password.">
-				<Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+				<Link href="/forgot-password" className="text-sm font-medium text-[var(--primary)] hover:underline">
 					Request a new link
 				</Link>
 			</AuthShell>
@@ -61,7 +61,7 @@ export function ResetPasswordClient() {
 			}
 			footer={
 				done ? (
-					<Link href="/login" className="text-sm font-medium text-blue-600 hover:underline">
+					<Link href="/login" className="text-sm font-medium text-[var(--primary)] hover:underline">
 						Go to sign in
 					</Link>
 				) : undefined
@@ -95,9 +95,11 @@ export function ResetPasswordClient() {
 						/>
 					</div>
 					{error && (
-						<p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>
+						<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm text-[var(--destructive)]">
+							{error}
+						</p>
 					)}
-					<Button type="submit" className="h-11 w-full rounded-full px-6 active:scale-[0.98]" disabled={loading}>
+					<Button type="submit" className="h-10 w-full rounded-xl active:scale-[0.98]" disabled={loading}>
 						{loading ? "Saving..." : "Set new password"}
 					</Button>
 				</form>

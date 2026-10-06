@@ -83,18 +83,26 @@ function MessageListRow({
 	if (compact && config.folder !== "drafts") {
 		return (
 			<div
-				className={`group grid grid-cols-[20px_minmax(0,1fr)] gap-3 border-l-2 px-4 py-3 transition-colors ${active
-					? "border-l-[var(--primary)] bg-[var(--accent)]"
-					: selected
-						? "border-l-transparent bg-[var(--muted)]"
-						: "border-l-transparent hover:bg-[var(--muted)]"
-					} ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`}
+				className={clsx(
+					"group relative grid grid-cols-[20px_minmax(0,1fr)] gap-3 border-l-[3px] px-4 py-3 transition-colors",
+					active && "border-l-[var(--primary)] bg-[var(--accent)]",
+					!active && selected && "border-l-[var(--primary)]/40 bg-[var(--muted)]",
+					!active && !selected && unread && "border-l-[var(--primary)]/25 bg-[var(--card)]",
+					!active && !selected && !unread && "border-l-transparent hover:bg-[var(--muted)]/70",
+					draggable && "cursor-grab active:cursor-grabbing",
+				)}
 				draggable={draggable}
 				onDragStart={(event) => {
 					if (!draggable) return;
 					setMessageDragData(event.dataTransfer, { messageIds: dragMessageIds });
 				}}
 			>
+				{unread && !active && !selected && (
+					<span
+						aria-hidden
+						className="absolute left-1.5 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-sm bg-[var(--primary)]"
+					/>
+				)}
 				<MessageNavigationProgress progress={navigation.progress} />
 				<Checkbox
 					checked={selected}
@@ -104,20 +112,22 @@ function MessageListRow({
 				/>
 				<Link href={href} onClick={onMessageNavigate} className="min-w-0">
 					<span className="flex items-baseline justify-between gap-3">
-						<span className={clsx(unread && "font-semibold",getMessagePartyClassName(message, config.folder))}>
+						<span className={clsx(unread && "font-semibold", getMessagePartyClassName(message, config.folder))}>
 							{party}
 
 							{(message.threadCount ?? 1) > 1 && (
 								<span className="ml-2 text-xs font-normal text-[var(--muted-foreground)]">{message.threadCount}</span>
 							)}
 						</span>
-						<span className={clsx(unread ?"font-medium":"text-[var(--muted-foreground)]","shrink-0 text-[11px]")}>
+						<span className={clsx(unread ? "font-medium text-[var(--foreground)]" : "text-[var(--muted-foreground)]", "shrink-0 text-[11px] tabular-nums")}>
 							{formatMessageListTimestamp(message.createdAt)}
 						</span>
 					</span>
 					<span
-						className={`mt-1 block truncate text-sm ${unread ? "font-semibold text-[var(--foreground)]" : "text-[var(--foreground)]/80"
-							}`}
+						className={clsx(
+							"mt-1 block truncate text-sm",
+							unread ? "font-semibold text-[var(--foreground)]" : "text-[var(--foreground)]/75",
+						)}
 					>
 						{message.subject ?? "(no subject)"}
 					</span>
@@ -129,9 +139,14 @@ function MessageListRow({
 		);
 	}
 
-	const className =
-		`group relative grid min-h-12 w-full grid-cols-[24px_32px_minmax(160px,260px)_1fr_auto] items-center gap-3 px-6 text-left text-sm hover:z-10 hover:bg-[var(--accent)] hover:shadow-sm ${active || selected ? "bg-[var(--accent)]" : ""
-		} ${draggable ? "cursor-grab active:cursor-grabbing" : ""}`;
+	const className = clsx(
+		"group relative grid min-h-12 w-full grid-cols-[24px_32px_minmax(160px,260px)_1fr_auto] items-center gap-3 border-l-[3px] px-5 text-left text-sm transition-colors",
+		active && "border-l-[var(--primary)] bg-[var(--accent)]",
+		!active && selected && "border-l-[var(--primary)]/40 bg-[var(--muted)]",
+		!active && !selected && unread && "border-l-[var(--primary)]/20 hover:bg-[var(--muted)]/60",
+		!active && !selected && !unread && "border-l-transparent hover:bg-[var(--muted)]/50",
+		draggable && "cursor-grab active:cursor-grabbing",
+	);
 	const content = (
 		<>
 			{config.folder === "inbox" && message.direction === "inbound" && (
@@ -147,30 +162,38 @@ function MessageListRow({
 						}}
 						aria-label={starred ? "Starred" : "Not starred"}
 					>
-						<Icon className={`h-4 w-4 ${starred ? "fill-amber-400 text-amber-400" : "text-[var(--border)]"}`} />
+						<Icon className={`h-4 w-4 ${starred ? "fill-[var(--primary)] text-[var(--primary)]" : "text-[var(--border)]"}`} />
 					</Button>
 				</Tooltip>
 			)}
 			{(config.folder !== "inbox" || message.direction !== "inbound") && (
 				<Icon className="h-4 w-4 text-[var(--border)]" />
 			)}
-			<span className={clsx(unread && "font-semibold", getMessagePartyClassName(rowMessage, config.folder))}>
+			<span className={clsx("flex items-center gap-2", unread && "font-semibold", getMessagePartyClassName(rowMessage, config.folder))}>
+				{unread && (
+					<span
+						aria-hidden
+						className="h-1.5 w-1.5 shrink-0 rounded-sm bg-[var(--primary)]"
+					/>
+				)}
 				{party}
 
 				{(message.threadCount ?? 1) > 1 && (
-					<span className="ml-2 text-xs text-[var(--muted-foreground)]">{message.threadCount}</span>
+					<span className="ml-1 text-xs font-normal text-[var(--muted-foreground)]">{message.threadCount}</span>
 				)}
 			</span>
 			<span className="truncate text-[var(--foreground)]/80">
 				<span className={unread ? "font-semibold text-[var(--foreground)]" : ""}>
 					{rowMessage.subject ?? "(no subject)"}
 				</span>
-				<span className="text-[var(--muted-foreground)]"> - {getMessagePreview(rowMessage, config.folder)}</span>
+				<span className="text-[var(--muted-foreground)]"> — {getMessagePreview(rowMessage, config.folder)}</span>
 			</span>
 			<time
 				dateTime={message.createdAt}
-				className={`min-w-[96px] whitespace-nowrap text-right text-xs group-hover:opacity-0 ${unread ? "font-semibold text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
-					}`}
+				className={clsx(
+					"min-w-[96px] whitespace-nowrap text-right text-xs tabular-nums group-hover:opacity-0",
+					unread ? "font-semibold text-[var(--foreground)]" : "text-[var(--muted-foreground)]",
+				)}
 			>
 				{formatMessageListTimestamp(message.createdAt)}
 			</time>
@@ -371,7 +394,7 @@ export function MessageFolderPage({
 
 	return (
 		<div className="flex h-full min-h-0 flex-col">
-			<div className={`flex h-14 shrink-0 items-center justify-between border-b border-[var(--border)] ${compact ? "px-4" : "px-6"}`}>
+			<div className={`flex h-12 shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--card)] ${compact ? "px-4" : "px-5"}`}>
 				<div className="flex items-center gap-3 w-full">
 					<Tooltip label="Select all visible messages">
 						<Checkbox

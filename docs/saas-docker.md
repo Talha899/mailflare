@@ -1,6 +1,6 @@
 # Multi-organization SaaS (Docker)
 
-Mailflare can run as a multi-tenant email hosting SaaS on Docker: each customer
+Dispatch can run as a multi-tenant email hosting SaaS on Docker: each customer
 signs up, gets an organization, connects their domain(s), and creates mailboxes
 and aliases. Mail stays in SQLite; organization metadata lives in MongoDB.
 
@@ -19,7 +19,7 @@ Services:
 | Service | Purpose |
 |---------|---------|
 | `mongo` | Organizations, domain verification tokens, plan limits |
-| `mailflare` | Web UI, API, SMTP inbound (:25), queues, SQLite + blobs |
+| `Dispatch` | Web UI, API, SMTP inbound (:25), queues, SQLite + blobs |
 
 Open `http://localhost:3000/signup` to create a workspace.
 
@@ -38,7 +38,7 @@ Open `http://localhost:3000/signup` to create a workspace.
 
 | Condition | Behavior |
 |-----------|----------|
-| `CF_TOKEN` set and zone found on that account | Auto Email Routing / sending subdomain (existing Mailflare path) |
+| `CF_TOKEN` set and zone found on that account | Auto Email Routing / sending subdomain (existing Dispatch path) |
 | No Cloudflare credentials, or zone not on the account | Manual zone + TXT ownership proof; DNS checklist on the domain page |
 
 ## Environment
@@ -50,7 +50,7 @@ Open `http://localhost:3000/signup` to create a workspace.
 | `SMTP_URL` | unset | Outbound relay |
 | `CF_TOKEN` / `CF_ACCOUNT_ID` | unset | Optional Cloudflare DNS + Email Sending |
 
-When `SAAS_MODE` is not `true`, behavior matches classic single-tenant Mailflare
+When `SAAS_MODE` is not `true`, behavior matches classic single-tenant Dispatch
 (`/setup` first admin only).
 
 ## Billing
@@ -111,7 +111,7 @@ For **send/receive DNS** on customer domains, see [saas-mail.md](./saas-mail.md)
 3. Set **Docker Compose Location** to `/docker-compose.coolify.yml`.
 4. Under **Environment Variables**, paste production values (see below). Do **not**
    put secrets in the compose file. Coolify injects them at deploy time.
-5. Assign a domain to the **`mailflare`** service, port **`3000`**, with HTTPS.
+5. Assign a domain to the **`Dispatch`** service, port **`3000`**, with HTTPS.
 6. Deploy. Open `https://your-domain/signup` (SaaS) or `/setup` if `SAAS_MODE` is off.
 
 ### Coolify environment variables
@@ -135,17 +135,17 @@ S3_BUCKET=signage-media
 S3_ACCESS_KEY_ID=...
 S3_SECRET_ACCESS_KEY=...
 S3_FORCE_PATH_STYLE=true
-S3_KEY_PREFIX=mailflare
+S3_KEY_PREFIX=Dispatch
 ```
 
 Copy a filled local template from `.env.coolify` (gitignored) into Coolify’s
-Environment Variables UI. Domain on the `mailflare` service: port **3000**.
+Environment Variables UI. Domain on the `Dispatch` service: port **3000**.
 
 ### Coolify mail / ports
 
 | Traffic | How |
 |---------|-----|
-| HTTPS web + JMAP + WebSocket `/api/realtime` | Coolify domain → service `mailflare:3000` (enable WebSockets if your Coolify version asks) |
+| HTTPS web + JMAP + WebSocket `/api/realtime` | Coolify domain → service `Dispatch:3000` (enable WebSockets if your Coolify version asks) |
 | Inbound SMTP | Host port **25** must reach the container (`25:25` in the compose). Many clouds block 25 — open it on the VPS firewall. |
 | Port 25 blocked | Set `SMTP_INBOUND_PORT=0` and use the Cloudflare Email Routing relay Worker (`deploy/cloudflare-email-relay`) with `INBOUND_WEBHOOK_SECRET`. |
 

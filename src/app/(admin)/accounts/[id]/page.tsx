@@ -54,22 +54,22 @@ export default function AccountDetailsPage() {
 		}
 	}
 
-	if (!account) return <p className="text-sm text-neutral-500">{message ?? "Loading account..."}</p>;
+	if (!account) return <p className="text-sm text-[var(--muted-foreground)]">{message ?? "Loading account..."}</p>;
 
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-medium text-neutral-900">Details</h1>
-				<p className="mt-2 text-sm text-neutral-500">Update this account&apos;s profile and status.</p>
+				<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Details</h1>
+				<p className="mt-2 text-sm text-[var(--muted-foreground)]">Update this account&apos;s profile and status.</p>
 			</div>
-			<section className="space-y-5 rounded-3xl bg-white p-6">
+			<section className="space-y-5 rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
 				{!account.editable && (
-					<p className="rounded-2xl bg-neutral-50 p-4 text-sm text-neutral-500">
+					<p className="rounded-2xl bg-[var(--muted)] p-4 text-sm text-[var(--muted-foreground)]">
 						You do not have permission to edit this account. Only the primary admin can manage admin accounts.
 					</p>
 				)}
 				<div className="flex items-center gap-4">
-					<span className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-xl font-semibold text-blue-700">
+					<span className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[var(--muted)] text-xl font-semibold text-[var(--compose)]">
 						{account.name.charAt(0).toUpperCase()}
 						{account.hasAvatar && (
 							<ProgressiveAvatarImage src={getManagedAccountAvatarUrl(id, avatarVersion)} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -77,7 +77,7 @@ export default function AccountDetailsPage() {
 					</span>
 					{account.editable && (
 						<Label className="cursor-pointer">
-							<span className="inline-flex h-9 items-center gap-2 rounded-md border border-neutral-200 px-3 text-sm">
+							<span className="inline-flex h-9 items-center gap-2 rounded-md border border-[var(--border)] px-3 text-sm">
 								<Upload className="h-4 w-4" />
 								Change avatar
 							</span>
@@ -87,7 +87,7 @@ export default function AccountDetailsPage() {
 				</div>
 				<div className="space-y-2">
 					<Label htmlFor="account-email">Email</Label>
-					<Input id="account-email" value={account.email} readOnly className="bg-neutral-50 text-neutral-500" />
+					<Input id="account-email" value={account.email} readOnly className="bg-[var(--muted)] text-[var(--muted-foreground)]" />
 				</div>
 				<div className="space-y-2">
 					<Label htmlFor="account-name">Name</Label>
@@ -103,14 +103,14 @@ export default function AccountDetailsPage() {
 						onChange={(event) => setAccount({ ...account, forwardingEmail: event.target.value || null })}
 						placeholder="destination@example.com"
 					/>
-					<p className="text-xs leading-5 text-neutral-500">
+					<p className="text-xs leading-5 text-[var(--muted-foreground)]">
 						Incoming mail will also be sent to this verified Cloudflare Email Routing destination.
 					</p>
 				</div>}
-				<div className="flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+				<div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--border)] bg-[var(--muted)] p-4">
 					<div className="space-y-1">
-						<Label htmlFor="account-enabled" className="font-semibold text-neutral-900">Account enabled</Label>
-						<p id="account-enabled-description" className="text-xs leading-5 text-neutral-500">
+						<Label htmlFor="account-enabled" className="font-semibold text-[var(--foreground)]">Account enabled</Label>
+						<p id="account-enabled-description" className="text-xs leading-5 text-[var(--muted-foreground)]">
 							{account.isPrimaryAdmin ? "The primary admin account always stays enabled." : "Allow this account to sign in and access its inboxes."}
 						</p>
 					</div>
@@ -128,7 +128,7 @@ export default function AccountDetailsPage() {
 					</Button>
 				)}
 			</section>
-			{message && <p className="text-sm text-neutral-500">{message}</p>}
+			{message && <p className="text-sm text-[var(--muted-foreground)]">{message}</p>}
 		</div>
 	);
 }

@@ -23,7 +23,7 @@ export function MessageReadingHeaderButton({ assistantVisible }: MessageReadingH
 		<Tooltip label={label} className={singleColumn ? "inline-flex" : "hidden lg:inline-flex"}>
 			<button
 				type="button"
-				className={clsx(!singleColumn && assistantVisible ? "opacity-40" : !singleColumn && !visible ? "opacity-60 hover:opacity-100" : "", (singleColumn || !assistantVisible) && "hover:bg-neutral-100 hover:text-neutral-900", "relative z-10 shrink-0 rounded-full p-2 text-neutral-600 duration-200")}
+				className={clsx(!singleColumn && assistantVisible ? "opacity-40" : !singleColumn && !visible ? "opacity-60 hover:opacity-100" : "", (singleColumn || !assistantVisible) && "hover:bg-[var(--muted)] hover:text-[var(--foreground)]", "relative z-10 shrink-0 rounded-full p-2 text-[var(--muted-foreground)] duration-200")}
 				onClick={handleClick}
 				disabled={!singleColumn && assistantVisible}
 				aria-label={label ?? "Email list unavailable"}

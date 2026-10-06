@@ -11,10 +11,10 @@ export function RecipientAddressSettings() {
 
 	return (
 		<div>
-			<label className="flex items-start gap-3 rounded-xl bg-neutral-50 p-4">
+			<label className="flex items-start gap-3 rounded-xl bg-[var(--muted)] p-4">
 				<span className="flex-1">
-					<span className="block text-sm font-medium text-neutral-900">Show full recipient addresses</span>
-					<span className="mt-1 block text-sm text-neutral-500">
+					<span className="block text-sm font-medium text-[var(--foreground)]">Show full recipient addresses</span>
+					<span className="mt-1 block text-sm text-[var(--muted-foreground)]">
 						On To, Cc, and Bcc, show Name &lt;user@domain.tld&gt; when the message includes a name. Off shows only the email address. This follows your sign-in, on every mailbox.
 					</span>
 				</span>
@@ -31,7 +31,7 @@ export function RecipientAddressSettings() {
 					aria-label="Show full recipient addresses"
 				/>
 			</label>
-			{(saveError || error) && <p className="mt-2 px-4 text-sm text-red-600">{saveError || error}</p>}
+			{(saveError || error) && <p className="mt-2 px-4 text-sm text-[var(--destructive)]">{saveError || error}</p>}
 		</div>
 	);
 }

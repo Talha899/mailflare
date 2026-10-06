@@ -71,7 +71,7 @@ export function MessageSplitLayout({
 	return (
 		<div ref={containerRef} className="h-full min-h-0 overflow-hidden lg:grid lg:transition-[grid-template-columns] lg:ease-in-out motion-reduce:transition-none" style={{ gridTemplateColumns: twoColumnReading ? `${listVisible ? renderedListWidth : 0}px minmax(0,1fr)` : "minmax(0,1fr)", transitionDuration: widthReady ? "300ms" : "0ms" }}>
 			{twoColumnReading && (
-			<aside className={`relative hidden min-h-0 min-w-0 overflow-hidden bg-white lg:block ${listVisible ? "border-r border-neutral-200" : "pointer-events-none"}`} aria-hidden={!listVisible} inert={!listVisible}>
+			<aside className={`relative hidden min-h-0 min-w-0 overflow-hidden bg-[var(--card)] lg:block ${listVisible ? "border-r border-[var(--border)]" : "pointer-events-none"}`} aria-hidden={!listVisible} inert={!listVisible}>
 				<div className={`h-full overflow-hidden transition-transform duration-300 ease-in-out motion-reduce:transition-none ${listVisible ? "translate-x-0" : "-translate-x-full"}`} style={{ width: renderedListWidth }}>
 				<MessageFolderPage
 					config={config}
@@ -95,7 +95,7 @@ export function MessageSplitLayout({
 			)}
 			<MessageListVisibilityContext.Provider value={{ visible: listVisible, toggle: () => { const visible = !manualListVisible; setManualListVisible(visible); saveMessageListVisible(visible); }, singleColumn: !twoColumnReading, backHref: config.hrefPrefix, backLabel: config.title }}>
 			<MessageDetailNavigationProvider config={config}>
-			<section className="min-h-0 min-w-0 overflow-hidden bg-white flex flex-col">
+			<section className="min-h-0 min-w-0 overflow-hidden bg-[var(--card)] flex flex-col">
 				{twoColumnReading && selectedMessages.length > 0 ? (
 					<BulkMessageSelectionPane
 						selectedMessages={selectedMessages}

@@ -25,15 +25,15 @@ export default function AccountPasswordPage() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-medium text-neutral-900">Password</h1>
-				<p className="mt-2 text-sm text-neutral-500">Reset the password for {account?.name ?? "this account"}.</p>
+				<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Password</h1>
+				<p className="mt-2 text-sm text-[var(--muted-foreground)]">Reset the password for {account?.name ?? "this account"}.</p>
 			</div>
 			<form
 				onSubmit={(event) => void saveAccountPassword({ event, account, password, setPassword, setSaving, setMessage })}
-				className="space-y-5 rounded-3xl bg-white p-6"
+				className="space-y-5 rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm"
 			>
 				{account && !account.editable ? (
-					<p className="text-sm text-neutral-500">Only the primary admin can reset an admin account password.</p>
+					<p className="text-sm text-[var(--muted-foreground)]">Only the primary admin can reset an admin account password.</p>
 				) : (
 					<>
 						<div className="space-y-2">
@@ -50,7 +50,7 @@ export default function AccountPasswordPage() {
 								onChange={(event) => setPassword(event.target.value)}
 								placeholder="Enter at least 8 characters"
 							/>
-							<p className="text-xs leading-5 text-neutral-500">
+							<p className="text-xs leading-5 text-[var(--muted-foreground)]">
 								Setting a password signs this account out everywhere. Share it with the user through another channel.
 							</p>
 						</div>
@@ -60,7 +60,7 @@ export default function AccountPasswordPage() {
 					</>
 				)}
 			</form>
-			{message && <p role="status" className="text-sm text-neutral-500">{message}</p>}
+			{message && <p role="status" className="text-sm text-[var(--muted-foreground)]">{message}</p>}
 		</div>
 	);
 }

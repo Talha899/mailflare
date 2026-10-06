@@ -52,7 +52,7 @@ export default {
 		} catch (error) {
 			console.error("Relay to Mailflare failed", error);
 			// A rejection with a temporary-sounding reason makes most senders retry later.
-			message.setReject("Mailflare is temporarily unavailable, please retry");
+			message.setReject("Dispatch is temporarily unavailable, please retry");
 			return;
 		}
 

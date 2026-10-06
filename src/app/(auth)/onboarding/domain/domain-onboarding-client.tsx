@@ -95,22 +95,31 @@ export function DomainOnboardingClient() {
 							required
 						/>
 					</div>
-					{error && <p className="text-sm text-red-600">{error}</p>}
+					{error && (
+						<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm font-medium text-[var(--destructive)]">
+							{error}
+						</p>
+					)}
 					<div className="flex flex-col gap-2 sm:flex-row">
-						<Button type="submit" disabled={loading} className="flex-1">
+						<Button type="submit" disabled={loading} className="h-10 flex-1 rounded-xl active:scale-[0.98]">
 							{loading ? "Adding..." : "Add domain"}
 						</Button>
-						<Button type="button" variant="outline" onClick={() => router.replace("/domains")}>
+						<Button
+							type="button"
+							variant="outline"
+							className="h-10 rounded-xl active:scale-[0.98]"
+							onClick={() => router.replace("/domains")}
+						>
 							Skip for now
 						</Button>
 					</div>
 				</form>
 			) : (
 				<div className="space-y-4">
-					<p className="text-sm text-neutral-700">
+					<p className="text-sm text-[var(--foreground)]">
 						Create this TXT record at your DNS provider to prove you own the domain, then verify.
 					</p>
-					<div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm">
+					<div className="rounded-xl border border-[var(--border)] bg-[var(--muted)] p-4 text-sm">
 						<p>
 							<span className="font-medium">Type:</span> {verification.type}
 						</p>
@@ -121,12 +130,26 @@ export function DomainOnboardingClient() {
 							<span className="font-medium">Value:</span> {verification.content}
 						</p>
 					</div>
-					{error && <p className="text-sm text-red-600">{error}</p>}
+					{error && (
+						<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm font-medium text-[var(--destructive)]">
+							{error}
+						</p>
+					)}
 					<div className="flex flex-col gap-2 sm:flex-row">
-						<Button type="button" onClick={verifyDomain} disabled={verifying} className="flex-1">
+						<Button
+							type="button"
+							onClick={verifyDomain}
+							disabled={verifying}
+							className="h-10 flex-1 rounded-xl active:scale-[0.98]"
+						>
 							{verifying ? "Checking DNS..." : "Verify ownership"}
 						</Button>
-						<Button type="button" variant="outline" onClick={() => router.replace("/domains")}>
+						<Button
+							type="button"
+							variant="outline"
+							className="h-10 rounded-xl active:scale-[0.98]"
+							onClick={() => router.replace("/domains")}
+						>
 							Open domains
 						</Button>
 					</div>

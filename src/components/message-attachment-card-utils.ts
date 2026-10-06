@@ -23,7 +23,7 @@ export function getAttachmentVisual(
 	if (previewKind === "image") {
 		return {
 			icon: Image,
-			iconClassName: "bg-blue-50 text-blue-700",
+			iconClassName: "bg-[var(--accent)] text-[var(--primary)]",
 			label: "Image",
 			thumbnail: "image",
 		};
@@ -31,7 +31,7 @@ export function getAttachmentVisual(
 	if (previewKind === "video") {
 		return {
 			icon: FileVideoCamera,
-			iconClassName: "bg-rose-50 text-rose-700",
+			iconClassName: "bg-[color-mix(in_oklab,var(--destructive)_10%,var(--card))] text-[var(--destructive)]",
 			label: "Video",
 			thumbnail: "video",
 		};
@@ -39,7 +39,7 @@ export function getAttachmentVisual(
 	if (previewKind === "audio") {
 		return {
 			icon: Music,
-			iconClassName: "bg-orange-50 text-orange-700",
+			iconClassName: "bg-[var(--muted)] text-[var(--foreground)]",
 			label: "Audio",
 			thumbnail: null,
 		};
@@ -47,7 +47,7 @@ export function getAttachmentVisual(
 	if (previewKind === "pdf") {
 		return {
 			icon: FileText,
-			iconClassName: "bg-red-50 text-red-700",
+			iconClassName: "bg-[color-mix(in_oklab,var(--destructive)_10%,var(--card))] text-[var(--destructive)]",
 			label: "PDF",
 			thumbnail: null,
 		};
@@ -60,7 +60,7 @@ export function getAttachmentVisual(
 	) {
 		return {
 			icon: FileSpreadsheet,
-			iconClassName: "bg-emerald-50 text-emerald-700",
+			iconClassName: "bg-[color-mix(in_oklab,var(--success)_10%,var(--card))] text-[var(--success)]",
 			label: "Spreadsheet",
 			thumbnail: null,
 		};
@@ -72,7 +72,7 @@ export function getAttachmentVisual(
 	) {
 		return {
 			icon: Presentation,
-			iconClassName: "bg-amber-50 text-amber-700",
+			iconClassName: "bg-[var(--muted)] text-[var(--foreground)]",
 			label: "Presentation",
 			thumbnail: null,
 		};
@@ -85,7 +85,7 @@ export function getAttachmentVisual(
 	) {
 		return {
 			icon: FileArchive,
-			iconClassName: "bg-violet-50 text-violet-700",
+			iconClassName: "bg-[var(--muted)] text-[var(--foreground)]",
 			label: "Archive",
 			thumbnail: null,
 		};
@@ -99,7 +99,7 @@ export function getAttachmentVisual(
 	) {
 		return {
 			icon: FileCode,
-			iconClassName: "bg-cyan-50 text-cyan-700",
+			iconClassName: "bg-[color-mix(in_oklab,var(--primary)_12%,var(--card))] text-[var(--primary)]",
 			label: "Code",
 			thumbnail: null,
 		};
@@ -107,7 +107,7 @@ export function getAttachmentVisual(
 	if (previewKind === "text" || type.includes("word") || /\.(doc|docx|odt|rtf|txt)$/.test(filename)) {
 		return {
 			icon: FileType,
-			iconClassName: "bg-sky-50 text-sky-700",
+			iconClassName: "bg-[var(--accent)] text-[var(--primary)]",
 			label: "Document",
 			thumbnail: null,
 		};
@@ -115,7 +115,7 @@ export function getAttachmentVisual(
 
 	return {
 		icon: FileText,
-		iconClassName: "bg-neutral-100 text-neutral-600",
+		iconClassName: "bg-[var(--muted)] text-[var(--muted-foreground)]",
 		label: "File",
 		thumbnail: null,
 	};

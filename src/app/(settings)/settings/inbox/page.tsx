@@ -12,49 +12,49 @@ export default function SettingsInboxPage() {
 		<div className="space-y-8 py-4">
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-xl font-semibold text-neutral-900">Inbox experience</h2>
-					<p className="mt-1 text-sm text-neutral-500">Choose how you read and interact with email.</p>
+					<h2 className="text-xl font-semibold text-[var(--foreground)]">Inbox experience</h2>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose how you read and interact with email.</p>
 				</div>
-				<div className="divide-y divide-neutral-100 rounded-3xl bg-white p-6">
+				<div className="divide-y divide-[var(--border)] rounded-3xl bg-[var(--card)] p-6">
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Appearance</h3>
-							<p className="mt-1 text-sm text-neutral-500">Choose a light or dark interface.</p>
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Appearance</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose a light or dark interface.</p>
 						</div>
 						<AppearanceSettings />
 					</div>
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Reading layout</h3>
-							<p className="mt-1 text-sm text-neutral-500">Choose how open emails appear.</p>
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Reading layout</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose how open emails appear.</p>
 						</div>
 						<InboxReadingLayoutSettings />
 					</div>
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Threading</h3>
-							<p className="mt-1 text-sm text-neutral-500">Choose how emails are organized in your inbox.</p>
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Threading</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose how emails are organized in your inbox.</p>
 						</div>
 						<InboxThreadingSettings />
 					</div>
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Addresses</h3>
-							<p className="mt-1 text-sm text-neutral-500">Choose how recipient addresses appear when you read mail.</p>
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Addresses</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose how recipient addresses appear when you read mail.</p>
 						</div>
 						<RecipientAddressSettings />
 					</div>
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Shortcuts</h3>
-							<p className="mt-1 text-sm text-neutral-500">Choose whether keyboard shortcuts are active.</p>
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Shortcuts</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose whether keyboard shortcuts are active.</p>
 						</div>
 						<InboxShortcutsSettings />
 					</div>
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Notifications</h3>
-							<p className="mt-1 text-sm text-neutral-500">Choose how you hear about new email.</p>
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Notifications</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose how you hear about new email.</p>
 						</div>
 						<BrowserNotificationSettings />
 					</div>
@@ -62,21 +62,21 @@ export default function SettingsInboxPage() {
 			</section>
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-xl font-semibold text-neutral-900">Message handling</h2>
-					<p className="mt-1 text-sm text-neutral-500">Manage spam protection and automatic replies.</p>
+					<h2 className="text-xl font-semibold text-[var(--foreground)]">Message handling</h2>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">Manage spam protection and automatic replies.</p>
 				</div>
-				<div className="divide-y divide-neutral-100 rounded-3xl bg-white p-6">
+				<div className="divide-y divide-[var(--border)] rounded-3xl bg-[var(--card)] p-6">
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Spam protection</h3>
-							<p className="mt-1 text-sm text-neutral-500">Control local spam analysis for incoming messages.</p>
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Spam protection</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">Control local spam analysis for incoming messages.</p>
 						</div>
 						<SpamFilterSettings />
 					</div>
 					<div className="py-6 first:pt-0 last:pb-0">
 						<div className="mb-4">
-							<h3 className="text-base font-semibold text-neutral-900">Automatic response</h3>
-							<p className="mt-1 text-sm text-neutral-500">
+							<h3 className="text-base font-semibold text-[var(--foreground)]">Automatic response</h3>
+							<p className="mt-1 text-sm text-[var(--muted-foreground)]">
 								Configure the subject and message for the inbox currently selected above.
 							</p>
 						</div>

@@ -83,17 +83,17 @@ export default function AccountPermissionsPage() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-medium text-neutral-900">Permissions</h1>
-				<p className="mt-2 text-sm text-neutral-500">Control what this account can manage.</p>
+				<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Permissions</h1>
+				<p className="mt-2 text-sm text-[var(--muted-foreground)]">Control what this account can manage.</p>
 			</div>
 			{account?.isPrimaryAdmin && (
-				<section className="rounded-3xl bg-amber-50 p-6">
-					<p className="text-sm font-semibold text-amber-900">Primary admin</p>
-					<p className="mt-1 text-sm text-amber-800">This account owns administration and cannot be demoted or disabled. Transfer the role to hand it over.</p>
+				<section className="rounded-xl border border-[var(--border)] bg-[var(--accent)] p-6">
+					<p className="text-sm font-semibold text-[var(--foreground)]">Primary admin</p>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">This account owns administration and cannot be demoted or disabled. Transfer the role to hand it over.</p>
 				</section>
 			)}
-			<section className="space-y-3 rounded-3xl bg-white p-6">
-				<label htmlFor="account-role" className="block text-sm font-semibold text-neutral-900">Role</label>
+			<section className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
+				<label htmlFor="account-role" className="block text-sm font-semibold text-[var(--foreground)]">Role</label>
 				<Select
 					id="account-role"
 					value={account?.role ?? "user"}
@@ -105,25 +105,25 @@ export default function AccountPermissionsPage() {
 					<option value="user">User</option>
 					<option value="admin">Admin</option>
 				</Select>
-				<p className="text-xs text-neutral-500">
+				<p className="text-xs text-[var(--muted-foreground)]">
 					{account?.canChangeRole
 						? "Admins can access administration pages and manage Team settings."
 						: "Only the primary admin can change roles."}
 				</p>
 			</section>
-			<div className="overflow-hidden rounded-3xl bg-white">
+			<div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)]">
 				<table className="w-full text-left">
-					<thead className="border-b border-neutral-100 bg-neutral-50 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+					<thead className="border-b border-[var(--border)] bg-[var(--muted)] text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
 						<tr>
 							<th className="px-5 py-3">Permission</th>
 							<th className="w-28 px-5 py-3 text-center">Allowed</th>
 						</tr>
 					</thead>
-					<tbody className="divide-y divide-neutral-100">
+					<tbody className="divide-y divide-[var(--border)]">
 						<tr>
 							<td className="px-5 py-4">
-								<p className="text-sm font-semibold text-neutral-900">Manage mailboxes</p>
-								<p className="mt-1 text-xs text-neutral-500">Allow this account to add and remove its own inboxes.</p>
+								<p className="text-sm font-semibold text-[var(--foreground)]">Manage mailboxes</p>
+								<p className="mt-1 text-xs text-[var(--muted-foreground)]">Allow this account to add and remove its own inboxes.</p>
 							</td>
 							<td className="px-5 py-4 text-center">
 								<Checkbox
@@ -136,8 +136,8 @@ export default function AccountPermissionsPage() {
 						</tr>
 						<tr>
 							<td className="px-5 py-4">
-								<p className="text-sm font-semibold text-neutral-900">Manage domains</p>
-								<p className="mt-1 text-xs text-neutral-500">Allow this admin to add and manage domains.</p>
+								<p className="text-sm font-semibold text-[var(--foreground)]">Manage domains</p>
+								<p className="mt-1 text-xs text-[var(--muted-foreground)]">Allow this admin to add and manage domains.</p>
 							</td>
 							<td className="px-5 py-4 text-center">
 								<Checkbox
@@ -150,8 +150,8 @@ export default function AccountPermissionsPage() {
 						</tr>
 						<tr>
 							<td className="px-5 py-4">
-								<p className="text-sm font-semibold text-neutral-900">Manage users</p>
-								<p className="mt-1 text-xs text-neutral-500">Allow this admin to add and manage user accounts.</p>
+								<p className="text-sm font-semibold text-[var(--foreground)]">Manage users</p>
+								<p className="mt-1 text-xs text-[var(--muted-foreground)]">Allow this admin to add and manage user accounts.</p>
 							</td>
 							<td className="px-5 py-4 text-center">
 								<Checkbox
@@ -171,10 +171,10 @@ export default function AccountPermissionsPage() {
 				</Button>
 			)}
 			{isPrimary && (
-				<section className="space-y-4 rounded-3xl bg-white p-6">
+				<section className="space-y-4 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-6">
 					<div>
-						<h2 className="text-sm font-semibold text-neutral-900">Transfer primary admin</h2>
-						<p className="mt-1 text-xs text-neutral-500">Choose an account by email to take over administration. You will be asked to confirm.</p>
+						<h2 className="text-sm font-semibold text-[var(--foreground)]">Transfer primary admin</h2>
+						<p className="mt-1 text-xs text-[var(--muted-foreground)]">Choose an account by email to take over administration. You will be asked to confirm.</p>
 					</div>
 					<div className="flex flex-col gap-3 sm:flex-row">
 						<Select
@@ -195,7 +195,7 @@ export default function AccountPermissionsPage() {
 					</div>
 				</section>
 			)}
-			{message && <p className="text-sm text-neutral-500">{message}</p>}
+			{message && <p className="text-sm text-[var(--muted-foreground)]">{message}</p>}
 
 			<Dialog open={transferOpen} onOpenChange={setTransferOpen}>
 				<DialogContent className="w-[min(420px,calc(100vw-32px))]">
@@ -206,9 +206,9 @@ export default function AccountPermissionsPage() {
 						</DialogDescription>
 					</DialogHeader>
 					{transferTarget && (
-						<div className="flex items-center gap-4 rounded-2xl border border-neutral-200 p-4">
+						<div className="flex items-center gap-4 rounded-2xl border border-[var(--border)] p-4">
 							<span
-								className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-white"
+								className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold text-[var(--primary-foreground)]"
 								style={getAvatarColorStyle(transferTarget.email)}
 							>
 								{transferTarget.name.charAt(0).toUpperCase()}
@@ -221,8 +221,8 @@ export default function AccountPermissionsPage() {
 								)}
 							</span>
 							<span className="min-w-0">
-								<span className="block truncate font-semibold text-neutral-900">{transferTarget.name}</span>
-								<span className="block truncate text-sm text-neutral-500">{transferTarget.email}</span>
+								<span className="block truncate font-semibold text-[var(--foreground)]">{transferTarget.name}</span>
+								<span className="block truncate text-sm text-[var(--muted-foreground)]">{transferTarget.email}</span>
 							</span>
 						</div>
 					)}

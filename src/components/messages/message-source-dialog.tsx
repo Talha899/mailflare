@@ -43,11 +43,11 @@ export function MessageSourceDialog({ messageId, open, onOpenChange }: MessageSo
 					<DialogTitle>Original Message</DialogTitle>
 					<DialogDescription>Message details and full source, including headers and MIME body.</DialogDescription>
 				</DialogHeader>
-				{loading && <div className="flex items-center gap-2 text-sm text-neutral-500"><LoaderCircle className="h-4 w-4 animate-spin" />Loading source…</div>}
-				{error && <p className="text-sm text-neutral-600">{error}</p>}
+				{loading && <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]"><LoaderCircle className="h-4 w-4 animate-spin" />Loading source…</div>}
+				{error && <p className="text-sm text-[var(--muted-foreground)]">{error}</p>}
 				{source !== null && summary && (
 					<div className="space-y-5">
-						<div className="overflow-hidden rounded-lg border border-neutral-200 text-sm">
+						<div className="overflow-hidden rounded-lg border border-[var(--border)] text-sm">
 							{([
 								["Message ID", summary.messageId],
 								["Created at", summary.createdAt],
@@ -55,18 +55,18 @@ export function MessageSourceDialog({ messageId, open, onOpenChange }: MessageSo
 								["To", summary.to],
 								["Subject", summary.subject],
 							] as const).map(([label, value]) => (
-								<div key={label} className="grid gap-1 border-b border-neutral-200 px-4 py-3 last:border-b-0 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-4">
-									<span className="font-medium text-neutral-700">{label}</span>
-									<span className={label === "Message ID" && value ? "break-all text-green-700" : "break-words text-neutral-900"}>{value || "Unavailable"}</span>
+								<div key={label} className="grid gap-1 border-b border-[var(--border)] px-4 py-3 last:border-b-0 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-4">
+									<span className="font-medium text-[var(--foreground)]">{label}</span>
+									<span className={label === "Message ID" && value ? "break-all text-[var(--success)]" : "break-words text-[var(--foreground)]"}>{value || "Unavailable"}</span>
 								</div>
 							))}
 							{(["spf", "dkim", "dmarc"] as const).map((method) => {
 								const result = summary[method];
 								return (
-									<div key={method} className="grid gap-1 border-b border-neutral-200 px-4 py-3 last:border-b-0 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-4">
-										<span className="font-medium uppercase text-neutral-700">{method}</span>
-										<span className="flex min-w-0 items-center gap-1.5 break-all text-neutral-900">
-											{result?.status === "PASS" && <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" aria-label={`${method.toUpperCase()} passed`} />}
+									<div key={method} className="grid gap-1 border-b border-[var(--border)] px-4 py-3 last:border-b-0 sm:grid-cols-[140px_minmax(0,1fr)] sm:gap-4">
+										<span className="font-medium uppercase text-[var(--foreground)]">{method}</span>
+										<span className="flex min-w-0 items-center gap-1.5 break-all text-[var(--foreground)]">
+											{result?.status === "PASS" && <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--success)]" aria-label={`${method.toUpperCase()} passed`} />}
 											{result ? `${result.status}${result.detail ? ` ${result.detail}` : ""}` : "No result in message headers"}
 										</span>
 									</div>
@@ -74,13 +74,13 @@ export function MessageSourceDialog({ messageId, open, onOpenChange }: MessageSo
 							})}
 						</div>
 						<div className="flex flex-wrap items-center justify-between gap-3">
-							<Button type="button" variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700" onClick={() => downloadMessageSource(source, messageId)}><Download className="h-4 w-4" />Download Original</Button>
+							<Button type="button" variant="ghost" size="sm" className="text-[var(--primary)] hover:text-[var(--primary)]" onClick={() => downloadMessageSource(source, messageId)}><Download className="h-4 w-4" />Download Original</Button>
 							<div className="flex items-center gap-2">
-								{copyError && <span role="alert" className="text-xs text-red-600">Could not copy</span>}
+								{copyError && <span role="alert" className="text-xs text-[var(--destructive)]">Could not copy</span>}
 								<Button type="button" size="sm" onClick={() => { void copyMessageSource(source).then(() => { setCopied(true); setCopyError(false); }).catch(() => { setCopied(false); setCopyError(true); }); }}><Copy className="h-4 w-4" />{copied ? "Copied" : "Copy to clipboard"}</Button>
 							</div>
 						</div>
-						<pre className="max-h-[40vh] overflow-auto rounded-lg border border-neutral-200 bg-neutral-50 p-4 font-mono text-xs leading-relaxed text-neutral-700 whitespace-pre">{source}</pre>
+						<pre className="max-h-[40vh] overflow-auto rounded-lg border border-[var(--border)] bg-[var(--muted)] p-4 font-mono text-xs leading-relaxed text-[var(--foreground)] whitespace-pre">{source}</pre>
 					</div>
 				)}
 			</DialogContent>

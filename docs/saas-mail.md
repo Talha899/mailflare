@@ -1,13 +1,13 @@
 # Send and receive mail (SaaS / Coolify)
 
-This guide matches a self-hosted Mailflare on your operator host (e.g.
+This guide matches a self-hosted Dispatch on your operator host (e.g.
 `MAIL_HOSTNAME=mail.example.com`) with customer domains on any DNS provider.
 
 ## How mail flows
 
 | Direction | Path |
 |-----------|------|
-| **Receive** | Internet → MX → `MAIL_HOSTNAME:25` → Mailflare SMTP → mailbox |
+| **Receive** | Internet → MX → `MAIL_HOSTNAME:25` → Dispatch SMTP → mailbox |
 | **Send** | Compose → `/api/send` → Postfix (`SMTP_URL=smtp://postfix:587`) → internet |
 
 Cloudflare Email Sending (`CF_TOKEN`) is optional and needs Workers Paid. The
@@ -21,7 +21,7 @@ MAIL_HOSTNAME=mail.example.com
 SMTP_URL=smtp://postfix:587
 SMTP_TLS_REJECT_UNAUTHORIZED=false
 SAAS_MODE=true
-# No POSTFIX_ALLOWED_SENDER_DOMAINS — every domain in Mailflare is included automatically.
+# No POSTFIX_ALLOWED_SENDER_DOMAINS — every domain in Dispatch is included automatically.
 ```
 
 `MAIL_HOSTNAME` must resolve to your Coolify VPS **DNS only (grey cloud)**. Open
@@ -56,7 +56,7 @@ Skip Cloudflare `cf-bounce` records when using Postfix.
 
 ## 5. If send fails
 
-- Postfix / Mailflare logs: SMTP connection refused → `SMTP_URL` / compose network.
+- Postfix / Dispatch logs: SMTP connection refused → `SMTP_URL` / compose network.
 - No DKIM Content in UI → wait for Postfix restart after domain sync, then refresh.
 - VPS blocks outbound 25 → Postfix cannot deliver (host limitation).
 

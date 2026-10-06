@@ -73,7 +73,7 @@ export function MessageDetailNavigation({ messageId, unread }: MessageDetailNavi
 	const { previousId, nextId, unreadOrder, totalUnread } = getMessageDetailNavigationState(context.entries, messageId);
 
 	return (
-		<div className="ml-auto flex shrink-0 items-center gap-2 text-neutral-500">
+		<div className="ml-auto flex shrink-0 items-center gap-2 text-[var(--muted-foreground)]">
 			{totalUnread > 0 && (
 			<span className="mr-2 whitespace-nowrap text-xs" aria-live="polite">
 				{unreadOrder} of {totalUnread} unread

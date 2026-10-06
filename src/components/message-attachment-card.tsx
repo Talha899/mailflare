@@ -19,18 +19,18 @@ export function MessageAttachmentCard({
 		<button
 			type="button"
 			onClick={() => onPreview(attachment)}
-			className="group flex w-full items-center gap-3 rounded-lg border border-neutral-200 p-2.5 text-left transition-colors hover:border-blue-200 hover:bg-blue-50/40"
+			className="group flex w-full items-center gap-3 rounded-lg border border-[var(--border)] p-2.5 text-left transition-colors hover:border-[var(--border)] hover:bg-[var(--muted)]"
 		>
 			{visual.thumbnail === "image" && (
 				<img
 					src={previewUrl}
 					alt=""
 					loading="lazy"
-					className="h-14 w-14 shrink-0 rounded-md bg-neutral-100 object-cover"
+					className="h-14 w-14 shrink-0 rounded-md bg-[var(--muted)] object-cover"
 				/>
 			)}
 			{visual.thumbnail === "video" && (
-				<span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-neutral-900">
+				<span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-[var(--primary)]">
 					<video
 						src={previewUrl}
 						muted
@@ -38,8 +38,8 @@ export function MessageAttachmentCard({
 						playsInline
 						className="h-full w-full object-cover"
 					/>
-					<span className="absolute inset-0 flex items-center justify-center bg-neutral-950/20">
-						<Play className="h-5 w-5 fill-white text-white" />
+					<span className="absolute inset-0 flex items-center justify-center bg-[color-mix(in_oklab,var(--foreground)_20%,transparent)]">
+						<Play className="h-5 w-5 fill-current text-[var(--primary-foreground)]" />
 					</span>
 				</span>
 			)}
@@ -49,14 +49,14 @@ export function MessageAttachmentCard({
 				</span>
 			)}
 			<span className="min-w-0 flex-1 text-left">
-				<span className="block truncate text-sm font-medium text-neutral-900">
+				<span className="block truncate text-sm font-medium text-[var(--foreground)]">
 					{attachment.filename}
 				</span>
-				<span className="mt-0.5 block truncate text-xs text-neutral-500">
+				<span className="mt-0.5 block truncate text-xs text-[var(--muted-foreground)]">
 					{visual.label} · {formatAttachmentSize(attachment.size)}
 				</span>
 			</span>
-			<ArrowDownToLine className="h-4 w-4 shrink-0 text-neutral-400 transition-colors group-hover:text-blue-600" />
+			<ArrowDownToLine className="h-4 w-4 shrink-0 text-[var(--muted-foreground)] transition-colors group-hover:text-[var(--compose)]" />
 		</button>
 	);
 }

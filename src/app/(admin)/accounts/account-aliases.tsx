@@ -10,12 +10,12 @@ import type { AccountAliasesProps } from "./types";
 export function AccountAliases({ domains, domainId, username, useAllDomains, onUseAllDomainsChange, aliases, onAliasesChange }: AccountAliasesProps) {
 	const availableDomains = domains.filter((domain) => domain.status === "active");
 	return (
-		<div className="space-y-4 border-t border-neutral-100 pt-4">
-			<label className="flex items-start gap-3 rounded-xl bg-neutral-50 p-4">
+		<div className="space-y-4 border-t border-[var(--border)] pt-4">
+			<label className="flex items-start gap-3 rounded-xl bg-[var(--muted)] p-4">
 				<Checkbox checked={useAllDomains} onChange={(event) => onUseAllDomainsChange(event.target.checked)} />
 				<span>
 					<span className="block text-sm font-medium">Use all domains</span>
-					<span className="mt-1 block text-sm text-neutral-500">
+					<span className="mt-1 block text-sm text-[var(--muted-foreground)]">
 						Use this username on every available domain, including domains added later.
 						When off, only the primary address and the aliases below are assigned.
 					</span>
@@ -23,12 +23,12 @@ export function AccountAliases({ domains, domainId, username, useAllDomains, onU
 			</label>
 			<div className="space-y-3">
 				<div>
-					<p className="text-sm font-medium">Additional aliases <span className="font-normal text-neutral-500">(optional)</span></p>
-					<p className="mt-1 text-sm text-neutral-500">These addresses share the new account’s inbox and can also be used to send mail.</p>
+					<p className="text-sm font-medium">Additional aliases <span className="font-normal text-[var(--muted-foreground)]">(optional)</span></p>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">These addresses share the new account’s inbox and can also be used to send mail.</p>
 				</div>
 				{aliases.map((alias, index) => (
 					<div key={alias.id} className="flex items-center gap-2">
-						<div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-neutral-200 bg-white">
+						<div className="flex min-w-0 flex-1 items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)]">
 							<Input
 								aria-label={`Alias ${index + 1} username`}
 								value={alias.localPart}
@@ -39,7 +39,7 @@ export function AccountAliases({ domains, domainId, username, useAllDomains, onU
 								maxLength={64}
 								required
 							/>
-							<span className="text-sm text-neutral-400">@</span>
+							<span className="text-sm text-[var(--muted-foreground)]">@</span>
 							<Select
 								aria-label={`Alias ${index + 1} domain`}
 								value={alias.domainId}

@@ -91,7 +91,7 @@ export default function ApiKeysPage() {
 							<Label htmlFor="admin-key-name">Key name</Label>
 							<Input id="admin-key-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} placeholder="Production app" />
 						</div>
-						<label className="flex items-start gap-3 text-sm"><Checkbox checked={mcpAllowed} onChange={(event) => setMcpAllowed(event.target.checked)} /><span><strong>Allow MCP access</strong><span className="mt-1 block text-neutral-500">Use this key with an MCP client to manage only the admin areas selected below. It cannot read or send mail.</span></span></label>
+						<label className="flex items-start gap-3 text-sm"><Checkbox checked={mcpAllowed} onChange={(event) => setMcpAllowed(event.target.checked)} /><span><strong>Allow MCP access</strong><span className="mt-1 block text-[var(--muted-foreground)]">Use this key with an MCP client to manage only the admin areas selected below. It cannot read or send mail.</span></span></label>
 						<fieldset className="space-y-2">
 							<legend className="text-sm font-medium">Permissions</legend>
 							<div className="space-y-2">
@@ -108,13 +108,13 @@ export default function ApiKeysPage() {
 												)
 											}
 										/>
-										<span><strong>{scope.label}</strong><span className="block text-neutral-500">{scope.description}</span></span>
+										<span><strong>{scope.label}</strong><span className="block text-[var(--muted-foreground)]">{scope.description}</span></span>
 									</label>
 								))}
 							</div>
 						</fieldset>
 						{create.isError && (
-							<p className="text-sm text-red-600">{(create.error as Error).message}</p>
+							<p className="text-sm text-[var(--destructive)]">{(create.error as Error).message}</p>
 						)}
 						<Button
 							onClick={() => create.mutate()}
@@ -123,17 +123,17 @@ export default function ApiKeysPage() {
 							{create.isPending ? "Creating..." : "Create key"}
 						</Button>
 						</div>}
-						{newKey && <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4"><code className="block break-all rounded bg-white p-2 text-xs">{newKey}</code>{createdMcpAllowed && <McpAgentInstructions mode="admin" apiKey={newKey} />}<div className="flex gap-2"><Button type="button" size="sm" variant="outline" onClick={() => void navigator.clipboard.writeText(newKey).then(() => setCopied(true))}><Copy className="h-4 w-4" />{copied ? "Copied" : "Copy key"}</Button><Button type="button" size="sm" variant="ghost" onClick={() => { setCreateOpen(false); setNewKey(null); setCopied(false); }}>Done</Button></div></div>}
+						{newKey && <div className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--accent)] p-4"><code className="block break-all rounded bg-[var(--card)] p-2 text-xs">{newKey}</code>{createdMcpAllowed && <McpAgentInstructions mode="admin" apiKey={newKey} />}<div className="flex gap-2"><Button type="button" size="sm" variant="outline" onClick={() => void navigator.clipboard.writeText(newKey).then(() => setCopied(true))}><Copy className="h-4 w-4" />{copied ? "Copied" : "Copy key"}</Button><Button type="button" size="sm" variant="ghost" onClick={() => { setCreateOpen(false); setNewKey(null); setCopied(false); }}>Done</Button></div></div>}
 					</DialogContent>
 				</Dialog>
 			</div>
 			<section className="space-y-3">
-				{revoke.isError && <p role="alert" className="text-sm text-red-600">{revoke.error.message}</p>}
+				{revoke.isError && <p role="alert" className="text-sm text-[var(--destructive)]">{revoke.error.message}</p>}
 				{isLoading && (
 					<SectionRowSkeleton />
 				)}
 				{!isLoading && (data?.apiKeys ?? []).length === 0 && (
-					<p className="rounded-2xl bg-white px-5 py-4 text-sm text-neutral-500">
+					<p className="rounded-2xl bg-[var(--card)] px-5 py-4 text-sm text-[var(--muted-foreground)]">
 						No API keys yet
 					</p>
 				)}
@@ -143,12 +143,12 @@ export default function ApiKeysPage() {
 							key={key.id}
 							className="px-5 py-4"
 						>
-							<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+							<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--muted)] text-[var(--compose)]">
 								<KeyRound className="h-5 w-5" />
 							</span>
 							<span className="min-w-0 flex-1 space-y-2">
-								<span className="flex min-w-0 flex-wrap items-center gap-2"><strong className="truncate text-sm font-semibold text-neutral-900">{key.name}</strong>{key.kind === "mcp" && <Badge variant="outline">MCP</Badge>}</span>
-								<span className="block truncate no-font-mono text-sm text-neutral-500">{key.prefix}...</span>
+								<span className="flex min-w-0 flex-wrap items-center gap-2"><strong className="truncate text-sm font-semibold text-[var(--foreground)]">{key.name}</strong>{key.kind === "mcp" && <Badge variant="outline">MCP</Badge>}</span>
+								<span className="block truncate no-font-mono text-sm text-[var(--muted-foreground)]">{key.prefix}...</span>
 								<span className="flex flex-wrap gap-1">
 									{parseApiKeyScopes(key.scopes).map((scope) => (
 										<Badge key={scope} variant="outline">

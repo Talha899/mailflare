@@ -1,7 +1,14 @@
-import type {
-	CloudAttachment,
-	CloudAttachmentExtraction,
-} from "./cloud-attachment-types";
+type CloudAttachment = {
+	filename: string;
+	id: string;
+	provider: "OneDrive";
+	url: string;
+};
+
+type CloudAttachmentExtraction = {
+	attachments: CloudAttachment[];
+	content: string;
+};
 
 const ZERO_WIDTH_RE = /[\u200B-\u200D\u2060\uFEFF]/g;
 const OUTLOOK_CLOUD_ATTACHMENT_RE =

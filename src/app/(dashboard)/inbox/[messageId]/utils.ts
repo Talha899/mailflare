@@ -3,10 +3,18 @@ import { fetchCachedMessageDetail, getCachedMessageDetail } from "@/lib/messages
 import { getEmailAddress, getEmailAddressList, normalizeEmailAddress } from "@/lib/email/address";
 import { formatRecipientAddressList } from "@/lib/email/recipient-display";
 import { getDisplayNameForAddress } from "@/lib/contacts/utils";
+import type { ReplyContentParts } from "@/lib/email/reply-content-types";
 import { htmlToReadableText, splitRepliedEmailContent } from "@/lib/email/reply-content-utils";
 import { splitQuotedHtml } from "@/components/compose/rich-text-utils";
 import type { Message } from "@/hooks/types";
-import type { MessageAttachment, MessageBodyDisplay, MessageDetailResponse } from "./types";
+import type { MessageAttachment, MessageDetailResponse } from "./types";
+
+type MessageBodyDisplay = ReplyContentParts & {
+	htmlBody: string | null;
+	/** Quoted/forwarded HTML a Mailflare composer folded under the message, shown collapsed. */
+	quotedHtml: string | null;
+	hasQuotedContent: boolean;
+};
 
 export async function fetchMessageDetail(messageId: string): Promise<MessageDetailResponse> {
 	return (await fetchCachedMessageDetail(messageId)) as MessageDetailResponse;
@@ -81,7 +89,7 @@ export function getMessageBodyDisplay(
 	};
 }
 
-export function getAttachmentUrl(messageId: string, attachmentId: string): string {
+function getAttachmentUrl(messageId: string, attachmentId: string): string {
 	return `/api/messages/${messageId}/attachments/${attachmentId}?preview=1`;
 }
 

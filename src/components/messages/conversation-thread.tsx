@@ -53,7 +53,7 @@ export function ConversationThread({
 			aria-label={position === "before" ? "Earlier messages in this conversation" : "Later messages in this conversation"}
 			className={cn(position === (latestMessagesFirst ? "before" : "after") ? "pb-6" : "")}
 		>
-			<ol className={cn(!collapsed && "divide-y divide-neutral-200/50", latestMessagesFirst ? "border-t" : "border-b", "border-neutral-200")}>
+			<ol className={cn(!collapsed && "divide-y divide-[var(--border)]", latestMessagesFirst ? "border-t" : "border-b", "border-[var(--border)]")}>
 				<li className={"border-t-0"}>
 					<ConversationMessageCard
 						message={firstMessage}
@@ -65,15 +65,15 @@ export function ConversationThread({
 					/>
 				</li>
 				{collapsed ? (
-					<li className="flex items-center justify-center gap-1 py-2 text-center border-y border-neutral-100 h-px my-4">
-						<span className="bg-white px-6 flex flex-row items-center gap-2">
-							<span className="text-sm font-medium text-neutral-600">{collapsedLabel}</span>
+					<li className="flex items-center justify-center gap-1 py-2 text-center border-y border-[var(--border)] h-px my-4">
+						<span className="bg-[var(--card)] px-6 flex flex-row items-center gap-2">
+							<span className="text-sm font-medium text-[var(--muted-foreground)]">{collapsedLabel}</span>
 							<button
 								type="button"
 								onClick={() => onExpandedAllChange(true)}
 								aria-label={`Expand ${collapsedLabel}`}
 								title={`Expand ${collapsedLabel}`}
-								className="inline-flex h-6 w-6 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+								className="inline-flex h-6 w-6 items-center justify-center rounded-full text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
 							>
 								<ChevronsUpDown className="h-4 w-4" />
 							</button>
@@ -146,7 +146,7 @@ export function ConversationMessageCard({
 
 
 	return (
-		<article className={cn("bg-white transition-colors px-6", !expanded && "hover:bg-neutral-50", !isAnyPanelVisible && "pl-12")}>
+		<article className={cn("bg-[var(--card)] transition-colors px-6", !expanded && "hover:bg-[var(--muted)]", !isAnyPanelVisible && "pl-12")}>
 			<div className="w-full">
 				<div className="flex w-full flex-wrap items-start gap-x-3 py-3 pl-4">
 					<button
@@ -171,14 +171,14 @@ export function ConversationMessageCard({
 						/>
 						<span className="min-w-0 flex-1">
 							<div className="flex flex-col">
-								<span className={cn("truncate text-sm font-semibold mt-1", locallyRead || outbound ? "text-neutral-900" : "font-semibold text-neutral-900")}>
+								<span className={cn("truncate text-sm font-semibold mt-1", locallyRead || outbound ? "text-[var(--foreground)]" : "font-semibold text-[var(--foreground)]")}>
 									{sender}
 									{expanded && <span className="text-xs ml-1 opacity-50 font-normal">&lt;{senderEmail}&gt;</span>}
 								</span>
-								{expanded && recipients && <span className="text-xs font-normal text-neutral-500">to {recipients}</span>}
+								{expanded && recipients && <span className="text-xs font-normal text-[var(--muted-foreground)]">to {recipients}</span>}
 							</div>
 							{!expanded && (
-								<span className={clsx(!locallyRead ? "font-semibold" : "text-neutral-500", "block truncate text-[13px]")}>{message.snippet || "No preview"}</span>
+								<span className={clsx(!locallyRead ? "font-semibold" : "text-[var(--muted-foreground)]", "block truncate text-[13px]")}>{message.snippet || "No preview"}</span>
 							)}
 						</span>
 					</button>
@@ -197,9 +197,9 @@ export function ConversationMessageCard({
 				{expanded && body && (
 					<div className="pb-4 pl-16 pt-2">
 						{body.html ? (
-							<div className="email-body max-w-none text-sm text-neutral-900" dangerouslySetInnerHTML={{ __html: body.html }} />
+							<div className="email-body max-w-none text-sm text-[var(--foreground)]" dangerouslySetInnerHTML={{ __html: body.html }} />
 						) : (
-							<pre className="whitespace-pre-wrap font-sans text-sm text-neutral-900">{body.text}</pre>
+							<pre className="whitespace-pre-wrap font-sans text-sm text-[var(--foreground)]">{body.text}</pre>
 						)}
 						{body.quotedHtml && <QuotedEmailToggle html={body.quotedHtml} />}
 						{attachments.length > 0 && (
@@ -208,7 +208,7 @@ export function ConversationMessageCard({
 									<li key={attachment.id}>
 										<a
 											href={`/api/messages/${message.id}/attachments/${attachment.id}`}
-											className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-xs text-neutral-700 hover:bg-neutral-50"
+											className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--card)] px-2.5 py-1 text-xs text-[var(--foreground)] hover:bg-[var(--muted)]"
 										>
 											<Paperclip className="h-3 w-3" />
 											<span className="max-w-48 truncate">{attachment.filename}</span>

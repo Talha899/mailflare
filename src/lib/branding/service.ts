@@ -21,7 +21,9 @@ export async function getBranding(env: CloudflareEnv): Promise<Branding> {
 			.limit(1);
 		return {
 			appName:
-				!settings?.appName || settings.appName === "Mailflare"
+				!settings?.appName ||
+				settings.appName === "Mailflare" ||
+				settings.appName === "Postora"
 					? DEFAULT_APP_NAME
 					: settings.appName,
 			hasCustomIcon: !!settings?.iconKey,

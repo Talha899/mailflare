@@ -26,13 +26,13 @@ export default function BrandingPage() {
 		return (
 			<div className="space-y-6">
 				<div>
-					<h1 className="text-3xl font-medium text-neutral-900">Branding</h1>
-					<p className="mt-2 text-sm text-neutral-500">Custom branding is available with a Pro or Team license.</p>
+					<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Branding</h1>
+					<p className="mt-2 text-sm text-[var(--muted-foreground)]">Custom branding is available with a Pro or Team license.</p>
 				</div>
-				<Card className="rounded-3xl border-0 bg-white p-6">
+				<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
 					<CardHeader className="py-0">
 						<CardTitle className="flex items-center gap-2"><LockKeyhole className="h-5 w-5" />License required</CardTitle>
-						<CardDescription>This installation continues to use the original Postora name, app icon, and favicon.</CardDescription>
+						<CardDescription>This installation continues to use the original Dispatch name, app icon, and favicon.</CardDescription>
 					</CardHeader>
 					<CardContent className="flex flex-col gap-3 pt-6 sm:flex-row">
 						<Button asChild><a href="https://app.paymug.co/buy/mailflare-pro" target="_blank" rel="noopener noreferrer">Buy Pro · $29 <ExternalLink className="h-4 w-4" /></a></Button>
@@ -68,10 +68,10 @@ export default function BrandingPage() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-medium text-neutral-900">Branding</h1>
-				<p className="mt-2 text-sm text-neutral-500">Customize the app identity shown to everyone using this installation.</p>
+				<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Branding</h1>
+				<p className="mt-2 text-sm text-[var(--muted-foreground)]">Customize the app identity shown to everyone using this installation.</p>
 			</div>
-			<Card className="rounded-3xl border-0 bg-white p-6">
+			<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
 				<CardHeader className="py-0">
 					<CardTitle className="flex items-center gap-2"><Palette className="h-5 w-5" />App identity</CardTitle>
 					<CardDescription>The icon is also used as the browser favicon.</CardDescription>
@@ -85,12 +85,12 @@ export default function BrandingPage() {
 						<div className="space-y-2">
 							<Label>App icon</Label>
 							<Input ref={inputRef} type="file" accept={BRANDING_ICON_ACCEPT} className="hidden" onChange={(event) => pickIcon(event.target.files?.[0] ?? null)} />
-							<button type="button" onClick={() => inputRef.current?.click()} className="flex items-center gap-4 rounded-2xl border border-dashed border-neutral-300 p-4 text-left hover:bg-neutral-50">
+							<button type="button" onClick={() => inputRef.current?.click()} className="flex items-center gap-4 rounded-2xl border border-dashed border-[var(--border)] p-4 text-left hover:bg-[var(--muted)]">
 								<img src={preview ?? branding.iconUrl} alt="App icon preview" className="h-16 w-16 rounded-2xl object-cover" />
-								<span className="text-sm text-neutral-600"><ImagePlus className="mb-1 h-5 w-5" />Choose PNG, JPEG, WebP, or GIF<br /><span className="text-xs text-neutral-400">Maximum 2 MB</span></span>
+								<span className="text-sm text-[var(--muted-foreground)]"><ImagePlus className="mb-1 h-5 w-5" />Choose PNG, JPEG, WebP, or GIF<br /><span className="text-xs text-[var(--muted-foreground)]">Maximum 2 MB</span></span>
 							</button>
 						</div>
-						{status && <p className="text-sm text-neutral-600">{status}</p>}
+						{status && <p className="text-sm text-[var(--muted-foreground)]">{status}</p>}
 						<Button type="submit" disabled={saving || !appName.trim()}>{saving ? "Saving..." : "Save branding"}</Button>
 					</form>
 				</CardContent>

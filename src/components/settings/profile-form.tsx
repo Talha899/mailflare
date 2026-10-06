@@ -92,15 +92,15 @@ export function ProfileForm({
     <>
       <form
         onSubmit={onProfileSubmit}
-        className="space-y-6 rounded-b-lg rounded-t-3xl bg-white p-6"
+        className="space-y-6 rounded-b-lg rounded-t-3xl bg-[var(--card)] p-6"
       >
         <div className="flex items-center gap-4">
           <ProfileAvatarForm name={name} colorSeed={email} />
           <div>
-            <p className="text-sm font-medium text-neutral-900">
+            <p className="text-sm font-medium text-[var(--foreground)]">
               Profile picture
             </p>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-[var(--muted-foreground)]">
               Choose a picture to show across your account.
             </p>
           </div>
@@ -123,7 +123,7 @@ export function ProfileForm({
             type="email"
             readOnly
             aria-readonly="true"
-            className="bg-neutral-50"
+            className="bg-[var(--muted)]"
           />
         </div>
 
@@ -135,20 +135,20 @@ export function ProfileForm({
             {savingProfile ? "Saving..." : "Save profile"}
           </Button>
           {profileStatus && (
-            <p className="text-sm text-neutral-500">{profileStatus}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">{profileStatus}</p>
           )}
         </div>
       </form>
 
       <form
         onSubmit={onRecoverySubmit}
-        className="space-y-4 rounded-lg bg-white p-6"
+        className="space-y-4 rounded-lg bg-[var(--card)] p-6"
       >
         <div>
-          <h3 className="text-lg font-semibold text-neutral-900">
+          <h3 className="text-lg font-semibold text-[var(--foreground)]">
             Recovery email
           </h3>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             Used to recover access if you cannot sign in.
           </p>
         </div>
@@ -170,7 +170,7 @@ export function ProfileForm({
             {savingRecovery ? "Saving..." : "Save recovery email"}
           </Button>
           {recoveryStatus && (
-            <p className="text-sm text-neutral-500">{recoveryStatus}</p>
+            <p className="text-sm text-[var(--muted-foreground)]">{recoveryStatus}</p>
           )}
         </div>
       </form>

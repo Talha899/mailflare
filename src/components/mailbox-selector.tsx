@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Check, Inbox, LogOut, Settings, UserRound, UsersRound } from "lucide-react";
+import { CalendarDays, Check, Inbox, LogOut, Settings, UsersRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelectedMailbox } from "@/components/mailbox-provider";
 import { ProgressiveAvatarImage } from "@/components/progressive-avatar-image";
@@ -41,7 +41,7 @@ function AccountAvatar({
 	size = "small",
 	onAvatarError,
 }: AccountAvatarProps) {
-	const sizeClass = size === "large" ? "h-16 w-16 text-xl" : "h-10 w-10 text-sm";
+	const sizeClass = size === "large" ? "h-14 w-14 text-lg" : "h-9 w-9 text-sm";
 	const [imageFailed, setImageFailed] = useState(false);
 
 	useEffect(() => {
@@ -53,7 +53,7 @@ function AccountAvatar({
 			<ProgressiveAvatarImage
 				src={avatarUrl}
 				alt={`${name} profile picture`}
-				className={`${sizeClass} shrink-0 rounded-full border border-[var(--border)] object-cover`}
+				className={`${sizeClass} shrink-0 rounded-lg border border-[var(--border)] object-cover`}
 				onError={() => {
 					setImageFailed(true);
 					onAvatarError?.();
@@ -64,7 +64,7 @@ function AccountAvatar({
 
 	return (
 		<div
-			className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-[var(--primary)] font-semibold text-[var(--primary-foreground)]`}
+			className={`${sizeClass} flex shrink-0 items-center justify-center rounded-lg bg-[var(--primary)] font-semibold text-[var(--primary-foreground)]`}
 			style={getAvatarColorStyle(colorSeed)}
 			aria-hidden="true"
 		>
@@ -80,7 +80,7 @@ function MailboxAccountRow({ mailbox, unread, avatarUrl, onSelect }: MailboxAcco
 		<button
 			type="button"
 			onClick={onSelect}
-			className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-[var(--card)]"
+			className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-[var(--muted)] active:scale-[0.99]"
 		>
 			<AccountAvatar
 				name={name}
@@ -90,7 +90,7 @@ function MailboxAccountRow({ mailbox, unread, avatarUrl, onSelect }: MailboxAcco
 			/>
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-1.5">
-					<p className="truncate text-sm font-semibold text-[var(--foreground)]">{name}</p>
+					<p className="truncate text-sm font-medium text-[var(--foreground)]">{name}</p>
 					{mailbox.type === "shared" && (
 						<Tooltip label="Shared inbox">
 							<span title="Shared inbox" aria-label="Shared inbox" className="shrink-0 text-[var(--primary)]">
@@ -102,7 +102,7 @@ function MailboxAccountRow({ mailbox, unread, avatarUrl, onSelect }: MailboxAcco
 				<p className="truncate text-xs text-[var(--muted-foreground)]">{getMailboxAddress(mailbox)}</p>
 			</div>
 			{unread > 0 && (
-				<span className="rounded-full bg-[var(--accent)] px-2 py-0.5 text-[11px] font-semibold text-[var(--primary)]">
+				<span className="rounded-md bg-[var(--accent)] px-1.5 py-0.5 text-[11px] font-semibold tabular-nums text-[var(--primary)]">
 					{unread > 99 ? "99+" : unread}
 				</span>
 			)}
@@ -187,7 +187,7 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 	}, []);
 
 	if (isLoading && !initialUser) {
-		return <Skeleton className="h-10 w-10 rounded-full" />;
+		return <Skeleton className="h-9 w-9 rounded-lg" />;
 	}
 
 	const selectedName = selectedMailbox ? getMailboxName(selectedMailbox) : user?.name ?? "Account";
@@ -214,7 +214,7 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 			<button
 				type="button"
 				onClick={() => setOpen((value) => !value)}
-				className="rounded-full p-1 transition-colors hover:bg-[var(--muted)]"
+				className="rounded-lg p-0.5 transition-colors hover:bg-[var(--muted)] active:scale-[0.98]"
 				aria-label="Open account menu"
 				aria-expanded={open}
 			>
@@ -230,9 +230,10 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 			</button>
 
 			{open && (
-				<div className="absolute right-0 top-14 w-[360px] overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--card)] p-3 shadow-2xl shadow-[var(--foreground)]/20 max-h-[82vh] overflow-y-auto z-90">
-					<div className="rounded-[22px] bg-white px-5 py-5">
-						<div className="flex items-center gap-4">
+				<div className="absolute right-0 top-12 z-90 flex max-h-[82vh] w-[320px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0_20px_48px_-20px_color-mix(in_oklab,var(--foreground)_40%,transparent)] sm:w-[340px]">
+					{/* Identity */}
+					<div className="border-b border-[var(--border)] px-4 pb-3 pt-4">
+						<div className="flex items-start gap-3">
 							<AccountAvatar
 								name={selectedName}
 								colorSeed={selectedEmail || selectedName}
@@ -243,53 +244,59 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 									if (!selectedMailbox) setHasAvatar(false);
 								}}
 							/>
-							<div className="min-w-0 flex-1">
+							<div className="min-w-0 flex-1 pt-0.5">
 								<div className="flex items-center gap-2">
-									<p className="truncate text-lg font-semibold text-[var(--foreground)]">{selectedName}</p>
+									<p className="truncate text-[15px] font-semibold tracking-tight text-[var(--foreground)]">
+										{selectedName}
+									</p>
 									{selectedMailbox?.type === "shared" && (
 										<Tooltip label="Shared inbox">
 											<span title="Shared inbox" aria-label="Shared inbox" className="shrink-0 text-[var(--primary)]">
-												<UsersRound className="h-4 w-4" />
+												<UsersRound className="h-3.5 w-3.5" />
 											</span>
 										</Tooltip>
 									)}
+									<Check className="ml-auto h-4 w-4 shrink-0 text-[var(--primary)]" aria-hidden />
 								</div>
-								<p className="truncate text-sm text-[var(--muted-foreground)]">
+								<p className="mt-0.5 truncate text-xs text-[var(--muted-foreground)]">
 									{selectedEmail}
 								</p>
 							</div>
-							<Check className="h-5 w-5 shrink-0 text-[var(--primary)]" />
 						</div>
+					</div>
+
+					{/* Quick links — webmail only, no admin */}
+					<div className="space-y-0.5 border-b border-[var(--border)] px-2 py-2">
 						<Link
 							href="/inbox"
 							onClick={() => setOpen(false)}
-							className="mt-4 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[var(--foreground)]/80 hover:bg-[var(--accent)]"
+							className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] active:scale-[0.99]"
 						>
-							<Inbox size={18} className="text-[var(--muted-foreground)]" />
+							<Inbox size={16} className="text-[var(--muted-foreground)]" />
 							Inbox
 						</Link>
 						<Link
 							href="/calendar"
 							onClick={() => setOpen(false)}
-							className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[var(--foreground)]/80 hover:bg-[var(--accent)]"
+							className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] active:scale-[0.99]"
 						>
-							<CalendarDays size={18} className="text-[var(--muted-foreground)]" />
+							<CalendarDays size={16} className="text-[var(--muted-foreground)]" />
 							Calendar
 						</Link>
 						<Link
 							href="/settings/account"
 							onClick={() => setOpen(false)}
-							className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-[var(--foreground)]/80 hover:bg-[var(--accent)]"
+							className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)] active:scale-[0.99]"
 						>
-							<Settings size={18} className="text-[var(--muted-foreground)]" />
+							<Settings size={16} className="text-[var(--muted-foreground)]" />
 							Settings
 						</Link>
 					</div>
 
 					{otherMailboxes.length > 0 && (
-						<div className="mt-2 rounded-[22px] bg-white/55 p-1">
-							<p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-								Other accounts
+						<div className="max-h-48 overflow-y-auto border-b border-[var(--border)] px-2 py-2">
+							<p className="px-2.5 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--muted-foreground)]">
+								Other mailboxes
 							</p>
 							{otherMailboxes.map((mailbox) => {
 								const mailboxCount = counts.mailboxes.find((count) => count.mailboxId === mailbox.id);
@@ -310,13 +317,13 @@ export function MailboxSelector({ initialUser }: MailboxSelectorProps = {}) {
 						</div>
 					)}
 
-					<div className="mt-2 overflow-hidden rounded-[22px] bg-white">
+					<div className="p-2">
 						<button
 							type="button"
 							onClick={logout}
-							className="flex w-full items-center gap-3 border-t border-[var(--border)] px-5 py-4 text-left text-sm font-medium text-[var(--foreground)] hover:bg-[var(--accent)]"
+							className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.99]"
 						>
-							<LogOut size={18} className="text-[var(--muted-foreground)]" />
+							<LogOut size={16} />
 							Sign out
 						</button>
 					</div>

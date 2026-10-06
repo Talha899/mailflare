@@ -70,28 +70,40 @@ export default function AdminSettingsPage() {
 
 	return (
 		<div>
-			<div className="mb-8">
-				<h1 className="text-3xl font-semibold tracking-tight">Overview</h1>
-				<p className="mt-2 text-sm text-[var(--muted-foreground)]">
+			<div className="mb-7">
+				<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
+					Overview
+				</h1>
+				<p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--muted-foreground)]">
 					Manage domains, mailboxes, and mail infrastructure for your organization.
 				</p>
 			</div>
-			<div className="grid gap-4 lg:grid-cols-2">
+			<div className="grid gap-3 sm:grid-cols-2">
 				{sections.filter(canSee).map((section) => {
 					const Icon = section.icon;
 
 					return (
-						<Link key={section.href} href={section.href}>
-							<Card className="h-full rounded-3xl border-0 bg-[var(--card)] p-6 transition-colors hover:bg-[var(--accent)]/60">
-								<CardHeader className="flex-row items-center gap-4 space-y-0 py-0">
-									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--primary)]">
-										<Icon className="h-5 w-5" />
+						<Link
+							key={section.href}
+							href={section.href}
+							className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+						>
+							<Card className="h-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm transition-[border-color,background-color,transform] duration-150 group-hover:border-[color-mix(in_oklab,var(--border)_55%,var(--foreground))] group-hover:bg-[var(--muted)]/40 group-active:scale-[0.995]">
+								<CardHeader className="flex-row items-start gap-3.5 space-y-0 py-0">
+									<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--muted)] text-[var(--foreground)] transition-colors group-hover:bg-[var(--card)]">
+										<Icon className="h-4 w-4" strokeWidth={1.75} />
 									</div>
-									<CardTitle className="text-base">{section.title}</CardTitle>
+									<div className="min-w-0 space-y-1">
+										<CardTitle className="text-[15px] font-semibold tracking-tight">
+											{section.title}
+										</CardTitle>
+										<CardContent className="p-0">
+											<p className="text-[13px] leading-relaxed text-[var(--muted-foreground)]">
+												{section.description}
+											</p>
+										</CardContent>
+									</div>
 								</CardHeader>
-								<CardContent className="pt-4">
-									<p className="text-sm text-[var(--muted-foreground)]">{section.description}</p>
-								</CardContent>
 							</Card>
 						</Link>
 					);

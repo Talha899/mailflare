@@ -5,8 +5,8 @@ import { recordsForAuthCheck } from "./domain-dns-details-utils";
 export const dnsAuthRecords = ["mx", "spf", "dkim", "dmarc"] as const;
 
 export const dnsAuthDescriptions = {
-	mx: "Routes incoming email to Postora",
-	spf: "Authorizes Postora to send email",
+	mx: "Routes incoming email to Dispatch",
+	spf: "Authorizes Dispatch to send email",
 	dkim: "Signs outgoing email for deliverability",
 	dmarc: "Helps prevent email spoofing",
 } as const;
@@ -27,11 +27,11 @@ export function getDnsAuthStatusLabel(status: DnsAuthStatus): string {
 export function getDnsAuthItemClass(status: DnsAuthStatus): string {
 	switch (status) {
 		case "ok":
-			return "bg-green-50 text-green-800";
+			return "bg-[var(--success)]/10 text-[var(--success)]";
 		case "missing":
-			return "bg-red-50 text-red-800";
+			return "bg-[var(--destructive)]/10 text-[var(--destructive)]";
 		default:
-			return "bg-neutral-100 text-neutral-600";
+			return "bg-[var(--muted)] text-[var(--muted-foreground)]";
 	}
 }
 

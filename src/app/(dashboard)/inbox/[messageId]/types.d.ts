@@ -1,5 +1,4 @@
 import type { Message } from "@/hooks/types";
-import type { ReplyContentParts } from "@/lib/email/reply-content-types";
 
 export type MessageDetailResponse = {
 	message?: Message;
@@ -20,11 +19,4 @@ export type MessageAttachment = {
 	messageId: string;
 	size: number;
 	type: string;
-};
-
-export type MessageBodyDisplay = ReplyContentParts & {
-	htmlBody: string | null;
-	/** Quoted/forwarded HTML a Mailflare composer folded under the message, shown collapsed. */
-	quotedHtml: string | null;
-	hasQuotedContent: boolean;
 };

@@ -28,7 +28,7 @@ export async function handleJmapRequest(request: Request, env: CloudflareEnv): P
 	if (!auth) {
 		return new Response(JSON.stringify({ error: "Unauthorized" }), {
 			status: 401,
-			headers: { ...JSON_HEADERS, "WWW-Authenticate": 'Basic realm="Postora JMAP", Bearer' },
+			headers: { ...JSON_HEADERS, "WWW-Authenticate": 'Basic realm="Dispatch JMAP", Bearer' },
 		});
 	}
 	if (!hasScope(auth.scopes, "jmap")) {

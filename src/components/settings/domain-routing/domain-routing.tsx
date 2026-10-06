@@ -115,12 +115,12 @@ export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 					<div className="flex items-center gap-2">
 						<h2 className="text-2xl font-semibold">Domain routing</h2>
 						<Tooltip label="Block, forward, or deliver mail arriving at this domain.">
-							<button type="button" aria-label="About domain routing" className="text-neutral-400 hover:text-neutral-700">
+							<button type="button" aria-label="About domain routing" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
 								<Info className="h-4 w-4" />
 							</button>
 						</Tooltip>
 					</div>
-					<p className="mt-1 text-sm text-neutral-500">Rules for {hostname || "Select an inbox"}</p>
+					<p className="mt-1 text-sm text-[var(--muted-foreground)]">Rules for {hostname || "Select an inbox"}</p>
 				</div>
 				<div className="flex items-end gap-2">
 					<Button onClick={openCreate} disabled={!domainId || (!domain && !mailboxId) || !canManage}>
@@ -133,13 +133,13 @@ export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 				<CardGridSkeleton />
 			) : !domain && !mailboxId ? (
 				<Card>
-					<CardContent className="pt-6 text-sm text-neutral-500">
+					<CardContent className="pt-6 text-sm text-[var(--muted-foreground)]">
 						Select an inbox before creating routing rules.
 					</CardContent>
 				</Card>
 			) : !canManage ? (
 				<Card>
-					<CardContent className="pt-6 text-sm text-neutral-500">
+					<CardContent className="pt-6 text-sm text-[var(--muted-foreground)]">
 						Full access to the selected inbox is required to manage domain routing.
 					</CardContent>
 				</Card>
@@ -257,7 +257,7 @@ export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 								<div className="flex items-center gap-2">
 									<Label htmlFor="rule-value">Match value</Label>
 									<Tooltip label="Use * to match every message.">
-										<span className="text-neutral-400"><Info className="h-4 w-4" /></span>
+										<span className="text-[var(--muted-foreground)]"><Info className="h-4 w-4" /></span>
 									</Tooltip>
 								</div>
 								<Input
@@ -272,7 +272,7 @@ export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 								<div className="flex items-center gap-2">
 									<Label htmlFor="rule-priority">Priority</Label>
 									<Tooltip label="Higher numbers run first.">
-										<span className="text-neutral-400"><Info className="h-4 w-4" /></span>
+										<span className="text-[var(--muted-foreground)]"><Info className="h-4 w-4" /></span>
 									</Tooltip>
 								</div>
 								<Input
@@ -322,12 +322,12 @@ export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 						)}
 
 						{form.action === "forward" && (
-							<div className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2">
+							<div className="flex items-center justify-between rounded-lg border border-[var(--border)] px-3 py-2">
 								<div>
 									<div className="flex items-center gap-2">
 										<p className="text-sm font-medium">Keep a copy</p>
 										<Tooltip label="Also store the message in the selected inbox.">
-											<span className="text-neutral-400"><Info className="h-4 w-4" /></span>
+											<span className="text-[var(--muted-foreground)]"><Info className="h-4 w-4" /></span>
 										</Tooltip>
 									</div>
 								</div>
@@ -350,9 +350,9 @@ export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 							</div>
 						)}
 
-						{error && <p className="text-sm text-red-600">{error}</p>}
+						{error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
 
-						<div className="flex justify-end gap-2 border-t border-neutral-200 pt-4">
+						<div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
 							<Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
 								Cancel
 							</Button>
@@ -389,27 +389,27 @@ function RuleSection({
 	onToggle: (rule: DomainRule) => void;
 }) {
 	return (
-		<Card className={`${className} border-0 bg-white px-6`}>
+		<Card className={`${className} border-0 bg-[var(--card)] px-6`}>
 			<CardHeader>
 				<div className="flex items-center gap-2">
 					<CardTitle className="text-xs uppercase">{title}</CardTitle>
 					<Tooltip label={description}>
-						<span className="text-neutral-400"><Info className="h-4 w-4" /></span>
+						<span className="text-[var(--muted-foreground)]"><Info className="h-4 w-4" /></span>
 					</Tooltip>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-2 pb-5">
 				{rules.length === 0 ? (
-					<p className="text-sm text-neutral-500">No rules yet.</p>
+					<p className="text-sm text-[var(--muted-foreground)]">No rules yet.</p>
 				) : (
 					rules.map((rule) => {
 						const Icon = ACTION_ICONS[rule.action];
 						return (
 							<div
 								key={rule.id}
-								className="flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 px-3 py-2"
+								className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] px-3 py-2"
 							>
-								<Icon className="h-4 w-4 shrink-0 text-neutral-500" />
+								<Icon className="h-4 w-4 shrink-0 text-[var(--muted-foreground)]" />
 								<div className="min-w-0 flex-1">
 									<div className="flex items-center gap-2">
 										<p className="truncate text-sm font-medium">
@@ -418,11 +418,11 @@ function RuleSection({
 										{!rule.enabled && <Badge variant="secondary">Disabled</Badge>}
 									</div>
 									{rule.name && (
-										<p className="truncate text-xs text-neutral-500">
+										<p className="truncate text-xs text-[var(--muted-foreground)]">
 											{describeRule(rule, mailboxes, hostname)}
 										</p>
 									)}
-									<p className="text-xs text-neutral-400">
+									<p className="text-xs text-[var(--muted-foreground)]">
 										Priority {rule.priority} · matched {rule.matchCount}× · last{" "}
 										{formatLastMatched(rule.lastMatchedAt)}
 									</p>
@@ -432,7 +432,7 @@ function RuleSection({
 									<Pencil className="h-4 w-4" />
 								</Button>
 								<Button variant="ghost" size="sm" onClick={() => onDelete(rule.id)}>
-									<Trash2 className="h-4 w-4 text-red-600" />
+									<Trash2 className="h-4 w-4 text-[var(--destructive)]" />
 								</Button>
 							</div>
 						);

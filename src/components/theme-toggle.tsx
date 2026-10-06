@@ -27,7 +27,14 @@ export function ThemeToggle({ className }: { className?: string }) {
 	}, []);
 
 	return (
-		<div className={cn("flex gap-1 rounded-lg bg-[var(--muted)] p-1", className)} role="group" aria-label="Theme">
+		<div
+			className={cn(
+				"flex gap-0.5 rounded-lg border border-[var(--border)] bg-[var(--card)] p-0.5",
+				className,
+			)}
+			role="group"
+			aria-label="Theme"
+		>
 			{OPTIONS.map((option) => {
 				const Icon = option.icon;
 				const active = preference === option.value;
@@ -38,9 +45,9 @@ export function ThemeToggle({ className }: { className?: string }) {
 						title={option.label}
 						aria-pressed={active}
 						className={cn(
-							"flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors",
+							"flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs transition-colors active:scale-[0.98]",
 							active
-								? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
+								? "bg-[var(--accent)] font-medium text-[var(--foreground)]"
 								: "text-[var(--muted-foreground)] hover:text-[var(--foreground)]",
 						)}
 						onClick={() => {

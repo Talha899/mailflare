@@ -6,7 +6,7 @@ export const MCP_KEY_SCOPES: { value: McpKeyScope; label: string; description: s
 	{ value: "mcp:read", label: "Read mail", description: "List, search, and read messages." },
 	{ value: "mcp:draft", label: "Manage drafts", description: "Create, edit, and discard drafts." },
 	{ value: "mcp:organize", label: "Organize mail", description: "Mark messages read and move them." },
-	{ value: "mcp:request-send", label: "Request send review", description: "Propose a send that you must confirm in Postora." },
+	{ value: "mcp:request-send", label: "Request send review", description: "Propose a send that you must confirm in Dispatch." },
 	{ value: "mcp:calendar-read", label: "Read calendar", description: "List, search, and inspect events and free time." },
 	{ value: "mcp:calendar-write", label: "Manage calendar", description: "Create, update, and delete events." },
 ];

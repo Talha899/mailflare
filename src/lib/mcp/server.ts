@@ -23,7 +23,7 @@ function output(value: unknown, isError = false) {
 
 export function createMailflareMcpHandler(env: CloudflareEnv, principal: McpPrincipal, baseUrl: string, authorization: string) {
 	return createMcpHandler(() => {
-		const server = new McpServer({ name: "postora", version: "0.1.0" });
+		const server = new McpServer({ name: "Dispatch", version: "0.1.0" });
 		if (principal.scopes.some((scope) => scope.startsWith("mcp:"))) {
 		for (const name of CALENDAR_TOOL_NAMES) {
 			server.registerTool(name, { description: calendarToolDescriptions[name], inputSchema: calendarToolSchemas[name] }, async (args) => {

@@ -20,7 +20,13 @@ export async function POST(request: Request) {
 	const parsed = schema.safeParse(raw);
 	if (!parsed.success) return Response.json({ error: "Invalid request" }, { status: 400 });
 	try {
-		const { conversationId, stream } = await createAgentChatStream({ env, user, mailboxId: parsed.data.mailboxId, origin: "chat" }, parsed.data.text, parsed.data.conversationId ?? undefined, request.signal, getRequestTimeZone(request, user.timeZone));
+		const { conversationId, stream } = await createAgentChatStream(
+			{ env, user, mailboxId: parsed.data.mailboxId, origin: "chat" },
+			parsed.data.text,
+			parsed.data.conversationId ?? undefined,
+			request.signal,
+			getRequestTimeZone(request, parsed.data.timeZone ?? user.timeZone),
+		);
 		return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store", "X-Conversation-Id": conversationId } });
 	} catch (error) {
 		return Response.json({ error: agentProviderErrorMessage(error) }, { status: 400 });

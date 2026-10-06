@@ -147,7 +147,7 @@ export function buildReplyQuote(
   return `\n\n${getEmailAddress(senderAddress)} wrote:\n${quoted}\n`;
 }
 
-const QUOTE_STYLE = "margin:0 0 0 0;border-left:1px solid #ccc;padding-left:1ex;opacity:0.6";
+const QUOTE_STYLE = "margin:0 0 0 0;border-left:1px solid #d4d4d8;padding-left:1ex;opacity:0.6";
 
 /**
  * The folded quote under a reply: the "On <date>, <sender> wrote:" line every

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { appSettings } from "@/db/schema";
+import { appSettings, mailboxAgentSettings } from "@/db/schema";
 import type { AgentProviderConfig, AgentProviderPreset, AgentProviderPublicConfig } from "./provider-types";
 import { AGENT_SETTINGS_ID, DEFAULT_CLOUDFLARE_MODEL, PROVIDER_BASE_URLS } from "./provider-constants";
 import { parseAgentModelIds } from "./model-ids";
@@ -13,9 +13,31 @@ export function resolveAgentBaseUrl(preset: AgentProviderPreset, customUrl: stri
 	return url.toString().replace(/\/$/, "");
 }
 
+/** Global kill switch from Admin → Agent. Does not require a configured provider. */
 export async function getAgentEnabled(env: CloudflareEnv): Promise<boolean> {
 	const [saved] = await getDb(env).select({ enabled: appSettings.agentEnabled }).from(appSettings).where(eq(appSettings.id, AGENT_SETTINGS_ID)).limit(1);
 	return saved?.enabled ?? true;
+}
+
+/** True when an API key / Workers AI binding and at least one model are ready to serve requests. */
+export async function isAgentProviderConfigured(env: CloudflareEnv): Promise<boolean> {
+	return (await getAgentProviderPublicConfig(env)).configured;
+}
+
+/** Global assistant may run (enabled in admin AND provider plug-and-play configured). */
+async function isAssistantAvailable(env: CloudflareEnv): Promise<boolean> {
+	return (await getAgentEnabled(env)) && (await isAgentProviderConfigured(env));
+}
+
+/** Per-mailbox allowlist — opt-in via Admin → Agent. Missing row means disabled. */
+export async function isMailboxAgentEnabled(env: CloudflareEnv, mailboxId: string): Promise<boolean> {
+	const [settings] = await getDb(env).select({ enabled: mailboxAgentSettings.enabled }).from(mailboxAgentSettings).where(eq(mailboxAgentSettings.mailboxId, mailboxId)).limit(1);
+	return settings?.enabled === true;
+}
+
+/** Full gate for UI + chat: global available and this mailbox is on the allowlist. */
+export async function isAssistantAvailableForMailbox(env: CloudflareEnv, mailboxId: string): Promise<boolean> {
+	return (await isAssistantAvailable(env)) && (await isMailboxAgentEnabled(env, mailboxId));
 }
 
 export async function getAgentProviderConfig(env: CloudflareEnv): Promise<AgentProviderConfig> {

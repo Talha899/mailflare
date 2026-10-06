@@ -207,12 +207,12 @@ export function RegisterClient() {
         }
       >
         <div className="space-y-5">
-          <p className="text-sm leading-6 text-neutral-600">
+          <p className="text-sm leading-6 text-[var(--muted-foreground)]">
             This installation already has an account for {primaryDomain ?? "this workspace"}.
           </p>
           <Button
             type="button"
-            className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+            className="h-10 w-full rounded-xl active:scale-[0.98]"
             onClick={() => router.push("/login")}
           >
             Go to login
@@ -241,45 +241,45 @@ export function RegisterClient() {
     >
       {step === 1 ? (
         <div className="space-y-5">
-          <p className="text-sm leading-6 text-neutral-600">
-            Postora checks its required Cloudflare configuration and initializes a clean D1 database before setup continues.
+          <p className="text-sm leading-6 text-[var(--muted-foreground)]">
+            Dispatch checks its required Cloudflare configuration and initializes a clean D1 database before setup continues.
           </p>
           <div className="space-y-2">
             {loading && checks.length === 0 && (
-              <div className="flex items-center gap-3 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+              <div className="flex items-center gap-3 rounded-xl bg-[var(--muted)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
                 <LoaderCircle className="h-4 w-4 animate-spin" />
                 Checking installation
               </div>
             )}
             {checks.map((check) => (
-              <div key={check.key} className="flex items-start gap-3 rounded-2xl bg-neutral-50 px-4 py-3">
+              <div key={check.key} className="flex items-start gap-3 rounded-xl bg-[var(--muted)] px-4 py-3">
                 {check.configured ? (
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--success)]" />
                 ) : (
-                  <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+                  <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--destructive)]" />
                 )}
                 <div>
-                  <p className="text-sm font-medium text-neutral-800">{check.key}</p>
-                  {!check.configured && <p className="mt-1 text-xs leading-5 text-neutral-500">{check.message}</p>}
+                  <p className="text-sm font-medium text-[var(--foreground)]">{check.key}</p>
+                  {!check.configured && <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">{check.message}</p>}
                 </div>
               </div>
             ))}
             {preparationComplete && (
-              <div className="flex items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
+              <div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
                 <CheckCircle2 className="h-4 w-4" />
                 {databaseMigrated ? "Clean database migrated successfully" : "Database schema is ready"}
               </div>
             )}
           </div>
           {error && (
-            <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
               {error}
             </p>
           )}
           {preparationComplete ? (
             <Button
               type="button"
-              className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+              className="h-10 w-full rounded-xl active:scale-[0.98]"
               onClick={() => setStep(hasPrimaryDomain ? 3 : 2)}
             >
               Continue
@@ -288,7 +288,7 @@ export function RegisterClient() {
             <Button
               type="button"
               variant="outline"
-              className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+              className="h-10 w-full rounded-xl active:scale-[0.98]"
               disabled={loading}
               onClick={() => void runPreparation()}
             >
@@ -314,14 +314,14 @@ export function RegisterClient() {
                 }
               }}
             />
-            <p className="text-xs leading-5 text-neutral-500">
+            <p className="text-xs leading-5 text-[var(--muted-foreground)]">
               The domain must already be a Cloudflare zone on this account.
             </p>
           </div>
-          <div className="flex items-center justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
+          <div className="flex items-center justify-between gap-4 rounded-xl bg-[var(--muted)] px-4 py-3">
             <div>
               <Label htmlFor="setup-enable-sending">Enable sending</Label>
-              <p className="mt-1 text-xs leading-5 text-neutral-500">
+              <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
                 {domainChecking
                   ? "Checking Cloudflare access..."
                   : domainCheck
@@ -339,19 +339,19 @@ export function RegisterClient() {
             />
           </div>
           {domainCheck && (
-            <div className="flex items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
+            <div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
               <CheckCircle2 className="h-4 w-4" />
               Domain found in Cloudflare as {domainCheck.zone.name}
             </div>
           )}
           {error && (
-            <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
               {error}
             </p>
           )}
           <Button
             type="submit"
-            className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+            className="h-10 w-full rounded-xl active:scale-[0.98]"
             disabled={loading || domainChecking}
           >
             {loading ? "Adding domain..." : "Continue"}
@@ -360,30 +360,30 @@ export function RegisterClient() {
       ) : (
         <form method="post" onSubmit={onSubmit} className="space-y-5">
 					{mxChecking && (
-						<div className="flex items-center gap-3 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+						<div className="flex items-center gap-3 rounded-xl bg-[var(--muted)] px-4 py-3 text-sm text-[var(--muted-foreground)]">
 							<LoaderCircle className="h-4 w-4 animate-spin" />
 							Checking existing MX records
 						</div>
 					)}
 					{mxRecordsExist === false && (
-						<div className="flex items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
+						<div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
 							<CheckCircle2 className="h-4 w-4" />
 							No existing MX records found
 						</div>
 					)}
 					{mxRecordsExist === true && (
-						<label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-900">
+						<label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-4 text-[var(--foreground)]">
 							<Checkbox
 								checked={replaceMxRecords}
 								onChange={(event) => setReplaceMxRecords(event.target.checked)}
 								className="mt-1"
 							/>
 							<span>
-								<span className="flex items-center gap-2 text-sm font-medium">
+								<span className="flex items-center gap-2 text-sm font-medium text-[var(--destructive)]">
 									<AlertTriangle className="h-4 w-4" />
 									Replace existing MX records
 								</span>
-								<span className="mt-1 block text-xs leading-5">
+								<span className="mt-1 block text-xs leading-5 text-[var(--muted-foreground)]">
 									This deletes the current mail provider's MX records and replaces them with Cloudflare Email Routing. The previous provider will stop receiving mail.
 								</span>
 							</span>
@@ -400,7 +400,7 @@ export function RegisterClient() {
                 required
 								className="pr-34"
               />
-              <span className="max-w-36 truncate text-sm font-medium text-neutral-500 absolute top-2.5 right-5">
+              <span className="max-w-36 truncate text-sm font-medium text-[var(--muted-foreground)] absolute top-2.5 right-5">
                 @{accountDomain ?? "domain"}
               </span>
             </div>
@@ -415,7 +415,7 @@ export function RegisterClient() {
               autoComplete="new-password"
               required
             />
-            <p className="text-xs leading-5 text-neutral-500">
+            <p className="text-xs leading-5 text-[var(--muted-foreground)]">
               Sets your administrator account password and the first mailbox password to the same value at setup. After
               setup they are independent — webmail and IMAP/SMTP use the mailbox password; /admin/login uses the account
               password.
@@ -431,11 +431,11 @@ export function RegisterClient() {
               placeholder="you@gmail.com"
               required
             />
-            {/* <p className="text-xs leading-5 text-neutral-500">Used later for password reset.</p> */}
+            {/* <p className="text-xs leading-5 text-[var(--muted-foreground)]">Used later for password reset.</p> */}
           </div>
 
           {error && (
-            <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            <p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
               {error}
             </p>
           )}
@@ -443,7 +443,7 @@ export function RegisterClient() {
 						<Button
 							type="button"
 							variant="outline"
-							className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+							className="h-10 w-full rounded-xl active:scale-[0.98]"
 							onClick={() => setMxCheckRevision((value) => value + 1)}
 						>
 							Check MX records again
@@ -452,7 +452,7 @@ export function RegisterClient() {
           <TurnstileField resetSignal={turnstileReset} />
 					<Button
 						type="submit"
-						className="h-11 w-full rounded-full px-6 active:scale-[0.98] mt-8"
+						className="mt-8 h-10 w-full rounded-xl active:scale-[0.98]"
 						disabled={loading || mxChecking || mxRecordsExist === null || (mxRecordsExist && !replaceMxRecords) || hasAdminAccount === null || hasPrimaryDomain === null}
 					>
 						{loading ? "Creating..." : "Create account"}

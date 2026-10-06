@@ -6,14 +6,14 @@ import { getMailboxAccessLevel } from "@/lib/mailboxes/access";
 import { newId } from "@/lib/ids";
 import { agentSystemPrompt, getAgentModel } from "./model";
 import { agentProviderErrorMessage } from "./errors";
-import { getAgentEnabled } from "./provider";
+import { isAssistantAvailableForMailbox } from "./provider";
 import { recordAiUsage } from "@/lib/ai/usage";
 import { EMAIL_TOOL_NAMES, emailToolDescriptions, emailToolSchemas, runEmailTool } from "./tools";
 import type { AgentToolContext } from "./types";
 import { normalizeTimeZone } from "@/lib/time/utils";
 import { CALENDAR_TOOL_NAMES, calendarToolDescriptions, calendarToolSchemas, runCalendarTool } from "@/lib/calendar/tools";
 
-export async function getAgentConversation(context: AgentToolContext, conversationId: string) {
+async function getAgentConversation(context: AgentToolContext, conversationId: string) {
 	const db = getDb(context.env);
 	const [conversation] = await db.select().from(agentConversations).where(and(eq(agentConversations.id, conversationId), eq(agentConversations.userId, context.user.id), eq(agentConversations.mailboxId, context.mailboxId))).limit(1);
 	return conversation ?? null;
@@ -37,7 +37,9 @@ export async function createAgentChatStream(context: AgentToolContext, text: str
 	const db = getDb(context.env);
 	const access = await getMailboxAccessLevel(db, context.user, context.mailboxId);
 	if (!access?.canRead) throw new Error("Mailbox not found");
-	if (!await getAgentEnabled(context.env)) throw new Error("Assistant is disabled");
+	if (!await isAssistantAvailableForMailbox(context.env, context.mailboxId)) {
+		throw new Error("Assistant is not available for this mailbox");
+	}
 	const [settings] = await db.select().from(mailboxAgentSettings).where(eq(mailboxAgentSettings.mailboxId, context.mailboxId)).limit(1);
 	const selection = await getAgentModel(context.env, settings?.modelId);
 	if (!selection) throw new Error("AI provider is not configured");

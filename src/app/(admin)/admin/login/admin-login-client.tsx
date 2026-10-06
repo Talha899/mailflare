@@ -106,11 +106,11 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 						/>
 					</div>
 					{error && (
-						<p className="rounded-md border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm text-[var(--destructive)]">
+						<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm text-[var(--destructive)]">
 							{error}
 						</p>
 					)}
-					<Button type="submit" className="h-10 w-full rounded-md" disabled={loading}>
+					<Button type="submit" className="h-10 w-full rounded-xl active:scale-[0.98]" disabled={loading}>
 						{loading ? "Verifying..." : "Confirm access"}
 					</Button>
 					<button
@@ -139,7 +139,7 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 				showSignupLink ? (
 					<p className="text-center text-xs text-[var(--muted-foreground)]">
 						New organization?{" "}
-						<Link href="/signup" className="underline-offset-2 hover:underline">
+						<Link href="/signup" className="font-medium text-[var(--foreground)] underline-offset-2 hover:underline">
 							Create a workspace
 						</Link>
 					</p>
@@ -155,7 +155,7 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 						type="email"
 						autoComplete="username"
 						placeholder="admin@your-domain.com"
-						className="rounded-md"
+						className="rounded-xl"
 						required
 					/>
 				</div>
@@ -174,7 +174,7 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 						name="password"
 						type="password"
 						autoComplete="current-password"
-						className="rounded-md"
+						className="rounded-xl"
 						required
 					/>
 					<p className="text-[11px] text-[var(--muted-foreground)]">
@@ -182,12 +182,12 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 					</p>
 				</div>
 				{error && (
-					<p className="rounded-md border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm text-[var(--destructive)]">
+					<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-3 py-2.5 text-sm text-[var(--destructive)]">
 						{error}
 					</p>
 				)}
 				<TurnstileField resetSignal={turnstileReset} />
-				<Button type="submit" className="h-10 w-full rounded-md" disabled={loading}>
+				<Button type="submit" className="h-10 w-full rounded-xl active:scale-[0.98]" disabled={loading}>
 					{loading ? "Authenticating..." : "Enter admin console"}
 				</Button>
 			</form>

@@ -101,7 +101,7 @@ export default function MessageDetailPage() {
 
   if (!data?.message) {
     return (
-      <p className="px-6 py-4 text-sm text-neutral-500">
+      <p className="px-6 py-4 text-sm text-[var(--muted-foreground)]">
         {data?.error ?? "Message not found"}
       </p>
     );
@@ -148,13 +148,13 @@ export default function MessageDetailPage() {
   );
   return (<>
 
-    <div className={clsx("flex py-2 h-12 items-center px-2 border-b sticky top-0 bg-white z-40 gap-3", scrolled ? "border-neutral-200" : "border-transparent")}>
+    <div className={clsx("flex py-2 h-12 items-center px-2 border-b sticky top-0 bg-[var(--card)] z-40 gap-3", scrolled ? "border-[var(--border)]" : "border-transparent")}>
       <MessageReadingHeaderButton assistantVisible={assistantVisible} />
       {/* <div className="min-w-0 flex-1" /> */}
       {/* <div className="flex items-center flex-row gap-6">
 					<Link
 						href={getMessageBackHref(message.direction, message.status)}
-						className="rounded-full p-2 text-neutral-600 hover:bg-neutral-100"
+						className="rounded-full p-2 text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
 					>
 						<ArrowLeft className="h-5 w-5" />
 					</Link>
@@ -181,7 +181,7 @@ export default function MessageDetailPage() {
     <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto overscroll-contain scrollbar-gutter-stable flex-1 min-h-0">
       {!message.read && <MarkAsRead messageId={message.id} />}
 
-      <h1 className={clsx(!isAnyPanelVisible ? "pl-16" : "pl-10", "pr-6 pb-2 pt-2 text-2xl text-neutral-900")} title={message.subject ?? "(no subject)"}>
+      <h1 className={clsx(!isAnyPanelVisible ? "pl-16" : "pl-10", "pr-6 pb-2 pt-2 text-2xl text-[var(--foreground)]")} title={message.subject ?? "(no subject)"}>
         {message.subject ?? "(no subject)"}
       </h1>
       {/* <div className="px-6">
@@ -222,7 +222,7 @@ export default function MessageDetailPage() {
                 className="mt-2"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-neutral-900 mt-1.25 flex flex-row items-center gap-1 w-full  overflow-hidden">
+                <p className="text-sm text-[var(--foreground)] mt-1.25 flex flex-row items-center gap-1 w-full  overflow-hidden">
                   <b className="whitespace-nowrap">
                     {message.direction === "inbound" ? (
                       <ContactDetailsTrigger
@@ -234,9 +234,9 @@ export default function MessageDetailPage() {
                       fromName
                     )}
                   </b>{" "}
-                  <span className="text-neutral-500 text-xs flex-1 overflow-hidden text-ellipsis min-w-0">&lt;{fromAddress}&gt;</span>
+                  <span className="text-[var(--muted-foreground)] text-xs flex-1 overflow-hidden text-ellipsis min-w-0">&lt;{fromAddress}&gt;</span>
                 </p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-[var(--muted-foreground)]">
                   to{" "}
                   <RecipientList
                     entries={toEntries}
@@ -245,12 +245,12 @@ export default function MessageDetailPage() {
                   />
                 </p>
                 {ccEntries.length > 0 && (
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-[var(--muted-foreground)]">
                     cc <RecipientList entries={ccEntries} mailboxId={message.mailboxId} style={showFullRecipientAddresses ? "full" : "address"} />
                   </p>
                 )}
                 {bccEntries.length > 0 && (
-                  <p className="text-xs text-neutral-500">
+                  <p className="text-xs text-[var(--muted-foreground)]">
                     bcc <RecipientList entries={bccEntries} mailboxId={message.mailboxId} style={showFullRecipientAddresses ? "full" : "address"} />
                   </p>
                 )}
@@ -269,7 +269,7 @@ export default function MessageDetailPage() {
               />
             </div>
           </div>
-          <div className="prose max-w-none pl-16 text-neutral-900">
+          <div className="prose max-w-none pl-16 text-[var(--foreground)]">
             {htmlBody ? (
               <div className="email-body mx-auto" dangerouslySetInnerHTML={{ __html: htmlBody }} />
             ) : (
@@ -286,8 +286,8 @@ export default function MessageDetailPage() {
             ))}
           </div>
           {cloudAttachmentResult.attachments.length > 0 && (
-            <section className="mt-8 border-t border-neutral-100 py-6 pl-16">
-              <h2 className="mb-3 text-sm font-semibold text-neutral-900">
+            <section className="mt-8 border-t border-[var(--border)] py-6 pl-16">
+              <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Cloud files ({cloudAttachmentResult.attachments.length})
               </h2>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -297,26 +297,26 @@ export default function MessageDetailPage() {
                     href={attachment.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 rounded-lg border border-neutral-200 p-3 text-left hover:border-blue-200 hover:bg-blue-50/40"
+                    className="flex items-center gap-3 rounded-lg border border-[var(--border)] p-3 text-left hover:border-[var(--border)] hover:bg-[var(--muted)]"
                   >
-                    <Cloud className="h-5 w-5 shrink-0 text-blue-600" />
+                    <Cloud className="h-5 w-5 shrink-0 text-[var(--primary)]" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-neutral-900">
+                      <span className="block truncate text-sm font-medium text-[var(--foreground)]">
                         {attachment.filename}
                       </span>
-                      <span className="block text-xs text-neutral-500">
+                      <span className="block text-xs text-[var(--muted-foreground)]">
                         Open from {attachment.provider}
                       </span>
                     </span>
-                    <ExternalLink className="h-4 w-4 shrink-0 text-neutral-400" />
+                    <ExternalLink className="h-4 w-4 shrink-0 text-[var(--muted-foreground)]" />
                   </a>
                 ))}
               </div>
             </section>
           )}
           {attachments.length > 0 && (
-            <section className="mt-8 border-t border-neutral-100 py-6 pl-16">
-              <h2 className="mb-3 text-sm font-semibold text-neutral-900">
+            <section className="mt-8 border-t border-[var(--border)] py-6 pl-16">
+              <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Attachments ({attachments.length})
               </h2>
               <div className="grid gap-2 sm:grid-cols-2">

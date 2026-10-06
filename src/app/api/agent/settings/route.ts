@@ -5,11 +5,17 @@ import { agentJobs, mailboxAgentSettings, users } from "@/db/schema";
 import { getEnv } from "@/lib/cloudflare";
 import { getCurrentUser } from "@/lib/auth/cookies";
 import { getMailboxAccessLevel } from "@/lib/mailboxes/access";
-import { getAgentProviderPublicConfig } from "@/lib/agent/provider";
-import { isPrimaryAdmin } from "@/lib/auth/admin";
+import { getAgentProviderPublicConfig, isMailboxAgentEnabled } from "@/lib/agent/provider";
 import { hasValidSessionMutationOrigin } from "@/lib/auth/origin";
 
-const schema = z.object({ mailboxId: z.string().min(1), enabled: z.boolean(), modelId: z.string().max(200).nullable().optional(), autoDraftEnabled: z.boolean(), reviewerUserId: z.string().nullable().optional(), instructions: z.string().max(4_000), dailyLimit: z.number().int().min(1).max(100) });
+const schema = z.object({
+	mailboxId: z.string().min(1),
+	modelId: z.string().max(200).nullable().optional(),
+	autoDraftEnabled: z.boolean(),
+	reviewerUserId: z.string().nullable().optional(),
+	instructions: z.string().max(4_000),
+	dailyLimit: z.number().int().min(1).max(100),
+});
 
 export async function GET(request: Request) {
 	const env = getEnv();
@@ -24,12 +30,25 @@ export async function GET(request: Request) {
 	const reviewers: { id: string; name: string; email: string }[] = [];
 	if (access.canManage) {
 		const candidates = await db.select({ id: users.id, name: users.name, email: users.email, disabled: users.disabled }).from(users).limit(200);
-		for (const candidate of candidates) if (!candidate.disabled && (await getMailboxAccessLevel(db, { id: candidate.id, role: "user" }, mailboxId))?.canSendOnBehalf) reviewers.push({ id: candidate.id, name: candidate.name, email: candidate.email });
+		for (const candidate of candidates) {
+			if (!candidate.disabled && (await getMailboxAccessLevel(db, { id: candidate.id, role: "user" }, mailboxId))?.canSendOnBehalf) {
+				reviewers.push({ id: candidate.id, name: candidate.name, email: candidate.email });
+			}
+		}
 	}
 	const agentProvider = await getAgentProviderPublicConfig(env);
-	const provider = agentProvider.configured ? { kind: agentProvider.provider === "cloudflare" ? "Cloudflare Workers AI" : agentProvider.preset === "custom" ? "OpenAI-compatible API" : agentProvider.preset, model: agentProvider.model } : null;
 	const modelId = settings?.modelId && agentProvider.models.includes(settings.modelId) ? settings.modelId : agentProvider.models[0] ?? null;
-	return Response.json({ settings: settings ? { ...settings, enabled: true, modelId } : { mailboxId, enabled: true, modelId, autoDraftEnabled: false, reviewerUserId: access.mailbox.userId, instructions: "", dailyLimit: 25 }, models: agentProvider.models, 		canManage: access.canManage, canConfigureProvider: isPrimaryAdmin(user), providerConfigured: agentProvider.configured, provider, autoReplyEnabled: access.mailbox.autoReplyEnabled, reviewers });
+	const enabled = await isMailboxAgentEnabled(env, mailboxId);
+	return Response.json({
+		settings: settings
+			? { ...settings, enabled, modelId }
+			: { mailboxId, enabled, modelId, autoDraftEnabled: false, reviewerUserId: access.mailbox.userId, instructions: "", dailyLimit: 25 },
+		models: agentProvider.models,
+		canManage: access.canManage,
+		providerConfigured: agentProvider.configured,
+		autoReplyEnabled: access.mailbox.autoReplyEnabled,
+		reviewers,
+	});
 }
 
 export async function PUT(request: Request) {
@@ -44,12 +63,40 @@ export async function PUT(request: Request) {
 	if (!access?.canManage) return Response.json({ error: "Mailbox not found or permission denied" }, { status: 403 });
 	const reviewerId = parsed.data.reviewerUserId || access.mailbox.userId;
 	const [reviewer] = await db.select().from(users).where(eq(users.id, reviewerId)).limit(1);
-	if (!reviewer || reviewer.disabled || !(await getMailboxAccessLevel(db, reviewer, parsed.data.mailboxId))?.canSendOnBehalf) return Response.json({ error: "Reviewer needs mailbox send permission" }, { status: 400 });
-	if (parsed.data.autoDraftEnabled && access.mailbox.autoReplyEnabled) return Response.json({ error: "Disable the out-of-office auto-reply before enabling AI drafts" }, { status: 400 });
+	if (!reviewer || reviewer.disabled || !(await getMailboxAccessLevel(db, reviewer, parsed.data.mailboxId))?.canSendOnBehalf) {
+		return Response.json({ error: "Reviewer needs mailbox send permission" }, { status: 400 });
+	}
+	if (parsed.data.autoDraftEnabled && access.mailbox.autoReplyEnabled) {
+		return Response.json({ error: "Disable the out-of-office auto-reply before enabling AI drafts" }, { status: 400 });
+	}
 	const agentProvider = await getAgentProviderPublicConfig(env);
-	if (parsed.data.modelId && !agentProvider.models.includes(parsed.data.modelId)) return Response.json({ error: "Choose a configured model" }, { status: 400 });
+	if (parsed.data.modelId && !agentProvider.models.includes(parsed.data.modelId)) {
+		return Response.json({ error: "Choose a configured model" }, { status: 400 });
+	}
 	const modelId = parsed.data.modelId || agentProvider.models[0] || null;
-	await db.insert(mailboxAgentSettings).values({ ...parsed.data, enabled: true, modelId, reviewerUserId: reviewerId }).onConflictDoUpdate({ target: mailboxAgentSettings.mailboxId, set: { enabled: true, modelId, autoDraftEnabled: parsed.data.autoDraftEnabled, reviewerUserId: reviewerId, instructions: parsed.data.instructions, dailyLimit: parsed.data.dailyLimit, updatedAt: new Date() } });
-	if (!parsed.data.autoDraftEnabled) await db.update(agentJobs).set({ status: "skipped", reason: "Auto-drafting disabled" }).where(and(eq(agentJobs.mailboxId, parsed.data.mailboxId), eq(agentJobs.status, "pending")));
+	const [existing] = await db.select({ enabled: mailboxAgentSettings.enabled }).from(mailboxAgentSettings).where(eq(mailboxAgentSettings.mailboxId, parsed.data.mailboxId)).limit(1);
+	const enabled = existing?.enabled === true;
+	await db.insert(mailboxAgentSettings).values({
+		mailboxId: parsed.data.mailboxId,
+		enabled,
+		modelId,
+		autoDraftEnabled: parsed.data.autoDraftEnabled,
+		reviewerUserId: reviewerId,
+		instructions: parsed.data.instructions,
+		dailyLimit: parsed.data.dailyLimit,
+	}).onConflictDoUpdate({
+		target: mailboxAgentSettings.mailboxId,
+		set: {
+			modelId,
+			autoDraftEnabled: parsed.data.autoDraftEnabled,
+			reviewerUserId: reviewerId,
+			instructions: parsed.data.instructions,
+			dailyLimit: parsed.data.dailyLimit,
+			updatedAt: new Date(),
+		},
+	});
+	if (!parsed.data.autoDraftEnabled) {
+		await db.update(agentJobs).set({ status: "skipped", reason: "Auto-drafting disabled" }).where(and(eq(agentJobs.mailboxId, parsed.data.mailboxId), eq(agentJobs.status, "pending")));
+	}
 	return Response.json({ ok: true });
 }

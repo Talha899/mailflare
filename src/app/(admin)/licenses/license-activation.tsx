@@ -69,20 +69,20 @@ export function LicenseActivation() {
 
 	if (license?.active) {
 		return (
-			<Card className="rounded-3xl border-0 bg-white px-6">
+			<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-6">
 				<CardContent className="flex items-start gap-4 py-8">
-					<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
+					<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--success)]/15 text-[var(--success)]">
 						<CheckCircle2 className="h-6 w-6" />
 					</span>
 					<div className="min-w-0 flex-1">
 						<CardTitle>License activated</CardTitle>
-						<p className="mt-2 text-sm leading-6 text-neutral-600">
+						<p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
 							Your {formatLicensePlan(license.plan)} license is active. Licensed features are ready to use.
 						</p>
 						<Button type="button" variant="outline" className="mt-5" onClick={() => void submit("deactivate")} disabled={action !== null}>
 							{action === "deactivate" ? "Deactivating..." : "Deactivate license"}
 						</Button>
-						{status && <p className="mt-3 text-sm text-neutral-500">{status}</p>}
+						{status && <p className="mt-3 text-sm text-[var(--muted-foreground)]">{status}</p>}
 					</div>
 				</CardContent>
 			</Card>
@@ -90,10 +90,10 @@ export function LicenseActivation() {
 	}
 
 	return (
-		<Card className="rounded-3xl border-0 bg-white px-6">
+		<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-6">
 			<CardContent className="space-y-5 pb-6">
 				{hasActivation && license && (
-					<p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+					<p className="rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-sm text-[var(--foreground)]">
 						This license is currently {license.state}. Enter its key to validate or deactivate it.
 					</p>
 				)}
@@ -109,12 +109,12 @@ export function LicenseActivation() {
 								disabled={action !== null}
 								className={`rounded-2xl border px-4 py-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer ${
 									selectedPlan === "pro"
-										? "border-blue-600 bg-neutral-50 ring-1 ring-blue-700"
-										: "border-neutral-200 bg-white hover:border-neutral-400"
+										? "border-[var(--primary)] bg-[var(--muted)] ring-1 ring-[var(--primary)]"
+										: "border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]"
 								}`}
 							>
 								<span className="block text-xl font-semibold">Pro</span>
-								<span className="mt-1 block text-xs text-neutral-500">For individual power users</span>
+								<span className="mt-1 block text-xs text-[var(--muted-foreground)]">For individual power users</span>
 							</button>
 							<button
 								type="button"
@@ -124,12 +124,12 @@ export function LicenseActivation() {
 								disabled={action !== null}
 								className={`rounded-2xl border px-4 py-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer ${
 									selectedPlan === "team"
-										? "border-blue-600 bg-neutral-50 ring-1 ring-blue-700"
-										: "border-neutral-200 bg-white hover:border-neutral-400"
+										? "border-[var(--primary)] bg-[var(--muted)] ring-1 ring-[var(--primary)]"
+										: "border-[var(--border)] bg-[var(--card)] hover:border-[var(--muted-foreground)]"
 								}`}
 							>
-								<span className="block text-xl font-semibold text-neutral-900">Team</span>
-								<span className="mt-1 block text-xs text-neutral-500">For teams and shared inboxes</span>
+								<span className="block text-xl font-semibold text-[var(--foreground)]">Team</span>
+								<span className="mt-1 block text-xs text-[var(--muted-foreground)]">For teams and shared inboxes</span>
 							</button>
 						</div>
 					</div>
@@ -142,7 +142,7 @@ export function LicenseActivation() {
 						autoComplete="off"
 						value={licenseKey}
 						onChange={(event) => setLicenseKey(event.target.value)}
-						placeholder="Enter your Postora license key"
+						placeholder="Enter your Dispatch license key"
 						disabled={action !== null}
 					/>
 				</div>
@@ -161,7 +161,7 @@ export function LicenseActivation() {
 							{action === "activate" ? "Activating..." : "Activate"}
 						</Button>
 					)}
-					{status && <p className="text-sm text-neutral-500">{status}</p>}
+					{status && <p className="text-sm text-[var(--muted-foreground)]">{status}</p>}
 				</div>
 			</CardContent>
 		</Card>

@@ -24,8 +24,8 @@ export default function LicensesPage() {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-medium text-neutral-900">Licenses</h1>
-				<p className="mt-2 text-sm text-neutral-500">
+				<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Licenses</h1>
+				<p className="mt-2 text-sm text-[var(--muted-foreground)]">
 					Choose a one-time license. Each purchase includes updates released
 					during the first year.
 				</p>
@@ -36,17 +36,17 @@ export default function LicensesPage() {
 					return (
 						<Card
 							key={plan.name}
-							className="rounded-3xl border-0 bg-white p-6 flex flex-col"
+							className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 flex flex-col"
 						>
 							<CardHeader className="space-y-4 py-0">
 								<div className="flex items-center justify-between">
-									<span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700">
+									<span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--muted)] text-[var(--compose)]">
 										<Icon className="h-5 w-5" />
 									</span>
 								</div>
 								<div className="relative">
 									<CardTitle>{plan.name}</CardTitle>
-									<p className="mt-2 text-6xl text-neutral-950 flex">
+									<p className="mt-2 text-6xl text-[var(--foreground)] flex">
 										<span className="text-[12px] mt-2">$</span>
 										<b>{plan.price}</b>
 										{plan.originalPrice && (
@@ -62,9 +62,9 @@ export default function LicensesPage() {
 								{plan.features.map((feature) => (
 									<p
 										key={feature}
-										className="flex gap-2 text-sm text-neutral-600"
+										className="flex gap-2 text-sm text-[var(--muted-foreground)]"
 									>
-										<Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+										<Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--success)]" />
 										{feature}
 									</p>
 								))}

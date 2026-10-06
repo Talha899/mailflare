@@ -21,10 +21,14 @@ function generatePassword(length = 20): string {
 function CopyRow({ label, value }: { label: string; value: string }) {
 	const [copied, setCopied] = useState(false);
 	return (
-		<div className="flex items-start gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2">
+		<div className="flex items-start gap-2 rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2">
 			<div className="min-w-0 flex-1">
-				<p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">{label}</p>
-				<p className="break-all font-mono text-sm">{value}</p>
+				<p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
+					{label}
+				</p>
+				<p className="break-all font-mono text-[13px] tracking-tight text-[var(--foreground)]">
+					{value}
+				</p>
 			</div>
 			<Button
 				type="button"
@@ -40,6 +44,34 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 			>
 				{copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
 			</Button>
+		</div>
+	);
+}
+
+function StepDots({ step, total }: { step: number; total: number }) {
+	return (
+		<div className="flex items-center gap-2">
+			{Array.from({ length: total }, (_, i) => {
+				const n = i + 1;
+				const active = n === step;
+				const done = n < step;
+				return (
+					<span
+						key={n}
+						className={`h-1.5 flex-1 rounded-sm transition-colors ${
+							active
+								? "bg-[var(--primary)]"
+								: done
+									? "bg-[color-mix(in_oklab,var(--primary)_45%,var(--muted))]"
+									: "bg-[var(--muted)]"
+						}`}
+						aria-hidden="true"
+					/>
+				);
+			})}
+			<span className="ml-1 shrink-0 text-[11px] font-medium tabular-nums text-[var(--muted-foreground)]">
+				{step}/{total}
+			</span>
 		</div>
 	);
 }
@@ -108,14 +140,16 @@ export function CreateMailboxWizard({
 	if (credentials) {
 		return (
 			<div className="space-y-4">
-				<div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+				<div className="rounded-lg border border-[color-mix(in_oklab,var(--success)_35%,var(--border))] bg-[color-mix(in_oklab,var(--success)_10%,var(--card))] px-3.5 py-3 text-[13px] leading-relaxed text-[var(--foreground)]">
 					Mailbox created. Copy these credentials now — the mailbox password is shown only once. It is only for
 					webmail, IMAP, and SMTP AUTH, not for signing in to the admin console.
 				</div>
 				<CopyRow label="Mailbox" value={credentials.address} />
 				<CopyRow label="Password" value={credentials.password} />
 				<div className="space-y-2">
-					<p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">SMTP</p>
+					<p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
+						SMTP
+					</p>
 					{credentials.connection.smtp.configured ? (
 						<>
 							<CopyRow label="Host" value={credentials.connection.smtp.host} />
@@ -125,11 +159,15 @@ export function CreateMailboxWizard({
 							<CopyRow label="Password" value={credentials.password} />
 						</>
 					) : (
-						<p className="text-sm text-amber-700">SMTP submission is not configured (set MAIL_HOSTNAME and SMTP_SUBMISSION_PORT).</p>
+						<p className="text-[13px] text-[var(--muted-foreground)]">
+							SMTP submission is not configured (set MAIL_HOSTNAME and SMTP_SUBMISSION_PORT).
+						</p>
 					)}
 				</div>
 				<div className="space-y-2">
-					<p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">IMAP</p>
+					<p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
+						IMAP
+					</p>
 					{credentials.connection.imap.configured ? (
 						<>
 							<CopyRow label="Host" value={credentials.connection.imap.host} />
@@ -139,13 +177,15 @@ export function CreateMailboxWizard({
 							<CopyRow label="Password" value={credentials.password} />
 						</>
 					) : (
-						<p className="text-sm text-amber-700">IMAP is not configured (set MAIL_HOSTNAME and IMAP_PORT).</p>
+						<p className="text-[13px] text-[var(--muted-foreground)]">
+							IMAP is not configured (set MAIL_HOSTNAME and IMAP_PORT).
+						</p>
 					)}
 				</div>
 				{credentials.connection.note && (
-					<p className="text-xs text-amber-700">{credentials.connection.note}</p>
+					<p className="text-xs text-[var(--muted-foreground)]">{credentials.connection.note}</p>
 				)}
-				<p className="text-xs text-[var(--muted-foreground)]">
+				<p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
 					Webmail: sign in at /login with this mailbox address and mailbox password. IMAP and SMTP AUTH use the same
 					mailbox password. The admin console at /admin/login uses a separate administrator account password.
 				</p>
@@ -158,7 +198,7 @@ export function CreateMailboxWizard({
 
 	return (
 		<div className="space-y-4">
-			<p className="text-xs font-medium text-[var(--muted-foreground)]">Step {step} of 3</p>
+			<StepDots step={step} total={3} />
 			{step === 1 && (
 				<div className="space-y-3">
 					<div className="space-y-2">
@@ -173,9 +213,11 @@ export function CreateMailboxWizard({
 						</Select>
 					</div>
 					{!active.length && (
-						<p className="text-sm text-amber-700">Add and activate a domain before creating mailboxes.</p>
+						<p className="rounded-lg border border-[var(--border)] bg-[var(--muted)]/50 px-3 py-2 text-[13px] text-[var(--muted-foreground)]">
+							Add and activate a domain before creating mailboxes.
+						</p>
 					)}
-					<div className="flex justify-end gap-2">
+					<div className="flex justify-end gap-2 pt-1">
 						<Button type="button" variant="outline" onClick={onCancel}>
 							Cancel
 						</Button>
@@ -200,10 +242,12 @@ export function CreateMailboxWizard({
 							<span className="shrink-0 text-sm text-[var(--muted-foreground)]">@{hostname}</span>
 						</div>
 						{preview && (
-							<p className="rounded-lg bg-[var(--muted)] px-3 py-2 font-mono text-sm">{preview}</p>
+							<p className="rounded-lg border border-[var(--border)] bg-[var(--muted)]/60 px-3 py-2 font-mono text-[13px] tracking-tight text-[var(--foreground)]">
+								{preview}
+							</p>
 						)}
 					</div>
-					<div className="flex justify-end gap-2">
+					<div className="flex justify-end gap-2 pt-1">
 						<Button type="button" variant="outline" onClick={() => setStep(1)}>
 							Back
 						</Button>
@@ -239,13 +283,17 @@ export function CreateMailboxWizard({
 								<Copy className="h-4 w-4" />
 							</Button>
 						</div>
-						<p className="text-xs text-[var(--muted-foreground)]">
+						<p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
 							Mailbox password for webmail, IMAP, and SMTP AUTH only — not your admin account password. Changing one
 							does not change the other. Shown once after create.
 						</p>
 					</div>
-					{error && <p className="text-sm text-red-600">{error}</p>}
-					<div className="flex justify-end gap-2">
+					{error && (
+						<p className="rounded-lg border border-[color-mix(in_oklab,var(--destructive)_35%,var(--border))] bg-[color-mix(in_oklab,var(--destructive)_8%,var(--card))] px-3 py-2 text-[13px] text-[var(--destructive)]">
+							{error}
+						</p>
+					)}
+					<div className="flex justify-end gap-2 pt-1">
 						<Button type="button" variant="outline" onClick={() => setStep(2)}>
 							Back
 						</Button>

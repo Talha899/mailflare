@@ -19,8 +19,8 @@ import {
 import type { DomainItemCardProps } from "./types";
 
 function StatusIcon({ ok, className }: { ok: boolean; className?: string }) {
-  if (ok) return <Check className={cn(className, "text-green-600")} />;
-  return <AlertTriangle className={cn(className, "text-amber-500")} />;
+  if (ok) return <Check className={cn(className, "text-[var(--success)]")} />;
+  return <AlertTriangle className={cn(className, "text-[var(--foreground)]")} />;
 }
 
 export default function DomainItemCard({
@@ -42,7 +42,7 @@ export default function DomainItemCard({
   return (
     <ListRow className="group relative flex-col items-stretch gap-3">
       <div className="flex items-start gap-4">
-        <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100 text-neutral-600">
+        <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)]">
           <Globe2 className="h-5 w-5" />
           <img
             src={`https://${item.hostname}/favicon.ico`}
@@ -53,7 +53,7 @@ export default function DomainItemCard({
         </span>
 
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <span className="min-w-0 truncate pr-10 text-sm font-semibold text-neutral-900">
+          <span className="min-w-0 truncate pr-10 text-sm font-semibold text-[var(--foreground)]">
             {item.hostname}
           </span>
 
@@ -85,9 +85,9 @@ export default function DomainItemCard({
             {auth &&
               dnsAuthRecords.map((record, index) => (
                 <Fragment key={record}>
-                  {index > 0 && <span className="text-neutral-300">|</span>}
+                  {index > 0 && <span className="text-[var(--border)]">|</span>}
                   <span
-                    className="flex items-center gap-1 text-neutral-500"
+                    className="flex items-center gap-1 text-[var(--muted-foreground)]"
                     title={`${record.toUpperCase()} · ${getDnsAuthStatusLabel(auth[record])}`}
                   >
                     <span className="uppercase">{record}</span>
@@ -101,7 +101,7 @@ export default function DomainItemCard({
             <span className="flex-1" />
             <button
               onClick={() => onToggleDns(item.id)}
-              className="flex cursor-pointer items-center gap-0.5 text-xs text-blue-600 hover:text-blue-800"
+              className="flex cursor-pointer items-center gap-0.5 text-xs text-[var(--compose)] hover:text-[var(--foreground)]"
             >
               {expanded ? (
                 <>
@@ -128,7 +128,7 @@ export default function DomainItemCard({
             setupMessage={setupMessage}
           />
         ) : dnsError ? (
-          <div className="px-4 pb-4 pt-4 text-sm text-red-600 sm:px-5 sm:pb-5">
+          <div className="px-4 pb-4 pt-4 text-sm text-[var(--destructive)] sm:px-5 sm:pb-5">
             {dnsError}
           </div>
         ) : dnsLoading ? (
@@ -151,12 +151,12 @@ export default function DomainItemCard({
           <DropdownMenu.Content
             align="end"
             sideOffset={6}
-            className="z-50 min-w-40 rounded-lg border border-neutral-200 bg-white p-1 text-sm shadow-lg"
+            className="z-50 min-w-40 rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 text-sm shadow-lg"
           >
             <DropdownMenu.Item
               disabled={remove.isPending}
               onSelect={() => remove.mutate(item.id)}
-              className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-red-600 outline-none hover:bg-red-50 focus:bg-red-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+              className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-[var(--destructive)] outline-none hover:bg-[var(--destructive)]/10 focus:bg-[var(--destructive)]/10 data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
             >
               <Trash2 className="h-4 w-4" />
               Remove domain

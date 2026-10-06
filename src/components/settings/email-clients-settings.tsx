@@ -40,16 +40,16 @@ export function EmailClientsSettings() {
 
 	return (
 		<div className="space-y-4">
-			<p className="text-sm text-neutral-500">
+			<p className="text-sm text-[var(--muted-foreground)]">
 				App Password for email clients that support JMAP. Point the app at this server and sign in with your email address and an API key as the password.
 			</p>
 			{key ? (
-				<div className="space-y-3 rounded-2xl bg-neutral-50 p-4">
+				<div className="space-y-3 rounded-2xl bg-[var(--muted)] p-4">
 					<Field label="Server" value={server} onCopy={copy} copied={copied} />
 					<Field label="Username" value="any value" onCopy={copy} copied={copied} />
 					<Field label="Password (API key)" value={key} onCopy={copy} copied={copied} mono />
-					<p className="text-xs text-neutral-500">
-						This key is shown once. You can revoke it in <Link href="/settings/api-keys" className="text-blue-700 underline">API keys</Link>. Session discovery is at <code>{server}/.well-known/jmap</code>.
+					<p className="text-xs text-[var(--muted-foreground)]">
+						This key is shown once. You can revoke it in <Link href="/settings/api-keys" className="text-[var(--primary)] underline">API keys</Link>. Session discovery is at <code>{server}/.well-known/jmap</code>.
 					</p>
 				</div>
 			) : (
@@ -62,7 +62,7 @@ export function EmailClientsSettings() {
 						<KeyRound className="h-4 w-4" />
 						{busy ? "Creating..." : "Create app password"}
 					</Button>
-					{error && <p className="w-full text-sm text-red-600">{error}</p>}
+					{error && <p className="w-full text-sm text-[var(--destructive)]">{error}</p>}
 				</form>
 			)}
 		</div>
@@ -72,8 +72,8 @@ export function EmailClientsSettings() {
 function Field({ label, value, onCopy, copied, mono }: { label: string; value: string; onCopy: (label: string, value: string) => void; copied: string | null; mono?: boolean }) {
 	return (
 		<div className="flex items-center gap-3">
-			<span className="w-36 shrink-0 text-xs font-medium uppercase tracking-wide text-neutral-500">{label}</span>
-			<code className={`min-w-0 flex-1 truncate rounded-md bg-white px-2 py-1 text-sm ${mono ? "font-mono" : "font-sans"}`}>{value}</code>
+			<span className="w-36 shrink-0 text-xs font-medium uppercase tracking-wide text-[var(--muted-foreground)]">{label}</span>
+			<code className={`min-w-0 flex-1 truncate rounded-md bg-[var(--card)] px-2 py-1 text-sm ${mono ? "font-mono" : "font-sans"}`}>{value}</code>
 			<Button type="button" variant="ghost" size="sm" onClick={() => onCopy(label, value)} aria-label={`Copy ${label}`}>
 				<Copy className="h-4 w-4" />
 				{copied === label ? "Copied" : "Copy"}

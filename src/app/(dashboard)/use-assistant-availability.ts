@@ -3,24 +3,42 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { AUTH_SESSION_CHANGED_EVENT, authFetch } from "@/lib/auth/client";
 import { readInitialAssistantAvailability, saveAssistantAvailability } from "@/lib/agent/availability-client";
-import type { AssistantAvailabilityResponse } from "./assistant-availability-types";
 
-export function useAssistantAvailability() {
+type AssistantAvailabilityResponse = {
+	enabled: boolean;
+	configured?: boolean;
+	globallyEnabled?: boolean;
+	mailboxEnabled?: boolean | null;
+	error?: string;
+};
+
+export function useAssistantAvailability(mailboxId?: string | null) {
 	const [enabled, setEnabled] = useState<boolean | null>(null);
-	useLayoutEffect(() => setEnabled(readInitialAssistantAvailability()), []);
+
+	useLayoutEffect(() => {
+		setEnabled(mailboxId ? readInitialAssistantAvailability(mailboxId) : false);
+	}, [mailboxId]);
 
 	useEffect(() => {
+		if (!mailboxId) {
+			setEnabled(false);
+			return;
+		}
 		let active = true;
 		const refresh = async () => {
 			try {
-				const response = await authFetch("/api/agent/availability", { redirectOnUnauthorized: false });
+				const response = await authFetch(`/api/agent/availability?mailboxId=${encodeURIComponent(mailboxId)}`, {
+					redirectOnUnauthorized: false,
+				});
 				if (!response.ok) return;
 				const data = await response.json() as AssistantAvailabilityResponse;
 				if (active) {
 					setEnabled(data.enabled);
-					saveAssistantAvailability(data.enabled);
+					saveAssistantAvailability(data.enabled, mailboxId);
 				}
-			} catch { /* Availability can be refreshed when the window regains focus. */ }
+			} catch {
+				/* Availability can be refreshed when the window regains focus. */
+			}
 		};
 		const onFocus = () => { void refresh(); };
 		const onVisibilityChange = () => { if (!document.hidden) void refresh(); };
@@ -34,7 +52,7 @@ export function useAssistantAvailability() {
 			window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, onFocus);
 			document.removeEventListener("visibilitychange", onVisibilityChange);
 		};
-	}, []);
+	}, [mailboxId]);
 
 	return enabled;
 }

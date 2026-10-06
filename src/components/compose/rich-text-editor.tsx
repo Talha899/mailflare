@@ -145,8 +145,8 @@ export function RichTextEditor({
 					onPaste={onPaste}
 					onKeyDown={onKeyDown}
 					className={cn(
-						"email-body max-w-none px-4 py-3 text-sm text-neutral-900 outline-none",
-						"min-h-32 empty:before:pointer-events-none empty:before:text-neutral-400 empty:before:content-[attr(data-placeholder)]",
+						"email-body max-w-none px-4 py-3 text-sm text-[var(--foreground)] outline-none",
+						"min-h-32 empty:before:pointer-events-none empty:before:text-[var(--muted-foreground)] empty:before:content-[attr(data-placeholder)]",
 						disabled && "cursor-not-allowed opacity-60",
 					)}
 				/>
@@ -156,14 +156,14 @@ export function RichTextEditor({
 							type="button"
 							onClick={() => setShowQuoted((open) => !open)}
 							aria-expanded={showQuoted}
-							className="rounded-full border border-neutral-200 bg-neutral-100 px-2 text-xs leading-5 text-neutral-500 hover:bg-neutral-200"
+							className="rounded-md border border-[var(--border)] bg-[var(--muted)] px-2 text-xs leading-5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)] active:scale-[0.98]"
 							title={showQuoted ? "Hide quoted text" : "Show quoted text"}
 						>
 							•••
 						</button>
 						{showQuoted && (
 							<div
-								className="email-body mt-2 max-w-none border-l-2 border-neutral-200 pl-3 text-sm text-neutral-600"
+								className="email-body mt-2 max-w-none border-l-2 border-[var(--border)] pl-3 text-sm text-[var(--muted-foreground)]"
 								dangerouslySetInnerHTML={{ __html: quotedHtml }}
 							/>
 						)}
@@ -171,7 +171,7 @@ export function RichTextEditor({
 				)}
 			</div>
 			{footerContent}
-			<div className="relative flex items-center gap-0.5 border-t border-neutral-100 px-4 py-3">
+			<div className="relative flex items-center gap-0.5 border-t border-[var(--border)] bg-[var(--card)] px-3 py-2.5">
 				{toolbarStart}
 				{COMMANDS.map((item) => (
 					<Tooltip key={item.command} label={item.label}>
@@ -183,8 +183,8 @@ export function RichTextEditor({
 							onMouseDown={(event) => event.preventDefault()}
 							onClick={() => run(item.command, item.value)}
 							className={cn(
-								"rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900",
-								active[item.command] && "bg-neutral-200 text-neutral-900",
+								"rounded-lg p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]",
+								active[item.command] && "bg-[var(--muted)] text-[var(--foreground)]",
 							)}
 						>
 							<item.icon className="h-4 w-4" />
@@ -198,7 +198,7 @@ export function RichTextEditor({
 						disabled={disabled}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={openLink}
-						className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+						className="rounded-lg p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]"
 					>
 						<Link2 className="h-4 w-4" />
 					</button>
@@ -210,7 +210,7 @@ export function RichTextEditor({
 						disabled={disabled}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={() => run("removeFormat")}
-						className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+						className="rounded-lg p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.98]"
 					>
 						<RemoveFormatting className="h-4 w-4" />
 					</button>
@@ -218,7 +218,7 @@ export function RichTextEditor({
 				{toolbarEnd}
 				{linkOpen && (
 					<form
-						className="absolute bottom-full left-2 z-10 mb-1 flex items-center gap-2 rounded-lg border border-neutral-200 bg-white p-2 shadow-lg"
+						className="absolute bottom-full left-2 z-10 mb-1.5 flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 shadow-[0_16px_40px_-18px_rgba(0,0,0,0.28)]"
 						onSubmit={(event) => {
 							event.preventDefault();
 							applyLink();
@@ -232,9 +232,12 @@ export function RichTextEditor({
 								if (event.key === "Escape") setLinkOpen(false);
 							}}
 							placeholder="https://example.com"
-							className="h-8 w-64 rounded-md border border-neutral-200 px-2 text-sm outline-none focus:border-blue-400"
+							className="h-8 w-64 rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 text-sm text-[var(--foreground)] outline-none focus:border-[var(--compose)] focus:ring-2 focus:ring-[var(--compose)]/20"
 						/>
-						<button type="submit" className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+						<button
+							type="submit"
+							className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-medium tracking-tight text-[var(--primary-foreground)] transition-colors hover:bg-[color-mix(in_oklab,var(--primary)_88%,var(--foreground))] active:scale-[0.98]"
+						>
 							Apply
 						</button>
 					</form>

@@ -79,24 +79,24 @@ export default function AccountMailboxesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-medium text-neutral-900">Mailboxes</h1>
-        <p className="mt-2 text-sm text-neutral-500">
+        <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Mailboxes</h1>
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
           Manage inboxes owned by {account?.name ?? "this account"}.
         </p>
       </div>
-      <section className="space-y-4 rounded-3xl bg-white p-6">
-        <h2 className="text-base font-semibold text-neutral-900">Current inboxes</h2>
+      <section className="space-y-4 rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-[var(--foreground)]">Current inboxes</h2>
         <div className="space-y-2">
           {mailboxes.map((mailbox) => (
             <div
               key={mailbox.id}
-              className="flex items-center justify-between rounded-2xl bg-neutral-50 px-4 py-3"
+              className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3"
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium">
                   {mailbox.displayName || mailbox.localPart}
                 </span>
-                <span className="block truncate text-sm text-neutral-500">
+                <span className="block truncate text-sm text-[var(--muted-foreground)]">
                   {mailbox.localPart}@{mailbox.hostname}
                 </span>
               </span>
@@ -107,17 +107,17 @@ export default function AccountMailboxesPage() {
                 onClick={() => void removeMailbox(mailbox.id)}
                 aria-label="Remove inbox"
               >
-                <Trash2 className="h-4 w-4 text-red-600" />
+                <Trash2 className="h-4 w-4 text-[var(--destructive)]" />
               </Button>
             </div>
           ))}
           {account && mailboxes.length === 0 && (
-            <p className="text-sm text-neutral-500">No mailboxes yet.</p>
+            <p className="text-sm text-[var(--muted-foreground)]">No mailboxes yet.</p>
           )}
         </div>
-        <div className="border-t border-neutral-200 pt-6">
-          <h2 className="text-base font-semibold text-neutral-900">Add an inbox</h2>
-          <p className="mt-1 text-sm text-neutral-500">
+        <div className="border-t border-[var(--border)] pt-6">
+          <h2 className="text-base font-semibold text-[var(--foreground)]">Add an inbox</h2>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             Choose an inbox name and domain for this account.
           </p>
           <form onSubmit={addMailbox} className="mt-4 space-y-4">
@@ -140,7 +140,7 @@ export default function AccountMailboxesPage() {
                   id="inbox-domain"
                   value={domainId}
                   onChange={(event) => setDomainId(event.target.value)}
-                  containerClassName="h-10 w-full min-w-0 bg-white"
+                  containerClassName="h-10 w-full min-w-0 bg-[var(--card)]"
                   className="min-w-0 text-sm"
                   disabled={!account || domains.length === 0 || saving}
                   required
@@ -155,8 +155,8 @@ export default function AccountMailboxesPage() {
               </div>
             </div>
             {domainId && (
-              <p className="break-all text-sm text-neutral-500">
-                Address: <span className="font-medium text-neutral-900">{localPart || "inbox"}@{domains.find((domain) => domain.id === domainId)?.hostname}</span>
+              <p className="break-all text-sm text-[var(--muted-foreground)]">
+                Address: <span className="font-medium text-[var(--foreground)]">{localPart || "inbox"}@{domains.find((domain) => domain.id === domainId)?.hostname}</span>
               </p>
             )}
             <Button type="submit" disabled={!account || !domainId || !localPart.trim() || saving}>
@@ -166,7 +166,7 @@ export default function AccountMailboxesPage() {
           </form>
         </div>
       </section>
-      {message && <p className="text-sm text-neutral-500">{message}</p>}
+      {message && <p className="text-sm text-[var(--muted-foreground)]">{message}</p>}
     </div>
   );
 }

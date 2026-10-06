@@ -104,16 +104,16 @@ export function MailboxLoginClient() {
 						/>
 					</div>
 					{error && (
-						<p className="rounded-2xl border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
+						<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
 							{error}
 						</p>
 					)}
-					<Button type="submit" className="h-11 w-full rounded-full px-6 active:scale-[0.98]" disabled={loading}>
+					<Button type="submit" className="h-11 w-full rounded-xl px-6 active:scale-[0.98]" disabled={loading}>
 						{loading ? "Verifying..." : "Open inbox"}
 					</Button>
 					<button
 						type="button"
-						className="w-full text-center text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+						className="w-full text-center text-sm text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
 						onClick={() => {
 							setChallengeToken(null);
 							setCode("");
@@ -160,14 +160,14 @@ export function MailboxLoginClient() {
 					</p>
 				</div>
 				{error && (
-					<p className="rounded-2xl border border-[var(--destructive)]/20 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
+					<p className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-3 text-sm font-medium text-[var(--destructive)]">
 						{error}
 					</p>
 				)}
 				<TurnstileField resetSignal={turnstileReset} />
 				<Button
 					type="submit"
-					className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
+					className="h-11 w-full rounded-xl px-6 active:scale-[0.98]"
 					disabled={loading}
 				>
 					{loading ? "Opening inbox..." : "Open inbox"}

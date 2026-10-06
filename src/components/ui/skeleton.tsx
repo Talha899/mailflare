@@ -5,7 +5,10 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 	return (
 		<div
 			aria-hidden="true"
-			className={cn("animate-pulse rounded-md bg-[var(--muted)]", className)}
+			className={cn(
+				"animate-pulse rounded-lg bg-[color-mix(in_oklab,var(--muted)_85%,var(--border))]",
+				className,
+			)}
 			{...props}
 		/>
 	);
@@ -16,7 +19,7 @@ export function SkeletonRows({
 	compact = false,
 }: SkeletonRowsProps) {
 	return (
-		<div className="divide-y divide-[var(--border)]">
+		<div className="divide-y divide-[var(--border)]" role="status" aria-label="Loading">
 			{Array.from({ length: count }, (_, index) => (
 				<div
 					key={index}
@@ -25,8 +28,13 @@ export function SkeletonRows({
 						compact ? "px-4 py-3" : "px-6 py-4",
 					)}
 				>
-					<Skeleton className="h-4 w-4 shrink-0" />
-					<Skeleton className={cn("shrink-0", compact ? "h-9 w-9 rounded-full" : "h-5 w-36")} />
+					<Skeleton className="h-4 w-4 shrink-0 rounded" />
+					<Skeleton
+						className={cn(
+							"shrink-0",
+							compact ? "h-9 w-9 rounded-lg" : "h-5 w-36",
+						)}
+					/>
 					<div className="min-w-0 flex-1 space-y-2">
 						<Skeleton className="h-3.5 w-2/3" />
 						{compact && <Skeleton className="h-3 w-5/6" />}

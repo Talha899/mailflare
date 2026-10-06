@@ -46,3 +46,10 @@ export async function saveAgentEnabled(enabled: boolean): Promise<AgentEnabledRe
 	if (!response.ok) throw new Error(data.error || "Could not update assistant availability");
 	return data;
 }
+
+export async function saveAgentMailboxAllowlist(enabledMailboxIds: string[]): Promise<AgentAdminSettingsResponse> {
+	const response = await authFetch("/api/admin/agent", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabledMailboxIds }) });
+	const data = await response.json() as AgentAdminSettingsResponse;
+	if (!response.ok) throw new Error(data.error || "Could not save mailbox allowlist");
+	return data;
+}

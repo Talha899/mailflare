@@ -1,23 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Figtree, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { sidebarBootstrapScript } from "@/components/sidebar-state-utils";
 import { themeBootstrapScript } from "@/components/theme-utils";
 import "./globals.css";
 
-const geistSans = Geist({
-	variable: "--font-geist-sans",
+const dispatchSans = Figtree({
+	variable: "--font-dispatch-sans",
 	subsets: ["latin"],
+	weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
+const dispatchMono = IBM_Plex_Mono({
+	variable: "--font-dispatch-mono",
 	subsets: ["latin"],
+	weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-	title: "Postora",
-	description: "Multi-tenant email on Cloudflare",
+	title: "Dispatch",
+	description: "Private email for your domain",
 	icons: { icon: "/api/branding/icon" },
 	robots: {
 		index: false,
@@ -41,9 +43,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 			<head>
 				<script dangerouslySetInnerHTML={{ __html: sidebarBootstrapScript }} />
 				<script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
-				<link rel="icon" href="/api/branding/icon"></link>
+				<link rel="icon" href="/api/branding/icon" />
 			</head>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+			<body className={`${dispatchSans.variable} ${dispatchMono.variable} antialiased`}>
 				<Providers>{children}</Providers>
 			</body>
 		</html>

@@ -34,7 +34,7 @@ export function MessageListRowActions({ message, onAction }: MessageListRowActio
 
 	return (
 		<>
-			<div className="pointer-events-none absolute right-6 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1 pl-3 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 bg-[#f2f6fc]">
+			<div className="pointer-events-none absolute right-6 top-1/2 z-10 flex -translate-y-1/2 items-center gap-1 bg-gradient-to-l from-[var(--muted)] from-45% to-transparent pl-6 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
 				<Tooltip label="Archive">
 					<Button type="button" variant="ghost" size="sm" onClick={() => void onAction("archive")} aria-label="Archive">
 						<Archive className="h-4 w-4" />
@@ -78,10 +78,10 @@ export function MessageListRowActions({ message, onAction }: MessageListRowActio
 							))}
 						</div>
 						<div className="space-y-2">
-							<label htmlFor={`snooze-until-${message.id}`} className="text-sm font-medium text-neutral-700">Select date and time ({getUserTimeZone()})</label>
+							<label htmlFor={`snooze-until-${message.id}`} className="text-sm font-medium text-[var(--foreground)]">Select date and time ({getUserTimeZone()})</label>
 							<Input id={`snooze-until-${message.id}`} type="datetime-local" value={snoozedUntil} onChange={(event) => setSnoozedUntil(event.target.value)} />
 						</div>
-						{error && <p className="text-sm text-red-600">{error}</p>}
+						{error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
 						<Button type="button" onClick={() => void handleSnooze()} disabled={snoozing}>
 							{snoozing ? "Snoozing..." : "Snooze"}
 						</Button>

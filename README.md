@@ -1,8 +1,8 @@
-<img src="/public/logo.svg" alt="Postora" width="72" />
+<img src="/public/logo.svg" alt="Dispatch" width="72" />
 
-# Postora
+# Dispatch
 
-Postora is a self-hosted email inbox for custom domains, built on Cloudflare.
+Dispatch is a self-hosted email inbox for custom domains, built on Cloudflare.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/hieunc229/mailflare)
 
@@ -19,7 +19,7 @@ Postora is a self-hosted email inbox for custom domains, built on Cloudflare.
   <img height="80" src="https://mailflare.co/sponsors/drivemug.png" alt="Drivemug">
 </a>
 
-Want to support Postora? <a target="_blank" href="https://store.paymug.co/buy/mailflare-sponsor">Start sponsoring</a>
+Want to support Dispatch? <a target="_blank" href="https://store.paymug.co/buy/mailflare-sponsor">Start sponsoring</a>
 
 ## What you can do
 
@@ -36,11 +36,11 @@ Want to support Postora? <a target="_blank" href="https://store.paymug.co/buy/ma
 
 ## How it works
 
-Postora runs in your Cloudflare account. Email Routing delivers incoming messages to the app, while Cloudflare's email service handles outgoing messages. Your mail data stays in your own D1 database and attachments are stored in your own R2 bucket.
+Dispatch runs in your Cloudflare account. Email Routing delivers incoming messages to the app, while Cloudflare's email service handles outgoing messages. Your mail data stays in your own D1 database and attachments are stored in your own R2 bucket.
 
 ## How much does it cost?
 
-You can setup Postora and receive email for free
+You can setup Dispatch and receive email for free
 
 A [Paid Worker](https://developers.cloudflare.com/workers/platform/pricing/) plan ($5/month) is required to send email (and it's recommend to have a smooth experience)
 
@@ -48,9 +48,9 @@ A [Paid Worker](https://developers.cloudflare.com/workers/platform/pricing/) pla
 
 Getting started takes three steps:
 
-1. **Deploy the app.** Click **Deploy to Cloudflare** and keep the app name as `mailflare`. The app will not work correctly under another Worker name.
+1. **Deploy the app.** Click **Deploy to Cloudflare** and keep the app name as `Dispatch`. The app will not work correctly under another Worker name.
 2. **Complete setup.** Open the deployed app and follow `/setup` to check the installation and create your admin account.
-3. **Connect your domain.** Add a domain managed by the same Cloudflare account. Postora configures its email routing and helps you create the first mailbox.
+3. **Connect your domain.** Add a domain managed by the same Cloudflare account. Dispatch configures its email routing and helps you create the first mailbox.
 
 ⚠️ IMPORTANT: **`CF_TOKEN` is required during deployment**. Create a scoped [Cloudflare API token with the following permissions](https://github.com/hieunc229/mailflare/issues/24#issuecomment-5523686105) for the domains you want to connect.
 - All accounts - Email Sending:Edit, DNS Settings:Edit, Email Routing Addresses:Edit
@@ -61,18 +61,18 @@ Getting started takes three steps:
 You can paste the prompt below into an agent that has terminal access. Give it the Cloudflare account ID and **two separate scoped API tokens** through the agent's secret input, not in a public chat, repository, or committed file:
 
 - **Deployment token** (used locally by Wrangler as `CLOUDFLARE_API_TOKEN`): scope it to the target account with **Workers Scripts Edit** (or **Workers Admin** if Cloudflare's newer granular roles are shown, since this is a new Worker), **D1 Edit**, **Workers R2 Storage Edit**, **Queues Edit**, and **Account Settings Read**. Add **Workers Routes Edit** for the target zone only if you want the agent to attach a custom domain or route. See Cloudflare's [token permissions](https://developers.cloudflare.com/fundamentals/api/reference/permissions/) and [Workers roles](https://developers.cloudflare.com/workers/authorization/workers/).
-- **Runtime token** (stored as the Worker's `CF_TOKEN` secret): use the domain permissions listed above. Add **Email Sending Edit** if you want to send mail. This token is separate from the deployment token and must cover the zones you will connect in Postora.
+- **Runtime token** (stored as the Worker's `CF_TOKEN` secret): use the domain permissions listed above. Add **Email Sending Edit** if you want to send mail. This token is separate from the deployment token and must cover the zones you will connect in Dispatch.
 
 ```text
-Install Postora from https://github.com/hieunc229/mailflare in my Cloudflare account.
+Install Dispatch from https://github.com/hieunc229/mailflare in my Cloudflare account.
 Ask me for my Cloudflare account ID, a scoped deployment API token, and a separate
 runtime CF_TOKEN through a secret input. Never print, commit, or place either token
 in a command argument or a tracked file. Use the deployment token only for Wrangler
 authentication (CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID).
 
 Read README.md, docs/deployment.md, and wrangler.jsonc first. Keep the Worker name
-exactly mailflare. In the selected account, create or reuse the D1 database
-mailflare, R2 bucket mailflare-raw, and Queues mailflare-inbound,
+exactly Dispatch. In the selected account, create or reuse the D1 database
+Dispatch, R2 bucket mailflare-raw, and Queues mailflare-inbound,
 mailflare-outbound, and mailflare-agent. Set the D1 database_id in the local
 Wrangler config without committing that account-specific ID. Install dependencies,
 run npm run deploy, and set the runtime CF_TOKEN as a Worker secret. Do not run
@@ -86,7 +86,7 @@ See the [deployment guide](docs/deployment.md) for required permissions, manual 
 
 ### Self-host with Docker instead
 
-Postora also runs as one container on any server, with SQLite and local files in place of D1 and R2, a built-in SMTP listener for inbound mail (or a small Cloudflare relay Worker if you want to keep MX on Cloudflare), and any SMTP relay or Cloudflare Email Sending for outbound.
+Dispatch also runs as one container on any server, with SQLite and local files in place of D1 and R2, a built-in SMTP listener for inbound mail (or a small Cloudflare relay Worker if you want to keep MX on Cloudflare), and any SMTP relay or Cloudflare Email Sending for outbound.
 
 For **multi-organization SaaS** (public signup, per-customer domains and mailboxes), see [docs/saas-docker.md](docs/saas-docker.md).
 

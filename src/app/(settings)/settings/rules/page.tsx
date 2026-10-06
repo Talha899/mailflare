@@ -5,8 +5,8 @@ export default function SettingsRulesPage() {
 	return (
 		<div className="space-y-8">
 			{/* <div>
-				<h1 className="text-3xl font-medium text-neutral-900">Rules</h1>
-				<p className="mt-1 text-sm text-neutral-500">
+				<h1 className="text-3xl font-medium text-[var(--foreground)]">Rules</h1>
+				<p className="mt-1 text-sm text-[var(--muted-foreground)]">
 					Rules for the selected inbox.
 				</p>
 			</div> */}
