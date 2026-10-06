@@ -1,10 +1,9 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { domains, mailboxAliases, mailboxes } from "@/db/schema";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
-import { deleteEmailRoutingRuleForAddress, ensureEmailRoutingRuleToWorker } from "@/lib/cloudflare-api";
 import { newId } from "@/lib/ids";
 import { getMailboxAccessLevel } from "@/lib/mailboxes/access";
 import { createMailboxAliasSchema } from "@/lib/validators";
@@ -86,7 +85,7 @@ export async function POST(request: Request, { params }: MailboxRouteParams) {
 	const ownerId = await getDomainOwnerId(db, mailbox.domainId);
 	const [domain] = ownerId
 		? await db
-				.select({ id: domains.id, hostname: domains.hostname, zoneId: domains.zoneId })
+				.select({ id: domains.id, hostname: domains.hostname })
 				.from(domains)
 				.where(and(
 					eq(domains.id, parsed.data.domainId),
@@ -130,17 +129,6 @@ export async function POST(request: Request, { params }: MailboxRouteParams) {
 		return NextResponse.json({ error: "An alias already uses this address" }, { status: 409 });
 	}
 
-	try {
-		await ensureEmailRoutingRuleToWorker(env, domain.zoneId, `${localPart}@${domain.hostname}`);
-	} catch (error) {
-		console.error("ensureEmailRoutingRuleToWorker", error);
-		await db.delete(mailboxAliases).where(eq(mailboxAliases.id, aliasId));
-		return NextResponse.json(
-			{ error: "Failed to create the Cloudflare Email Routing rule for this alias. Please try again." },
-			{ status: 502 },
-		);
-	}
-
 	const aliases = await listMailboxAliases(db, id);
 	return NextResponse.json({ aliases });
 }
@@ -157,43 +145,11 @@ export async function DELETE(request: Request, { params }: MailboxRouteParams) {
 	if (!mailbox) return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
 
 	const [alias] = await db
-		.select({
-			id: mailboxAliases.id,
-			domainId: mailboxAliases.domainId,
-			localPart: mailboxAliases.localPart,
-			hostname: domains.hostname,
-			zoneId: domains.zoneId,
-		})
+		.select({ id: mailboxAliases.id })
 		.from(mailboxAliases)
-		.innerJoin(domains, eq(mailboxAliases.domainId, domains.id))
 		.where(and(eq(mailboxAliases.id, aliasId), eq(mailboxAliases.mailboxId, id)))
 		.limit(1);
 	if (!alias) return NextResponse.json({ error: "Alias not found" }, { status: 404 });
-
-	// Keep the Cloudflare rule when the address still resolves through a
-	// use-all-domains mailbox or another mailbox's alias on the same address.
-	const [domainAliasMailbox] = await db
-		.select({ id: mailboxes.id })
-		.from(mailboxes)
-		.where(and(
-			eq(mailboxes.localPart, alias.localPart),
-			eq(mailboxes.useAllDomains, true),
-			eq(mailboxes.disabled, false),
-			ne(mailboxes.id, id),
-		))
-		.limit(1);
-
-	if (!domainAliasMailbox) {
-		try {
-			await deleteEmailRoutingRuleForAddress(env, alias.zoneId, `${alias.localPart}@${alias.hostname}`);
-		} catch (error) {
-			console.error("deleteEmailRoutingRuleForAddress", error);
-			return NextResponse.json(
-				{ error: "Failed to remove the Cloudflare Email Routing rule for this alias. Please try again." },
-				{ status: 502 },
-			);
-		}
-	}
 
 	await db.delete(mailboxAliases).where(eq(mailboxAliases.id, aliasId));
 	const aliases = await listMailboxAliases(db, id);

@@ -10,6 +10,7 @@ export interface UpdateStatusResponse {
 	currentVersion?: string;
 	error?: string;
 	repository?: string;
+	runtime?: "node" | "cloudflare";
 	targetVersion?: string;
 }
 

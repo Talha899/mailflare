@@ -8,7 +8,6 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TurnstileField } from "@/components/auth/turnstile";
 import {
 	formatLoginError,
 	formatLoginNetworkError,
@@ -20,7 +19,6 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 	const router = useRouter();
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
-	const [turnstileReset, setTurnstileReset] = useState(0);
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [code, setCode] = useState("");
 
@@ -38,7 +36,6 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 			const { ok, data } = await submitLogin(new FormData(e.currentTarget), { adminPortal: true });
 			if (!ok) {
 				setError(formatLoginError(data.error, "admin"));
-				setTurnstileReset((value) => value + 1);
 				return;
 			}
 			if (data.mfaRequired && data.challengeToken) {
@@ -48,7 +45,6 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 			finish(data.redirect);
 		} catch (err) {
 			setError(formatLoginNetworkError(err, "admin"));
-			setTurnstileReset((value) => value + 1);
 		} finally {
 			setLoading(false);
 		}
@@ -186,7 +182,6 @@ export function AdminLoginClient({ showSignupLink = false }: { showSignupLink?: 
 						{error}
 					</p>
 				)}
-				<TurnstileField resetSignal={turnstileReset} />
 				<Button type="submit" className="h-10 w-full rounded-xl active:scale-[0.98]" disabled={loading}>
 					{loading ? "Authenticating..." : "Enter admin console"}
 				</Button>

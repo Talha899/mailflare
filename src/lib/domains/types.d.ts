@@ -1,25 +1,30 @@
 import type { domains } from "@/db/schema";
-import type { CfDnsRecord, CfEmailRoutingRule } from "@/lib/cloudflare-api.types";
+
+/** DNS checklist / zone record shape used by the domain DNS UI and audits. */
+export type DnsRecord = {
+	id?: string;
+	type?: string;
+	name?: string;
+	content?: string;
+	priority?: number;
+	ttl?: number;
+	proxied?: boolean;
+	comment?: string;
+	tags?: string[];
+};
 
 /**
- * Exactly what one provisioning attempt changed on the Cloudflare zone, so a
- * failure further along can undo its own work and nothing else. Provisioning is
- * idempotent — it happily reuses Email Routing or a sending subdomain the zone
- * already had — and tearing those down would leave the account worse off than
- * the orphaned config the rollback exists to prevent.
+ * Snapshot of what a provisioning attempt recorded. Provisioning is always
+ * manual (`zoneId = "manual"`), so these fields stay empty / null — kept so
+ * callers that still thread the object through remain typed.
  */
 export type DomainProvisioningChanges = {
 	zoneId: string;
-	/** Email Routing was off before this attempt and this attempt turned it on. */
 	enabledEmailRouting: boolean;
-	/** Tag of a sending subdomain this attempt created; null when one already existed. */
 	createdSendingSubdomainTag: string | null;
-	/** The zone's catch-all rule as it stood before this attempt overwrote it. */
-	previousCatchAll: CfEmailRoutingRule | null;
-	/** Addresses this attempt pointed at the Worker, filled in as they are created. */
+	previousCatchAll: null;
 	createdAddressRules: string[];
-	/** MX records removed with the user's confirmation, retained so rollback can restore them. */
-	deletedMxRecords: CfDnsRecord[];
+	deletedMxRecords: DnsRecord[];
 };
 
 export type DomainProvisioningError = {
@@ -42,7 +47,7 @@ export type DomainProvisioningResult = {
 export type DomainPreflightResult = {
 	hostname: string;
 	zone: { id: string; name: string };
-	/** cloudflare = zone on this account; manual = TXT/DNS checklist (SaaS or no CF credentials). */
+	/** cloudflare = legacy; manual = TXT/DNS checklist (always used now). */
 	mode: "cloudflare" | "manual";
 };
 

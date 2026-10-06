@@ -469,10 +469,10 @@ export default function MailboxSettingsPage() {
         <CardHeader className="py-0">
           <CardTitle className="text-[var(--destructive)]">Danger zone</CardTitle>
           <CardDescription>
-            Deleting this mailbox removes its Cloudflare Email Routing rule, so
-            new mail sent to {address || "this address"} will no longer be
-            accepted. Messages already received are kept in the database but
-            will no longer appear in any inbox. This cannot be undone.
+            Deleting this mailbox stops new mail to {address || "this address"}
+            from being accepted. Messages already received are kept in the
+            database but will no longer appear in any inbox. This cannot be
+            undone.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-5">

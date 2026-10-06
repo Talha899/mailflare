@@ -54,6 +54,11 @@ export function useSelectedMailbox() {
 	return ctx;
 }
 
+/** Safe for admin surfaces that pass an explicit domain and have no mailbox shell. */
+export function useOptionalSelectedMailbox(): MailboxContextValue | null {
+	return useContext(MailboxContext);
+}
+
 export function MailboxProvider({ children }: { children: ReactNode }) {
 	const [mailboxes, setMailboxes] = useState<MailboxOption[]>([]);
 	const [selectedMailbox, setSelectedMailboxState] = useState<MailboxOption | null>(null);

@@ -2,10 +2,28 @@ import { authFetch } from "@/lib/auth/client";
 import { formatUserDate, getUserTimeZone, recentZonedDays } from "@/lib/time/utils";
 import type { AiUsageDaily, AiUsageResponse } from "./types";
 
+async function readJsonSafe(response: Response): Promise<{ data: AiUsageResponse | null; raw: string }> {
+	const raw = await response.text();
+	if (!raw.trim()) return { data: null, raw: "" };
+	try {
+		return { data: JSON.parse(raw) as AiUsageResponse, raw };
+	} catch {
+		return { data: null, raw };
+	}
+}
+
 export async function fetchAiUsage(page: number): Promise<AiUsageResponse> {
 	const response = await authFetch(`/api/admin/ai-usage?page=${page}`);
-	const data = await response.json() as AiUsageResponse;
-	if (!response.ok) throw new Error(data.error || "Could not load AI usage");
+	const { data, raw } = await readJsonSafe(response);
+	if (!response.ok) {
+		const fromJson = data && typeof data === "object" && "error" in data ? String((data as { error?: string }).error || "") : "";
+		if (fromJson) throw new Error(fromJson);
+		if (response.status === 502 || /^bad gateway$/i.test(raw.trim())) {
+			throw new Error("AI usage service unavailable (Bad Gateway). Check the app container logs and that migrations are applied.");
+		}
+		throw new Error(raw.trim().slice(0, 200) || `Could not load AI usage (${response.status})`);
+	}
+	if (!data) throw new Error("Could not load AI usage");
 	return data;
 }
 
@@ -24,7 +42,8 @@ export function formatUsageDate(value: string) {
 }
 
 export function formatUsageProvider(value: string) {
-	return ({ cloudflare: "Cloudflare Workers AI", openai: "OpenAI", openrouter: "OpenRouter", groq: "Groq", custom: "Custom API" } as Record<string, string>)[value] ?? value;
+	// "cloudflare" kept for legacy usage rows from older installs.
+	return ({ cloudflare: "Legacy provider", openai: "OpenAI", openrouter: "OpenRouter", groq: "Groq", custom: "Custom API" } as Record<string, string>)[value] ?? value;
 }
 
 export function fillDailyUsage(days: AiUsageDaily[], timeZone = getUserTimeZone()): AiUsageDaily[] {

@@ -1,13 +1,11 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { createWorkersAI } from "workers-ai-provider";
 import { getAgentProviderConfig } from "./provider";
 import { agentTimeContext } from "./time";
 
 export async function getAgentModel(env: CloudflareEnv, requestedModel?: string | null) {
 	const config = await getAgentProviderConfig(env);
 	const modelId = requestedModel && config.models.includes(requestedModel) ? requestedModel : config.model;
-	const details = { modelId, provider: config.provider === "cloudflare" ? "cloudflare" : config.preset, rates: config.rates[modelId] };
-	if (config.provider === "cloudflare") return env.AI ? { model: createWorkersAI({ binding: env.AI })(modelId), ...details } : null;
+	const details = { modelId, provider: config.preset, rates: config.rates[modelId] };
 	if (config.baseUrl && config.apiKey && modelId) {
 		const provider = createOpenAICompatible({ name: "mailflare", baseURL: config.baseUrl, apiKey: config.apiKey });
 		return { model: provider.chatModel(modelId), ...details };

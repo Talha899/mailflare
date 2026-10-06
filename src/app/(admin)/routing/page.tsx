@@ -31,7 +31,7 @@ export default function RoutingPage() {
 					<h2 className="text-xl font-semibold text-[var(--foreground)]">Domain</h2>
 					<p className="mt-1 text-sm text-[var(--muted-foreground)]">Choose which domain these global rules apply to.</p>
 				</div>
-				<div className="rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-6">
+				<div className="rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm p-4 sm:p-6">
 					{domains.isLoading ? (
 						<Skeleton className="h-10 w-full" />
 					) : domains.isError ? (

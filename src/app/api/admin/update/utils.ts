@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { assertPrimaryAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
+import { isNodeRuntime } from "@/lib/runtime";
 import type {
   GitHubContentResponse,
   GitHubRepositoryResponse,
@@ -182,6 +183,18 @@ export async function getUpdateStatus(
   env: CloudflareEnv,
 ): Promise<UpdateStatus> {
   const currentVersion = packageMetadata.version;
+
+  // Coolify / Docker: no GitHub Actions + Cloudflare Git deploy path.
+  if (isNodeRuntime(env)) {
+    return {
+      available: false,
+      configuration: [],
+      configured: true,
+      currentVersion,
+      runtime: "node",
+    };
+  }
+
   const configuration = getUpdateConfiguration(env);
   const configured = configuration.every((item) => item.configured);
 
@@ -190,6 +203,7 @@ export async function getUpdateStatus(
       configuration,
       configured,
       currentVersion,
+      runtime: "cloudflare",
     };
   }
 
@@ -202,6 +216,7 @@ export async function getUpdateStatus(
     configured,
     currentVersion,
     repository: UPDATE_SOURCE_REPOSITORY,
+    runtime: "cloudflare",
     targetVersion,
   };
 }

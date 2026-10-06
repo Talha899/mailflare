@@ -13,8 +13,6 @@ RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
 
 FROM deps AS build
 COPY . .
-ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
-ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 RUN npm run build:node && rm -rf .next-node/cache
 
 # Production dependencies only. The Workers toolchain arrives as transitive

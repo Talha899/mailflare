@@ -11,7 +11,7 @@ async function hmac(secret: string, raw: ArrayBuffer, from: string, to: string):
 	return hex(await crypto.subtle.sign("HMAC", key, data));
 }
 
-/** HMAC-SHA256 over `from\nto\n` + raw body, hex encoded. Shared with the relay Worker. */
+/** HMAC-SHA256 over `from\nto\n` + raw body, hex encoded. */
 export async function signInbound(secret: string, raw: ArrayBuffer, from: string, to: string): Promise<string> {
 	return hmac(secret, raw, from, to);
 }

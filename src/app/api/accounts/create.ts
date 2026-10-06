@@ -4,8 +4,6 @@ import { getDb } from "@/db";
 import { domains, mailboxAliases, mailboxes, users } from "@/db/schema";
 import { hashPassword } from "@/lib/auth/password";
 import { ensureBookingUsername } from "@/lib/booking/username";
-import { rollbackEmailRoutingRuleChanges } from "@/lib/cloudflare-api";
-import type { CfEmailRoutingRuleChange } from "@/lib/cloudflare-api.types";
 import { normalizeRecipientLocalPart } from "@/lib/email/recipient-address";
 import { newId } from "@/lib/ids";
 import { ensureMailboxDomainRouting } from "@/lib/mailboxes/domain-addresses";
@@ -64,7 +62,6 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 		useAllDomains: input.useAllDomains,
 		passwordHash: mailboxPasswordHash,
 	};
-	const changes: CfEmailRoutingRuleChange[] = [];
 	let inserted = false;
 	try {
 		const accountInsert = db.insert(users).values({
@@ -82,7 +79,7 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 		const [accounts] = await db.batch([accountInsert, mailboxInsert, ...aliasInserts]);
 		inserted = true;
 		await ensureBookingUsername(env, userId, email);
-		await ensureMailboxDomainRouting(env, db, mailbox, changes);
+		await ensureMailboxDomainRouting(env, db, mailbox);
 		const { getMailboxConnectionInfo } = await import("@/lib/mailboxes/connection-info");
 		return NextResponse.json({
 			account: accountListItemFromUser(accounts[0]),
@@ -93,17 +90,16 @@ export async function createAccountResponse(env: CloudflareEnv, adminUserId: str
 			},
 		}, { status: 201 });
 	} catch (error) {
-		const cleanup = await Promise.allSettled([
-			rollbackEmailRoutingRuleChanges(env, changes),
-			...(inserted ? [db.delete(users).where(eq(users.id, userId))] : []),
-		]);
-		if (cleanup.some((result) => result.status === "rejected")) {
-			return NextResponse.json({ error: "Account creation failed and cleanup could not finish. Check the account and Cloudflare routing before retrying." }, { status: 502 });
+		if (inserted) {
+			const cleanup = await Promise.allSettled([db.delete(users).where(eq(users.id, userId))]);
+			if (cleanup.some((result) => result.status === "rejected")) {
+				return NextResponse.json({ error: "Account creation failed and cleanup could not finish. Check the account before retrying." }, { status: 502 });
+			}
 		}
 		const cause = error instanceof Error ? error.cause : null;
 		if (/UNIQUE constraint failed/i.test(`${error} ${cause}`)) {
 			return NextResponse.json({ error: "An email address is already assigned" }, { status: 409 });
 		}
-		return NextResponse.json({ error: "Failed to create account mailbox routing. Please try again." }, { status: 502 });
+		return NextResponse.json({ error: "Failed to create account. Please try again." }, { status: 502 });
 	}
 }

@@ -48,7 +48,7 @@ Open `http://localhost:3000/signup` to create a workspace.
 | `SAAS_MODE` | `true` in compose | Enables public `/signup` and org scoping |
 | `MONGO_URL` | `mongodb://mongo:27017/mailflare` | Tenant metadata store |
 | `SMTP_URL` | unset | Outbound relay |
-| `CF_TOKEN` / `CF_ACCOUNT_ID` | unset | Optional Cloudflare DNS + Email Sending |
+| `CF_TOKEN` / `CF_ACCOUNT_ID` | unset | Optional Cloudflare DNS / zone management |
 
 When `SAAS_MODE` is not `true`, behavior matches classic single-tenant Dispatch
 (`/setup` first admin only).
@@ -93,7 +93,7 @@ On startup the container logs `Object storage: S3 (...)` when S3 is active.
 
 1. **Rebuild after code changes:** `docker compose up -d --build`
 2. **Public URLs:** `APP_URL=https://mail.example.com`, `MAIL_HOSTNAME=mail.example.com`
-3. **Cloudflare (operator):** `CF_TOKEN` + `CF_ACCOUNT_ID` for DNS, Email Routing on your zones, and Email Sending
+3. **Cloudflare (operator, optional):** `CF_TOKEN` + `CF_ACCOUNT_ID` for DNS / zone management on your zones
 4. **Mongo:** use a managed URI in production; do not expose port `27017` on the public internet (remove the `mongo` ports mapping or run Mongo off-compose)
 5. **Inbound mail:** MX → `MAIL_HOSTNAME`, TCP **25** reachable (or Cloudflare relay + `INBOUND_WEBHOOK_SECRET`)
 6. **S3:** run `node scripts/s3-smoke.mjs` with the same env as the container
@@ -147,7 +147,7 @@ Environment Variables UI. Domain on the `Dispatch` service: port **3000**.
 |---------|-----|
 | HTTPS web + JMAP + WebSocket `/api/realtime` | Coolify domain → service `Dispatch:3000` (enable WebSockets if your Coolify version asks) |
 | Inbound SMTP | Host port **25** must reach the container (`25:25` in the compose). Many clouds block 25 — open it on the VPS firewall. |
-| Port 25 blocked | Set `SMTP_INBOUND_PORT=0` and use the Cloudflare Email Routing relay Worker (`deploy/cloudflare-email-relay`) with `INBOUND_WEBHOOK_SECRET`. |
+| Port 25 blocked | Open TCP 25 on the VPS (or host elsewhere that can accept MX). Set `SMTP_INBOUND_PORT=0` only if you intentionally disable inbound SMTP. |
 
 ### After deploy
 

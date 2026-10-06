@@ -18,13 +18,10 @@ function mailHost(): string {
 	return host || "mail.example.com";
 }
 
-function mailerKind(env: CloudflareEnv): "cloudflare" | "smtp" | "none" {
+function mailerKind(env: CloudflareEnv): "smtp" | "none" {
 	const mailer = env.EMAIL as unknown as MailerLike;
-	// Prefer SMTP_URL when set — Coolify Postfix path must win over leftover CF_TOKEN.
-	if (process.env.SMTP_URL?.trim()) return "smtp";
-	if (mailer?.kind === "cloudflare" || mailer?.kind === "smtp") return mailer.kind;
-	if (process.env.CF_ACCOUNT_ID?.trim() && process.env.CF_TOKEN?.trim()) return "cloudflare";
-	return mailer?.configured ? "smtp" : "none";
+	if (process.env.SMTP_URL?.trim() || mailer?.kind === "smtp" || mailer?.configured) return "smtp";
+	return "none";
 }
 
 /**
@@ -33,9 +30,6 @@ function mailerKind(env: CloudflareEnv): "cloudflare" | "smtp" | "none" {
  * operator to publish; the app cannot write their DNS.
  *
  * - Inbound: MX → MAIL_HOSTNAME (SMTP :25 on the Coolify host).
- * - Outbound via Cloudflare Email Sending: root SPF must include Cloudflare,
- *   plus the cf-bounce subdomain records Cloudflare shows when you onboard
- *   the domain in Email Sending (DKIM is copied from that dashboard).
  * - Outbound via SMTP_URL / Postfix: SPF authorizes the mail host; DKIM uses
  *   the shared Postfix selector (`mail`) once keys are generated for that hostname.
  */
@@ -52,55 +46,25 @@ export async function getManualDomainDns(env: CloudflareEnv, hostname: string): 
 		{ type: "MX", name: hostname, content: `10 ${host}`, ttl: 3600 },
 	];
 
-	const sending: Array<{ type: string; name: string; content: string; ttl: number }> = [];
-	if (kind === "cloudflare") {
-		sending.push(
-			{
-				type: "TXT",
-				name: hostname,
-				content: `v=spf1 include:_spf.mx.cloudflare.net a:${host} ~all`,
-				ttl: 3600,
-			},
-			{
-				type: "TXT",
-				name: `_dmarc.${hostname}`,
-				content: "v=DMARC1; p=none",
-				ttl: 3600,
-			},
-			{
-				type: "TXT",
-				name: `cf-bounce.${hostname}`,
-				content: "v=spf1 include:_spf.mx.cloudflare.net ~all",
-				ttl: 3600,
-			},
-			{
-				type: "TXT",
-				name: `cf-bounce._domainkey.${hostname}`,
-				content: "(paste DKIM value from Cloudflare Email Sending → Settings after onboarding this domain)",
-				ttl: 3600,
-			},
-		);
-	} else {
-		sending.push(
-			{ type: "TXT", name: hostname, content: `v=spf1 a:${host} ~all`, ttl: 3600 },
-			{ type: "TXT", name: `_dmarc.${hostname}`, content: "v=DMARC1; p=none", ttl: 3600 },
-		);
-		if (kind === "smtp") {
-			const dkimTxt = await readOutboundDkimTxt(hostname);
-			const dkimStatus = dkimTxt ? null : await describeOutboundDkimStatus(hostname);
-			sending.push({
-				type: "TXT",
-				name: `${OUTBOUND_DKIM_SELECTOR}._domainkey.${hostname}`,
-				content: dkimTxt ?? `(${dkimStatus?.hint ?? "waiting for Postfix DKIM"})`,
-				ttl: 3600,
-			});
-		}
+	const sending: Array<{ type: string; name: string; content: string; ttl: number }> = [
+		{ type: "TXT", name: hostname, content: `v=spf1 a:${host} ~all`, ttl: 3600 },
+		{ type: "TXT", name: `_dmarc.${hostname}`, content: "v=DMARC1; p=none", ttl: 3600 },
+	];
+	if (kind === "smtp") {
+		const dkimTxt = await readOutboundDkimTxt(hostname);
+		const dkimStatus = dkimTxt ? null : await describeOutboundDkimStatus(hostname);
+		sending.push({
+			type: "TXT",
+			name: `${OUTBOUND_DKIM_SELECTOR}._domainkey.${hostname}`,
+			content: dkimTxt ?? `(${dkimStatus?.hint ?? "waiting for Postfix DKIM"})`,
+			ttl: 3600,
+		});
 	}
 
 	return {
 		routing: { records: [], missing: routingMissing, status: "manual" },
 		sending,
 		sendingEnabled: sendingConfigured,
-		dkimSelector: kind === "cloudflare" ? "cf-bounce" : kind === "smtp" ? OUTBOUND_DKIM_SELECTOR : undefined,
+		dkimSelector: kind === "smtp" ? OUTBOUND_DKIM_SELECTOR : undefined,
 	};
 }

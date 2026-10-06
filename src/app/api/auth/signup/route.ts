@@ -9,7 +9,6 @@ import { newId } from "@/lib/ids";
 import { saasSignupSchema } from "@/lib/validators";
 import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
-import { verifyTurnstileToken } from "@/lib/auth/turnstile";
 import { createOrganization, isSaasMode } from "@/lib/organizations/service";
 import { organizationsCollection, orgSettingsCollection } from "@/lib/organizations/mongo-collections";
 import { ensureBookingUsername } from "@/lib/booking/username";
@@ -34,9 +33,6 @@ export async function POST(request: Request) {
 	const parsed = saasSignupSchema.safeParse(body);
 	if (!parsed.success) {
 		return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-	}
-	if (!(await verifyTurnstileToken(env, request, (body as Record<string, unknown>).turnstileToken))) {
-		return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 400 });
 	}
 
 	const db = getDb(env);

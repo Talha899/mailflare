@@ -41,7 +41,7 @@ export function ForwardingEmailForm({ initialForwardingEmail }: ForwardingEmailF
 					placeholder="destination@example.com"
 				/>
 				<p className="text-xs leading-5 text-[var(--muted-foreground)]">
-					Incoming mail will also be sent to this verified Cloudflare Email Routing destination.
+					Incoming mail will also be forwarded to this address.
 				</p>
 			</div>
 			<div className="flex items-center gap-3">

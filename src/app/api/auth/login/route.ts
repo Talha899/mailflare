@@ -7,7 +7,6 @@ import { verifyPassword } from "@/lib/auth/password";
 import { createSession, SESSION_COOKIE } from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validators";
 import { allowLoginAttempt } from "@/lib/auth/rate-limit";
-import { verifyTurnstileToken } from "@/lib/auth/turnstile";
 import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
 import { recordAuthActivity } from "@/lib/auth/activity";
@@ -32,9 +31,6 @@ export async function POST(request: Request) {
 			{ error: "Too many login attempts. Try again shortly." },
 			{ status: 429, headers: { "Retry-After": "60" } },
 		);
-	}
-	if (!(await verifyTurnstileToken(env, request, (body as Record<string, unknown>).turnstileToken))) {
-		return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 400 });
 	}
 
 	const db = getDb(env);

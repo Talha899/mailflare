@@ -118,7 +118,8 @@ for (const kind of ["dashboard", "api"]) {
 		assert.equal((await resolveInboundAddress(f.db, "sam@one.test")).mailbox.mailboxId, mailbox.id);
 		assert.equal(await resolveInboundAddress(f.db, "sam@two.test"), null);
 		await assert.rejects(getAuthorizedSenderAddress(f.env, { userId: mailbox.userId, mailboxId: mailbox.id, from: "sam@two.test" }), /Sender address/);
-		assert.deepEqual(f.calls.filter((call) => call.method === "POST").map((call) => call.body.matchers[0].value), ["sam@one.test"]);
+		// Cloudflare Email Routing API provisioning is disabled — no Worker rules are created.
+		assert.equal(f.calls.length, 0);
 	});
 
 	test(`${kind}: explicit aliases receive and send through the same mailbox`, async (t) => {
@@ -214,23 +215,17 @@ test("database failures leave no partial account, aliases, or routing rules", as
 	assert.equal(f.calls.length, 0);
 });
 
-function workerRule(id, address, enabled) {
-	return { id, zoneId: "zone-one", enabled, name: "Existing route", priority: 20, actions: [{ type: "worker", value: ["mailflare"] }], matchers: [{ type: "literal", field: "to", value: address }] };
-}
-
-for (const enabled of [true, false]) {
-	test(`routing failure cleans up completed requests and preserves a previously ${enabled ? "enabled" : "disabled"} rule`, async (t) => {
-		const original = workerRule("old", "sam@one.test", enabled);
-		const f = await fixture(t, { rules: [original], failAddress: "broken@two.test", slowAddress: "slow@two.test" });
-		const response = await f.post("api", { useAllDomains: false, aliases: [{ domainId: "two", localPart: "slow" }, { domainId: "two", localPart: "broken" }] });
-		assert.equal(response.status, 502);
-		assert.deepEqual(f.currentRules, [original]);
-		assert.equal(f.database.db.prepare("SELECT count(*) AS count FROM users").get().count, 2);
-		assert.equal(f.database.db.prepare("SELECT count(*) AS count FROM mailboxes").get().count, 0);
-		assert.equal(f.database.db.prepare("SELECT count(*) AS count FROM mailbox_aliases").get().count, 0);
-		assert.ok(f.calls.some((call) => call.method === "DELETE"), "a successfully provisioned alias must be rolled back");
+test("account creation does not call Cloudflare Email Routing when provisioning is manual", async (t) => {
+	const f = await fixture(t, { failAddress: "broken@two.test" });
+	const response = await f.post("api", {
+		useAllDomains: false,
+		aliases: [{ domainId: "two", localPart: "slow" }, { domainId: "two", localPart: "broken" }],
 	});
-}
+	assert.equal(response.status, 201);
+	assert.equal(f.database.db.prepare("SELECT count(*) AS count FROM mailboxes").get().count, 1);
+	assert.equal(f.database.db.prepare("SELECT count(*) AS count FROM mailbox_aliases").get().count, 2);
+	assert.equal(f.calls.length, 0, "account creation must not call the Cloudflare Email Routing API");
+});
 
 test("account creation still enforces admin authorization and the Team license", async (t) => {
 	const f = await fixture(t);

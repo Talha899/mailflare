@@ -17,7 +17,7 @@ import { parseAgentModelIds } from "@/lib/agent/model-ids";
 import { hasValidSessionMutationOrigin } from "@/lib/auth/origin";
 
 const providerSchema = z.object({
-	provider: z.enum(["cloudflare", "compatible"]),
+	provider: z.literal("compatible"),
 	preset: z.enum(["openai", "openrouter", "groq", "custom"]),
 	baseUrl: z.string().max(500),
 	apiKey: z.string().max(2_000).optional(),
@@ -65,7 +65,6 @@ async function adminAgentPayload(env: CloudflareEnv) {
 		config,
 		assistantEnabled: await getAgentEnabled(env),
 		configured: config.configured,
-		cloudflareAvailable: !!env.AI,
 		mailboxes: await listAgentMailboxes(env),
 	};
 }
@@ -145,21 +144,15 @@ export async function PUT(request: Request) {
 	if (modelIds.length === 0 || modelIds.length > 20 || modelIds.some((model) => model.length > 200)) {
 		return Response.json({ error: "Choose 1 to 20 valid model IDs" }, { status: 400 });
 	}
-	if (input.provider === "cloudflare" && !access.env.AI) {
-		return Response.json({ error: "Cloudflare Workers AI binding is unavailable" }, { status: 400 });
-	}
-	let baseUrl: string | null = null;
-	let apiKey: string | null = null;
-	if (input.provider === "compatible") {
-		try { baseUrl = resolveAgentBaseUrl(input.preset, input.baseUrl); }
-		catch { return Response.json({ error: "Enter a valid HTTPS provider base URL" }, { status: 400 }); }
-		const current = await getAgentProviderConfig(access.env);
-		apiKey = input.apiKey?.trim() || (current.provider === "compatible" && current.preset === input.preset && current.baseUrl === baseUrl ? current.apiKey : "") || null;
-		if (!apiKey) return Response.json({ error: "Enter an API key for this provider" }, { status: 400 });
-	}
+	let baseUrl: string;
+	try { baseUrl = resolveAgentBaseUrl(input.preset, input.baseUrl); }
+	catch { return Response.json({ error: "Enter a valid HTTPS provider base URL" }, { status: 400 }); }
+	const current = await getAgentProviderConfig(access.env);
+	const apiKey = input.apiKey?.trim() || (current.provider === "compatible" && current.preset === input.preset && current.baseUrl === baseUrl ? current.apiKey : "") || null;
+	if (!apiKey) return Response.json({ error: "Enter an API key for this provider" }, { status: 400 });
 	const values = {
-		agentProvider: input.provider,
-		agentPreset: input.provider === "compatible" ? input.preset : null,
+		agentProvider: "compatible" as const,
+		agentPreset: input.preset,
 		agentBaseUrl: baseUrl,
 		agentApiKey: apiKey,
 		agentModel: modelIds.join(", "),

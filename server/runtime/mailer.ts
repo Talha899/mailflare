@@ -17,7 +17,6 @@ type Builder = {
 
 export type MailerConfig =
 	| { kind: "smtp"; url: string }
-	| { kind: "cloudflare"; accountId: string; token: string }
 	| { kind: "none" };
 
 function addressString(value: string | { name?: string; email: string }): string {
@@ -32,9 +31,9 @@ function messageIdFor(from: Builder["from"]): string {
 
 /**
  * The `send_email` binding's builder API over SMTP (any provider, or your
- * own MTA) or Cloudflare's Email Sending REST endpoint. A Message-ID is
- * generated here and passed as a header so threading behaves the same as on
- * Workers, where Cloudflare returns the id it assigned.
+ * own MTA). A Message-ID is generated here and passed as a header so
+ * threading behaves the same as on Workers, where Cloudflare returns the id
+ * it assigned.
  */
 export class Mailer {
 	private transporter: Transporter | null = null;
@@ -51,7 +50,7 @@ export class Mailer {
 		return this.config.kind !== "none";
 	}
 
-	/** "cloudflare" | "smtp" | "none" — used by manual DNS guidance. */
+	/** "smtp" | "none" — used by manual DNS guidance. */
 	get kind() {
 		return this.config.kind;
 	}
@@ -83,41 +82,7 @@ export class Mailer {
 			return { messageId };
 		}
 
-		if (this.config.kind === "cloudflare") {
-			const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${this.config.accountId}/email/sending/send`, {
-				method: "POST",
-				headers: { Authorization: `Bearer ${this.config.token}`, "Content-Type": "application/json" },
-				body: JSON.stringify({
-					from: addressString(message.from),
-					to: message.to,
-					cc: message.cc,
-					bcc: message.bcc,
-					reply_to: message.replyTo ? addressString(message.replyTo) : undefined,
-					subject: message.subject,
-					text: message.text,
-					html: message.html,
-					headers,
-					attachments: (message.attachments ?? []).map((attachment) => ({
-						filename: attachment.filename,
-						type: attachment.type,
-						content: base64(toBuffer(attachment.content)),
-						disposition: attachment.disposition === "inline" ? "inline" : "attachment",
-						...(attachment.contentId ? { content_id: attachment.contentId } : {}),
-					})),
-				}),
-			});
-			if (!response.ok) {
-				const detail = await response.text().catch(() => "");
-				const authHint =
-					response.status === 401
-						? " Check CF_TOKEN (API token secret, not ID; no Bearer prefix) and CF_ACCOUNT_ID match the same Cloudflare account; token needs Email Sending: Edit. Verify: GET /client/v4/user/tokens/verify."
-						: "";
-				throw new Error(`Cloudflare Email Sending failed (${response.status}): ${detail.slice(0, 300)}${authHint}`);
-			}
-			return { messageId };
-		}
-
-		throw new Error("Outbound mail is not configured. Set SMTP_URL, or CF_ACCOUNT_ID and CF_TOKEN.");
+		throw new Error("Outbound mail is not configured. Set SMTP_URL.");
 	}
 
 	/** Relay a raw RFC 5322 message unchanged, for forwarding rules. SMTP only. */
@@ -126,10 +91,6 @@ export class Mailer {
 		await this.transporter.sendMail({ envelope: { from: envelopeFrom, to }, raw });
 		return true;
 	}
-}
-
-function base64(buffer: Buffer): string {
-	return (buffer as unknown as { toString(encoding: string): string }).toString("base64");
 }
 
 function toBuffer(content: ArrayBuffer | ArrayBufferView | string): Buffer {

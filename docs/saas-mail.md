@@ -10,8 +10,7 @@ This guide matches a self-hosted Dispatch on your operator host (e.g.
 | **Receive** | Internet → MX → `MAIL_HOSTNAME:25` → Dispatch SMTP → mailbox |
 | **Send** | Compose → `/api/send` → Postfix (`SMTP_URL=smtp://postfix:587`) → internet |
 
-Cloudflare Email Sending (`CF_TOKEN`) is optional and needs Workers Paid. The
-default Coolify compose uses free Postfix for all customer domains.
+The default Coolify compose uses Postfix (`SMTP_URL`) for all customer domains.
 
 ## 1. App environment (Coolify)
 

@@ -24,8 +24,6 @@ forward WebSocket upgrades for `/api/realtime`.
 
 ## Receiving mail
 
-Pick one; both can be on at once.
-
 **Built-in SMTP listener (default).** The container listens on port 25 and
 accepts mail for every domain you add. Point the domain's MX record at the
 host, set `MAIL_HOSTNAME` to that host's name, and make sure port 25 is
@@ -33,17 +31,12 @@ reachable from the internet (several clouds block it by default; Hetzner and
 most VPS providers do not). The domain page in the app lists the MX, SPF and
 DMARC records to create. Domain routing rules work as on Cloudflare: reject
 rules answer the sender with a 550 during delivery, forward rules relay the
-message through your outbound SMTP.
+message through your outbound SMTP. Set `SMTP_INBOUND_PORT=0` to disable the
+listener.
 
 Optional: `SMTP_TLS_KEY` and `SMTP_TLS_CERT` (paths inside the container)
 enable STARTTLS with your own certificate. Without them STARTTLS is not
 offered, which is safe but means transport encryption depends on the sender.
-
-**Cloudflare Email Routing relay.** Keep MX on Cloudflare and deploy the
-Worker in `deploy/cloudflare-email-relay`. It posts each message to
-`/api/inbound` on your server, signed with `INBOUND_WEBHOOK_SECRET`, and acts
-on the reject or forward decision the server returns. Set
-`SMTP_INBOUND_PORT=0` if you do not want the listener at all.
 
 ## Sending mail
 
@@ -52,10 +45,6 @@ with STARTTLS). Works with your hosting provider's relay, Amazon SES,
 Postmark, Mailgun, or a Postfix you run. Set
 `SMTP_TLS_REJECT_UNAUTHORIZED=false` only for a relay with a self-signed
 certificate on a private network.
-
-**Cloudflare Email Sending.** `CF_ACCOUNT_ID` plus a `CF_TOKEN` with Email
-Sending: Edit. The domain must be a Cloudflare zone with Email Sending set
-up; Dispatch calls the REST API, no Workers plan needed.
 
 ## Cloudflare zone management (optional)
 
@@ -81,9 +70,8 @@ and the DNS page shows what to set by hand.
 | `SMTP_TLS_KEY`, `SMTP_TLS_CERT` | unset | STARTTLS certificate for the listener |
 | `SMTP_URL` | unset | Outbound relay |
 | `SMTP_TLS_REJECT_UNAUTHORIZED` | `true` | Trust self-signed relay certificates when `false` |
-| `CF_ACCOUNT_ID`, `CF_TOKEN` | unset | Cloudflare Email Sending, and zone management if the token allows |
-| `INBOUND_WEBHOOK_SECRET` | unset | Enables `/api/inbound` for the relay Worker |
-| `TURNSTILE_SECRET_KEY` | unset | Bot protection on login and reset forms (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` at build time) |
+| `CF_ACCOUNT_ID`, `CF_TOKEN` | unset | Optional Cloudflare zone / DNS management if the token allows |
+| `INBOUND_WEBHOOK_SECRET` | unset | Enables signed `/api/inbound` webhook intake |
 | `AI_BASE_URL` | unset | OpenAI-compatible model API base URL for the assistant |
 | `AI_API_KEY` | unset | Server-only key for that model API |
 | `AI_MODEL` | `gpt-4o-mini` | Model ID supported by the configured API |

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getEnv } from "@/lib/cloudflare";
 import { passwordResetRequestSchema } from "@/lib/validators";
 import { allowLoginAttempt } from "@/lib/auth/rate-limit";
-import { verifyTurnstileToken } from "@/lib/auth/turnstile";
 import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
 import { requestPasswordReset } from "@/lib/auth/password-reset";
@@ -26,9 +25,6 @@ export async function POST(request: Request) {
 	}
 	if (!(await allowLoginAttempt(env, request))) {
 		return NextResponse.json({ error: "Too many attempts. Try again shortly." }, { status: 429, headers: { "Retry-After": "60" } });
-	}
-	if (!(await verifyTurnstileToken(env, request, (body as Record<string, unknown>).turnstileToken))) {
-		return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 400 });
 	}
 
 	const origin = env.APP_URL?.trim() || new URL(request.url).origin;

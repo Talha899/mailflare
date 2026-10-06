@@ -17,9 +17,6 @@ function optional(name: string): string | undefined {
 function mailerConfig(): MailerConfig {
 	const smtp = optional("SMTP_URL");
 	if (smtp) return { kind: "smtp", url: smtp };
-	const accountId = optional("CF_ACCOUNT_ID");
-	const token = optional("CF_TOKEN");
-	if (accountId && token) return { kind: "cloudflare", accountId, token };
 	return { kind: "none" };
 }
 
@@ -61,13 +58,6 @@ export function createNodeRuntime(): NodeRuntime {
 		WORKER_SELF_REFERENCE: undefined as unknown as CloudflareEnv["WORKER_SELF_REFERENCE"],
 		LOGIN_RATE_LIMIT: openRateLimiter(20, 60),
 		AGENT_RATE_LIMIT: openRateLimiter(120, 60),
-		CF_TOKEN: optional("CF_TOKEN"),
-		CF_API_KEY: optional("CF_API_KEY"),
-		CF_EMAIL: optional("CF_EMAIL"),
-		TURNSTILE_SECRET_KEY: optional("TURNSTILE_SECRET_KEY"),
-		GITHUB_UPDATE_TOKEN: optional("GITHUB_UPDATE_TOKEN"),
-		GITHUB_UPDATE_REF: optional("GITHUB_UPDATE_REF"),
-		GITHUB_UPDATE_REPO: optional("GITHUB_UPDATE_REPO"),
 		// Marks the runtime for the few places that must behave differently.
 		MAILFLARE_RUNTIME: "node",
 		APP_URL: optional("APP_URL")?.replace(/\/$/, ""),

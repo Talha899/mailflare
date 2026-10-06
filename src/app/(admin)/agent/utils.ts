@@ -4,8 +4,8 @@ import type { AgentProviderPreset } from "@/lib/agent/provider-types";
 import type { AgentAdminForm, AgentAdminModelsResponse, AgentAdminSettingsResponse, AgentEnabledResponse } from "./types";
 
 export const PROVIDER_PRESETS: { id: AgentProviderPreset; label: string }[] = [
-	{ id: "openai", label: "OpenAI" },
 	{ id: "openrouter", label: "OpenRouter" },
+	{ id: "openai", label: "OpenAI" },
 	{ id: "groq", label: "Groq" },
 	{ id: "custom", label: "Custom endpoint" },
 ];

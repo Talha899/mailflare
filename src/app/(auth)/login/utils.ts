@@ -12,7 +12,6 @@ export async function submitLogin(
 		body: JSON.stringify({
 			email: form.get("email"),
 			password: form.get("password"),
-			turnstileToken: form.get("turnstileToken"),
 			...(options?.adminPortal ? { adminPortal: true } : {}),
 		}),
 	});

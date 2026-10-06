@@ -94,7 +94,7 @@ export function toDnsHostInstruction(hostname: string, record: DnsRecord): DnsHo
 				hint: placeholder
 					? waitingPostfix
 						? "Refresh this page after Postfix has been running ~30s — the key appears automatically"
-						: "Get this value from Cloudflare Email Sending after you onboard the domain"
+						: "Refresh details after your outbound mail server has generated this key"
 					: undefined,
 			},
 		],

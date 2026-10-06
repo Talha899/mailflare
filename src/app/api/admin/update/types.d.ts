@@ -36,5 +36,6 @@ export interface UpdateStatus {
 	configured: boolean;
 	currentVersion: string;
 	repository?: string;
+	runtime: "node" | "cloudflare";
 	targetVersion?: string;
 }

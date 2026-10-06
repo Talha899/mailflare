@@ -1,10 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import type { AppDatabase } from "@/db";
 import { domains, mailboxAliases, mailboxes } from "@/db/schema";
-import { deleteEmailRoutingRuleForAddress, ensureEmailRoutingRuleToWorker } from "@/lib/cloudflare-api";
 import { normalizeRecipientLocalPart } from "@/lib/email/recipient-address";
 import type { MailboxDomainAddressInput } from "./domain-addresses-types";
-import type { CfEmailRoutingRuleChange } from "@/lib/cloudflare-api.types";
 
 export async function getMailboxAliasAddresses(
 	db: AppDatabase,
@@ -72,62 +70,23 @@ export async function getMailboxDomainAddresses(
 	];
 }
 
+/**
+ * Addresses are resolved in-app. Cloudflare Email Routing rules are not
+ * provisioned — kept as a sync hook for mailbox create/update callers.
+ */
 export async function ensureMailboxDomainRouting(
-	env: CloudflareEnv,
-	db: AppDatabase,
-	mailbox: MailboxDomainAddressInput,
-	changes?: CfEmailRoutingRuleChange[],
+	_env: CloudflareEnv,
+	_db: AppDatabase,
+	_mailbox: MailboxDomainAddressInput,
 ): Promise<void> {
-	const addresses = await getMailboxDomainAddresses(db, mailbox);
-	if (addresses.length === 0) return;
-	const [primaryDomain] = await db
-		.select({ userId: domains.userId })
-		.from(domains)
-		.where(eq(domains.id, mailbox.domainId))
-		.limit(1);
-	if (!primaryDomain) return;
-	const availableDomains = await db
-		.select({ hostname: domains.hostname, zoneId: domains.zoneId })
-		.from(domains)
-		.where(eq(domains.userId, primaryDomain.userId));
-	const domainsByHostname = new Map(availableDomains.map((domain) => [domain.hostname.toLowerCase(), domain]));
-
-	// Wait for every request before a caller rolls back a failed attempt.
-	const results = await Promise.allSettled(
-		addresses.map(async (address) => {
-			const hostname = address.slice(address.lastIndexOf("@") + 1);
-			const domain = domainsByHostname.get(hostname);
-			if (domain) await ensureEmailRoutingRuleToWorker(env, domain.zoneId, address, changes);
-		}),
-	);
-	const failure = results.find((result) => result.status === "rejected");
-	if (failure?.status === "rejected") throw failure.reason;
+	return;
 }
 
+/** Counterpart to {@link ensureMailboxDomainRouting}; no external cleanup. */
 export async function removeMailboxDomainRouting(
-	env: CloudflareEnv,
-	db: AppDatabase,
-	mailbox: MailboxDomainAddressInput,
+	_env: CloudflareEnv,
+	_db: AppDatabase,
+	_mailbox: MailboxDomainAddressInput,
 ): Promise<void> {
-	const addresses = await getMailboxDomainAddresses(db, mailbox);
-	if (addresses.length === 0) return;
-	const [primaryDomain] = await db
-		.select({ userId: domains.userId })
-		.from(domains)
-		.where(eq(domains.id, mailbox.domainId))
-		.limit(1);
-	if (!primaryDomain) return;
-	const availableDomains = await db
-		.select({ hostname: domains.hostname, zoneId: domains.zoneId })
-		.from(domains)
-		.where(eq(domains.userId, primaryDomain.userId));
-	const domainsByHostname = new Map(availableDomains.map((domain) => [domain.hostname.toLowerCase(), domain]));
-
-	await Promise.all(
-		addresses.map(async (address) => {
-			const hostname = address.slice(address.lastIndexOf("@") + 1);
-			const domain = domainsByHostname.get(hostname);
-			if (domain) await deleteEmailRoutingRuleForAddress(env, domain.zoneId, address);
-		}),
-	);
+	return;
 }

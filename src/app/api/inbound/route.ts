@@ -7,10 +7,8 @@ import { inboundAttachmentLimitReasonFromRaw } from "@/lib/email/inbound-attachm
 export const dynamic = "force-dynamic";
 
 /**
- * Inbound mail from the Cloudflare email relay Worker (deploy/cloudflare-email-relay).
- * The body is the raw RFC 5322 message; envelope addresses travel in headers and
- * the request is HMAC-signed with INBOUND_WEBHOOK_SECRET. The response tells the
- * relay whether to reject or forward, since only it can act on the live message.
+ * Signed inbound webhook (`INBOUND_WEBHOOK_SECRET`). Body is raw RFC 5322;
+ * envelope addresses travel in headers. Response may request reject/forward.
  */
 export async function POST(request: Request) {
 	const env = getEnv();

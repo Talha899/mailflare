@@ -6,7 +6,6 @@ export type AgentAdminSettingsResponse = {
 	config: AgentAdminConfig;
 	assistantEnabled: boolean;
 	configured: boolean;
-	cloudflareAvailable: boolean;
 	mailboxes: AgentAdminMailbox[];
 	error?: string;
 };

@@ -50,7 +50,6 @@ services:
       OPENDKIM_KEYS_DIR: /etc/opendkim/keys
       # Internal compose SMTP usually has no public CA — do not fail TLS verify.
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
-      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY}
     volumes:
       - mailflare-data:/mailflare-data
       - postfix-dkim:/etc/opendkim/keys:ro

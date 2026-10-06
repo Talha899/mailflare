@@ -9,13 +9,9 @@ import { SESSION_COOKIE } from "@/lib/auth/session";
 import { newId } from "@/lib/ids";
 import { firstRunRegisterSchema } from "@/lib/validators";
 import { addDomainForUser } from "@/lib/domains/service";
-import { rollbackDomainProvisioning } from "@/lib/domains/rollback";
-import type { DomainProvisioningChanges } from "@/lib/domains/types";
-import { ensureEmailRoutingRuleToWorker } from "@/lib/cloudflare-api";
 import { ensureMailboxDomainRouting } from "@/lib/mailboxes/domain-addresses";
 import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
-import { verifyTurnstileToken } from "@/lib/auth/turnstile";
 import { getDomainProvisioningError } from "@/lib/domains/errors";
 import { ensureBookingUsername } from "@/lib/booking/username";
 
@@ -36,9 +32,6 @@ export async function POST(request: Request) {
 	const firstRunParsed = firstRunRegisterSchema.safeParse(body);
 	if (!firstRunParsed.success) {
 		return NextResponse.json({ error: firstRunParsed.error.flatten() }, { status: 400 });
-	}
-	if (!(await verifyTurnstileToken(env, request, (body as Record<string, unknown>).turnstileToken))) {
-		return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 400 });
 	}
 
 	const domainName = firstRunParsed.data.domain.toLowerCase().trim();
@@ -66,12 +59,6 @@ export async function POST(request: Request) {
 		organizationId: "org_default",
 	});
 
-	// Tracks what the attempt changed on the Cloudflare zone so a failure can undo
-	// precisely that. The DB is not a reliable source for this: the same errors that
-	// abort registration (an unmigrated schema, a dead D1 binding) also stop the
-	// domain row from ever being written, which is exactly when the orphaned zone
-	// config would go unnoticed.
-	let changes: DomainProvisioningChanges | null = null;
 	try {
 		await ensureBookingUsername(env, userId, email);
 		const added = await addDomainForUser(env, userId, domainName, {
@@ -80,9 +67,6 @@ export async function POST(request: Request) {
 			replaceMxRecords: firstRunParsed.data.replaceMxRecords,
 		});
 		const domain = added.domain;
-		changes = added.changes;
-		await ensureEmailRoutingRuleToWorker(env, domain.zoneId, email);
-		changes.createdAddressRules.push(email);
 		const mailboxId = newId("mbx");
 		await db.insert(mailboxes).values({
 			id: mailboxId,
@@ -94,7 +78,6 @@ export async function POST(request: Request) {
 		});
 		await ensureMailboxDomainRouting(env, db, { id: mailboxId, domainId: domain.id, localPart: username, useAllDomains: true });
 	} catch (err) {
-		if (changes) await rollbackDomainProvisioning(env, changes);
 		try {
 			// The domain row cascades with the user.
 			await db.delete(users).where(eq(users.id, userId));

@@ -1,5 +1,5 @@
-import type { CfDnsRecord } from "@/lib/cloudflare-api";
 import type { DnsAuthRecord, DnsAuthStatus, DomainDnsAudit } from "@/lib/domains/dns-audit";
+import type { DnsRecord } from "@/lib/domains/types";
 
 export type DnsAuthSummary = Record<DnsAuthRecord, DnsAuthStatus>;
 
@@ -16,9 +16,9 @@ export type DnsStatusSummary = {
 };
 
 export function summariseDns(
-	routingRecords: CfDnsRecord[],
-	routingMissing: CfDnsRecord[],
-	sendingRecords: CfDnsRecord[],
+	routingRecords: DnsRecord[],
+	routingMissing: DnsRecord[],
+	sendingRecords: DnsRecord[],
 	routingEnabled = false,
 	sendingEnabled?: boolean,
 	audit?: DomainDnsAudit,

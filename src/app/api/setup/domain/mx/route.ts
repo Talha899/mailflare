@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { hasAdminAccount } from "@/lib/auth/setup";
 import { getEnv } from "@/lib/cloudflare";
+import { queryDns } from "@/lib/dns-query";
 import { preflightDomain } from "@/lib/domains/preflight";
-import { hasConflictingMxRecords } from "@/lib/domains/mx-records";
 import { setupDomainSchema } from "@/lib/validators";
 import { readJsonBody } from "@/lib/http/request";
 import { RequestBodyTooLargeError } from "@/lib/http/errors";
@@ -28,11 +28,8 @@ export async function POST(request: Request) {
 
 	try {
 		const domain = await preflightDomain(env, parsed.data.hostname);
-		const hasExistingMx = await hasConflictingMxRecords(
-			env,
-			domain.zone.id,
-			domain.hostname,
-		);
+		const answers = await queryDns(domain.hostname, "MX");
+		const hasExistingMx = answers.some((answer) => !/^0\s*\.?$/.test(answer.trim()));
 		return NextResponse.json({ hasExistingMx });
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "MX record check failed";

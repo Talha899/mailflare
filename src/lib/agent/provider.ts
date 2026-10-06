@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { appSettings, mailboxAgentSettings } from "@/db/schema";
 import type { AgentProviderConfig, AgentProviderPreset, AgentProviderPublicConfig } from "./provider-types";
-import { AGENT_SETTINGS_ID, DEFAULT_CLOUDFLARE_MODEL, PROVIDER_BASE_URLS } from "./provider-constants";
+import { AGENT_SETTINGS_ID, PROVIDER_BASE_URLS } from "./provider-constants";
 import { parseAgentModelIds } from "./model-ids";
 import { parseAgentModelRates } from "./pricing";
 
@@ -13,13 +13,26 @@ export function resolveAgentBaseUrl(preset: AgentProviderPreset, customUrl: stri
 	return url.toString().replace(/\/$/, "");
 }
 
+function unconfiguredCompatible(rates: AgentProviderConfig["rates"], source: AgentProviderConfig["source"]): AgentProviderConfig {
+	return {
+		provider: "compatible",
+		preset: "openrouter",
+		baseUrl: PROVIDER_BASE_URLS.openrouter,
+		apiKey: "",
+		model: "",
+		models: [],
+		rates,
+		source,
+	};
+}
+
 /** Global kill switch from Admin → Agent. Does not require a configured provider. */
 export async function getAgentEnabled(env: CloudflareEnv): Promise<boolean> {
 	const [saved] = await getDb(env).select({ enabled: appSettings.agentEnabled }).from(appSettings).where(eq(appSettings.id, AGENT_SETTINGS_ID)).limit(1);
 	return saved?.enabled ?? true;
 }
 
-/** True when an API key / Workers AI binding and at least one model are ready to serve requests. */
+/** True when an API key and at least one model are ready to serve requests. */
 export async function isAgentProviderConfigured(env: CloudflareEnv): Promise<boolean> {
 	return (await getAgentProviderPublicConfig(env)).configured;
 }
@@ -43,22 +56,22 @@ export async function isAssistantAvailableForMailbox(env: CloudflareEnv, mailbox
 export async function getAgentProviderConfig(env: CloudflareEnv): Promise<AgentProviderConfig> {
 	const [saved] = await getDb(env).select({ provider: appSettings.agentProvider, preset: appSettings.agentPreset, baseUrl: appSettings.agentBaseUrl, apiKey: appSettings.agentApiKey, model: appSettings.agentModel, rates: appSettings.agentModelRates }).from(appSettings).where(eq(appSettings.id, AGENT_SETTINGS_ID)).limit(1);
 	const rates = parseAgentModelRates(saved?.rates ?? null);
-	if (saved?.provider === "cloudflare") {
-		const models = parseAgentModelIds(saved.model || env.AI_MODEL || DEFAULT_CLOUDFLARE_MODEL);
-		return { provider: "cloudflare", preset: "openai", baseUrl: "", apiKey: "", model: models[0] || DEFAULT_CLOUDFLARE_MODEL, models, rates, source: "saved" };
-	}
+	// Legacy Workers AI rows are ignored — treat as unconfigured until an OpenAI-compatible provider is saved.
+	if (saved?.provider === "cloudflare") return unconfiguredCompatible(rates, "saved");
 	if (saved?.provider === "compatible") {
 		const preset = saved.preset || "custom";
 		const baseUrl = resolveAgentBaseUrl(preset, saved.baseUrl || "");
 		const models = parseAgentModelIds(saved.model || "");
 		return { provider: "compatible", preset, baseUrl, apiKey: saved.apiKey || (env.AI_BASE_URL === baseUrl ? env.AI_API_KEY : "") || "", model: models[0] || "", models, rates, source: "saved" };
 	}
-	if (env.AI) { const model = env.AI_MODEL || DEFAULT_CLOUDFLARE_MODEL; return { provider: "cloudflare", preset: "openai", baseUrl: "", apiKey: "", model, models: [model], rates, source: "environment" }; }
-	if (env.AI_BASE_URL && env.AI_API_KEY) { const model = env.AI_MODEL || "gpt-4o-mini"; return { provider: "compatible", preset: "custom", baseUrl: env.AI_BASE_URL, apiKey: env.AI_API_KEY, model, models: [model], rates, source: "environment" }; }
-	return { provider: "cloudflare", preset: "openai", baseUrl: "", apiKey: "", model: DEFAULT_CLOUDFLARE_MODEL, models: [DEFAULT_CLOUDFLARE_MODEL], rates, source: "default" };
+	if (env.AI_BASE_URL && env.AI_API_KEY) {
+		const model = env.AI_MODEL || "gpt-4o-mini";
+		return { provider: "compatible", preset: "custom", baseUrl: env.AI_BASE_URL, apiKey: env.AI_API_KEY, model, models: [model], rates, source: "environment" };
+	}
+	return unconfiguredCompatible(rates, "default");
 }
 
 export async function getAgentProviderPublicConfig(env: CloudflareEnv): Promise<AgentProviderPublicConfig> {
 	const { apiKey, ...config } = await getAgentProviderConfig(env);
-	return { ...config, hasApiKey: !!apiKey, configured: config.provider === "cloudflare" ? !!env.AI && config.models.length > 0 : !!apiKey && !!config.baseUrl && config.models.length > 0 };
+	return { ...config, hasApiKey: !!apiKey, configured: !!apiKey && !!config.baseUrl && config.models.length > 0 };
 }

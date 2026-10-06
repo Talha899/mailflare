@@ -36,7 +36,7 @@ function CopyField({ label, value, copyable, hint }: { label: string; value: str
 					type="button"
 					variant="outline"
 					size="sm"
-					className="h-8 shrink-0 gap-1.5 bg-[var(--card)] px-2.5 text-xs"
+					className="mt-1 h-8 w-full shrink-0 gap-1.5 bg-[var(--card)] px-2.5 text-xs sm:mt-0 sm:w-auto"
 					onClick={() => void onCopy()}
 				>
 					{copied ? (
@@ -110,12 +110,12 @@ function ManualDnsPanel({
 
 function authTips(dkimSelector?: string): Record<DnsAuthRecord, string> {
 	return {
-		mx: "In Cloudflare DNS, Priority and Mail server are separate fields. Copy each value below.",
+		mx: "Priority and mail server are separate fields at most DNS hosts. Copy each value below.",
 		spf: "If an SPF TXT already exists, merge into one v=spf1 string — do not create two SPF records on @.",
 		dkim:
 			dkimSelector === "mail"
 				? "Postfix generates this key automatically for every domain. Copy Content once it appears (refresh details after ~30s)."
-				: "Dispatch cannot invent this key — Cloudflare generates it when you onboard the domain for Email Sending.",
+				: "Copy the DKIM TXT from your outbound mail server once it has generated a key for this hostname.",
 		dmarc: "Name is usually _dmarc (not the full hostname). Start with p=none while monitoring.",
 	};
 }
@@ -131,13 +131,10 @@ function dkimSteps(hostname: string, selector?: string): string[] {
 		];
 	}
 	return [
-		"Open the operator Cloudflare dashboard (the account where CF_TOKEN / CF_ACCOUNT_ID live).",
-		"Go to Email → Email Sending (or Compute → Email Service → Email Sending).",
-		`Click Onboard domain and enter ${hostname}.`,
-		"Open Email Sending → Settings for that domain.",
-		"Find the TXT named cf-bounce._domainkey — copy Content (starts with v=DKIM1; … p=…).",
-		`In ${hostname} DNS, add Type TXT, Name cf-bounce._domainkey, paste that Content.`,
-		"Do not use Email Routing’s DKIM (cf2024-1._domainkey) — that is a different selector.",
+		"Ensure SMTP_URL points at your outbound MTA (e.g. smtp://postfix:587).",
+		`Add this domain in Dispatch so it is included in outbound sender domains.`,
+		"Publish SPF and DKIM TXT records from the Domain details checklist at your DNS host.",
+		`Hostname: ${hostname}.`,
 	];
 }
 
@@ -158,10 +155,8 @@ export default function DomainDnsDetails({
 		? `Sending for ${subdomain.name} is ${dns.sendingEnabled ? "enabled" : "disabled"}`
 		: manual
 			? sendingOk
-				? dns.dkimSelector === "mail"
-					? "Outbound via Postfix — publish SPF and mail._domainkey DKIM for deliverability"
-					: "Outbound is configured on this server — finish Cloudflare Email Sending DNS (SPF/DKIM) for deliverability"
-				: "Outbound is not configured (set SMTP_URL to postfix, or CF_TOKEN + CF_ACCOUNT_ID)"
+				? "Outbound via SMTP — publish SPF and DKIM from the checklist for deliverability"
+				: "Outbound is not configured (set SMTP_URL, e.g. smtp://postfix:587)"
 			: "Sending has not configured for this domain";
 	const checklist = [...dns.routing.missing, ...dns.routing.records, ...dns.sending];
 	const bounceRows = bounceSpfRecords(checklist);
@@ -290,8 +285,8 @@ export default function DomainDnsDetails({
 									</Button>
 									{isOpen("sending", true) && (
 										<ManualDnsPanel
-											title="Cloudflare Email Sending bounce SPF"
-											body="Also onboard the domain under Cloudflare Email Sending, then finish DKIM below."
+											title="Bounce SPF extras"
+											body="Only needed if your outbound provider published a bounce hostname. Publish SPF and DKIM from the checklist below."
 											rows={bounceRows}
 											hostname={domain.hostname}
 										/>

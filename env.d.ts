@@ -4,7 +4,6 @@ interface CloudflareEnv {
 	BUCKET: R2Bucket;
 	INBOUND_QUEUE: Queue<import("./src/lib/email/inbound").InboundQueueMessage>;
 	AGENT_QUEUE?: Queue<{ kind: "agent.draft"; jobId: string }>;
-	AI?: Ai;
 	AI_MODEL?: string;
 	AI_BASE_URL?: string;
 	AI_API_KEY?: string;
@@ -21,19 +20,13 @@ interface CloudflareEnv {
 	>;
 	LOGIN_RATE_LIMIT?: RateLimit;
 	AGENT_RATE_LIMIT?: RateLimit;
-	CF_TOKEN?: string;
-	CF_API_KEY?: string;
-	CF_EMAIL?: string;
-	TURNSTILE_SECRET_KEY?: string;
 	GITHUB_UPDATE_TOKEN?: string;
 	GITHUB_UPDATE_REF?: string;
 	GITHUB_UPDATE_REPO?: string;
-	/** "node" when served by the self-hosted runtime in server/; unset on Workers. */
+	/** "node" when served by the self-hosted runtime in server/. */
 	MAILFLARE_RUNTIME?: "node";
-	/** Shared secret the Cloudflare email relay signs inbound webhooks with (self-hosted only). */
+	/** Shared secret for signed `/api/inbound` webhooks. */
 	INBOUND_WEBHOOK_SECRET?: string;
-	/** Cloudflare account id, needed for the Email Sending REST API off Workers. */
-	CF_ACCOUNT_ID?: string;
 	/** Public origin of this install (https://mail.example.com) when it sits behind a proxy. */
 	APP_URL?: string;
 	/**

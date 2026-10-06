@@ -2,12 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, LoaderCircle, MailPlus } from "lucide-react";
+import { AlertTriangle, ArrowRight, MailPlus } from "lucide-react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { checkDomain, createDomain, createMailbox, getDomains } from "./utils";
 import type { DomainPreflight } from "./types";
 
@@ -156,42 +155,9 @@ export function OnboardingClient() {
 								placeholder="example.com"
 							/>
 						</div>
-						{!(domainCheck?.mode === "manual" || domainCheck?.zone.id === "manual") && (
-							<div className="flex items-center justify-between gap-4 rounded-xl bg-[var(--muted)] px-4 py-3">
-								<div>
-									<Label htmlFor="onboarding-enable-sending">Enable sending</Label>
-									<p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-										{domainChecking
-											? "Checking Cloudflare access..."
-											: domainCheck
-												? enableSending
-													? "Required to send email."
-													: "Receive-only mode."
-												: "Leave the domain field to verify it."}
-									</p>
-								</div>
-								{domainChecking ? (
-									<LoaderCircle className="h-4 w-4 animate-spin text-[var(--muted-foreground)]" />
-								) : (
-									<Switch
-										id="onboarding-enable-sending"
-										checked={enableSending}
-										onCheckedChange={setEnableSending}
-										disabled={!domainCheck}
-									/>
-								)}
-							</div>
-						)}
-						{domainCheck && domainCheck.mode !== "manual" && domainCheck.zone.id !== "manual" && (
-							<div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
-								<CheckCircle2 className="h-4 w-4" />
-								Domain found in Cloudflare as {domainCheck.zone.name}
-							</div>
-						)}
-						{domainCheck && (domainCheck.mode === "manual" || domainCheck.zone.id === "manual") && (
+						{domainCheck && (
 							<div className="rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-sm text-[var(--foreground)]">
-								Not on this Cloudflare account. Continue to get TXT verification and DNS records to
-								publish at your registrar.
+								Continue to get TXT verification and MX/SPF/DKIM values to publish at your DNS host. Dispatch does not change DNS for you.
 							</div>
 						)}
 						{mxConflict && (
@@ -199,7 +165,7 @@ export function OnboardingClient() {
 								<div className="flex items-start gap-3">
 									<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--destructive)]" />
 									<p className="text-sm leading-6 text-[var(--muted-foreground)]">
-										Existing MX records deliver mail to another provider. Continuing deletes those records and replaces them with Cloudflare Email Routing, so the previous provider will stop receiving mail.
+										Existing MX records deliver mail to another provider. Dispatch cannot replace them. After you continue, publish the MX from the domain DNS checklist at your DNS host.
 									</p>
 								</div>
 								<Button
@@ -207,7 +173,7 @@ export function OnboardingClient() {
 									disabled={loading}
 									className="h-10 w-full rounded-xl active:scale-[0.98]"
 								>
-									{loading ? "Replacing MX records..." : "Delete MX records and continue"}
+									{loading ? "Adding domain..." : "Continue anyway"}
 								</Button>
 							</div>
 						)}

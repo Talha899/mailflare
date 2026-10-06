@@ -85,23 +85,29 @@ export function AdminUpdateCard() {
 		}
 	}
 
+	const isNode = status?.runtime === "node";
+	const showGithubConfig = !isChecking && !isNode && status?.configured === false;
+	const showReleaseRow = !isChecking && (isNode || status?.configured);
+
 	return (
-		<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-			<CardHeader className="flex-row items-center gap-4 space-y-0 py-0">
+		<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
+			<CardHeader className="flex flex-col gap-4 space-y-0 py-0 sm:flex-row sm:items-center">
 				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--muted)] text-[var(--compose)]">
 					<RefreshCw className="h-5 w-5" />
 				</div>
 				<div>
 					<CardTitle className="text-base">Application update</CardTitle>
 					<p className="mt-1 text-sm text-[var(--muted-foreground)]">
-						Sync the latest Dispatch release and keep its database schema up to date.
+						{isNode
+							? "This install updates when you redeploy the container. Database migrations can be applied here if needed."
+							: "Sync the latest Dispatch release and keep its database schema up to date."}
 					</p>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-5 pt-5">
 				{isChecking && <Skeleton className="h-20 w-full rounded-2xl" />}
 
-				{!isChecking && status?.configured === false && (
+				{showGithubConfig && (
 					<div className="space-y-3">
 						<p className="text-sm text-[var(--muted-foreground)]">Complete the required Cloudflare Worker configuration:</p>
 						<ul className="divide-y divide-[var(--border)] overflow-hidden rounded-2xl border border-[var(--border)]">
@@ -122,20 +128,18 @@ export function AdminUpdateCard() {
 					</div>
 				)}
 
-				{!isChecking && status?.configured && (
+				{showReleaseRow && (
 					<div className="divide-y divide-[var(--border)] overflow-hidden rounded-2xl border border-[var(--border)]">
 						<div className="flex items-center gap-3 px-4 py-4">
-							{status.available ? (
-								<RefreshCw className={`h-4 w-4 shrink-0 text-[var(--compose)] ${isPending ? "animate-spin" : ""}`} />
-							) : (
-								<CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--success)]" />
-							)}
+							<CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--success)]" />
 							<p className="min-w-0 text-sm text-[var(--foreground)]">
-								{status.available
-									? `Dispatch v${status.targetVersion} is available. You are using v${status.currentVersion}.`
-									: `Dispatch v${status.currentVersion} is up to date.`}
+								{isNode
+									? `Dispatch v${status?.currentVersion ?? ""} is running. Redeploy the Coolify service to install a newer image.`
+									: status?.available
+										? `Dispatch v${status.targetVersion} is available. You are using v${status.currentVersion}.`
+										: `Dispatch v${status?.currentVersion} is up to date.`}
 							</p>
-							{status.available && (
+							{!isNode && status?.available && (
 								<button
 									type="button"
 									onClick={handleUpdate}
@@ -182,7 +186,7 @@ export function AdminUpdateCard() {
 
 				{result?.ok && (
 					<p className="text-sm text-[var(--success)]">
-						Update started for {result.repository}@{result.ref}. Refresh this page after Cloudflare deploys it. {" "}
+						Update started for {result.repository}@{result.ref}. Refresh this page after the deploy finishes.{" "}
 						{result.runUrl && (
 							<a className="font-medium underline" href={result.runUrl} target="_blank" rel="noreferrer">
 								View workflow

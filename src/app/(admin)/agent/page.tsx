@@ -9,14 +9,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { DEFAULT_CLOUDFLARE_MODEL } from "@/lib/agent/provider-constants";
+import { PROVIDER_BASE_URLS } from "@/lib/agent/provider-constants";
 import { saveAssistantAvailability } from "@/lib/agent/availability-client";
 import { parseAgentModelIds, toggleAgentModelId } from "@/lib/agent/model-ids";
 import type { AgentModelOption, AgentProviderPreset } from "@/lib/agent/provider-types";
 import type { AgentAdminForm, AgentAdminMailbox } from "./types";
 import { baseUrlForPreset, loadAgentAdminSettings, loadAgentModels, PROVIDER_PRESETS, saveAgentAdminSettings, saveAgentEnabled, saveAgentMailboxAllowlist, updateAgentModelRate } from "./utils";
 
-const initialForm: AgentAdminForm = { provider: "cloudflare", preset: "openai", baseUrl: "", apiKey: "", model: DEFAULT_CLOUDFLARE_MODEL, rates: {} };
+const initialForm: AgentAdminForm = {
+	provider: "compatible",
+	preset: "openrouter",
+	baseUrl: PROVIDER_BASE_URLS.openrouter,
+	apiKey: "",
+	model: "",
+	rates: {},
+};
 
 function mailboxSelectionFromList(mailboxes: AgentAdminMailbox[]) {
 	return new Set(mailboxes.filter((mailbox) => mailbox.enabled).map((mailbox) => mailbox.id));
@@ -29,7 +36,6 @@ export default function AdminAgentPage() {
 	const [enabledSaving, setEnabledSaving] = useState(false);
 	const [enabledStatus, setEnabledStatus] = useState<string | null>(null);
 	const [loaded, setLoaded] = useState(false);
-	const [cloudflareAvailable, setCloudflareAvailable] = useState(false);
 	const [hasSavedKey, setHasSavedKey] = useState(false);
 	const [savedEndpoint, setSavedEndpoint] = useState("");
 	const [models, setModels] = useState<AgentModelOption[]>([]);
@@ -47,10 +53,9 @@ export default function AdminAgentPage() {
 		let active = true;
 		void loadAgentAdminSettings().then((data) => {
 			if (!active) return;
-			setForm({ provider: data.config.provider, preset: data.config.preset, baseUrl: data.config.baseUrl, apiKey: "", model: data.config.models.join(", "), rates: data.config.rates });
+			setForm({ provider: "compatible", preset: data.config.preset, baseUrl: data.config.baseUrl, apiKey: "", model: data.config.models.join(", "), rates: data.config.rates });
 			setAssistantEnabled(data.assistantEnabled);
 			setConfigured(data.configured);
-			setCloudflareAvailable(data.cloudflareAvailable);
 			setHasSavedKey(data.config.hasApiKey);
 			setSavedEndpoint(`${data.config.preset}|${data.config.baseUrl}`);
 			setMailboxes(data.mailboxes);
@@ -67,7 +72,7 @@ export default function AdminAgentPage() {
 		setModels([]);
 		setModelSource(null);
 		setModelError(null);
-		if (form.provider === "compatible" && (!form.baseUrl || (!form.apiKey.trim() && !canUseSavedKey))) {
+		if (!form.baseUrl || (!form.apiKey.trim() && !canUseSavedKey)) {
 			setModelError(form.preset === "custom" && !form.baseUrl ? "Enter an HTTPS base URL to load models." : "Enter an API key to load models.");
 			return;
 		}
@@ -80,17 +85,17 @@ export default function AdminAgentPage() {
 			}).catch((error) => {
 				if (!controller.signal.aborted) setModelError(error instanceof Error ? error.message : "Could not load models");
 			}).finally(() => { if (!controller.signal.aborted) setModelsLoading(false); });
-		}, form.provider === "cloudflare" ? 0 : 500);
+		}, 500);
 		return () => { window.clearTimeout(timer); controller.abort(); };
-	}, [loaded, form.provider, form.preset, form.baseUrl, form.apiKey, canUseSavedKey]);
+	}, [loaded, form.preset, form.baseUrl, form.apiKey, canUseSavedKey]);
 
 	async function submit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setSaving(true);
 		setStatus(null);
 		try {
-			const data = await saveAgentAdminSettings(form);
-			setForm((current) => ({ ...current, apiKey: "", model: data.config.models.join(", "), rates: data.config.rates }));
+			const data = await saveAgentAdminSettings({ ...form, provider: "compatible" });
+			setForm((current) => ({ ...current, provider: "compatible", apiKey: "", model: data.config.models.join(", "), rates: data.config.rates }));
 			setHasSavedKey(data.config.hasApiKey);
 			setSavedEndpoint(`${data.config.preset}|${data.config.baseUrl}`);
 			setConfigured(data.configured);
@@ -132,17 +137,17 @@ export default function AdminAgentPage() {
 	}
 
 	return <div className="space-y-6">
-		<div className="flex items-start justify-between gap-4">
-			<div>
+		<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+			<div className="min-w-0">
 				<h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Agent</h1>
 				<p className="mt-2 text-sm text-[var(--muted-foreground)]">
-					Plug in your own OpenRouter, OpenAI, Groq, or custom OpenAI-compatible API key. Without a key (or Workers AI), the assistant stays off.
+					Plug in your own OpenRouter, OpenAI, Groq, or custom OpenAI-compatible API key. Without a key, the assistant stays off.
 				</p>
 			</div>
-			<Link href="/ai-usage" className="shrink-0 rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]">View Usage</Link>
+			<Link href="/ai-usage" className="shrink-0 self-start rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]">View Usage</Link>
 		</div>
-		<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-			<CardContent className="flex items-center justify-between gap-4 p-0">
+		<Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 sm:p-6">
+			<CardContent className="flex flex-col gap-3 p-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
 				<div>
 					<p className="font-medium text-[var(--foreground)]">Enable assistant</p>
 					<p className="mt-1 text-sm text-[var(--muted-foreground)]">
@@ -250,70 +255,48 @@ export default function AdminAgentPage() {
 			</CardHeader>
 			<CardContent className="pt-6"><form onSubmit={submit} className="space-y-5">
 				<div className="space-y-2">
-					<Label htmlFor="agent-provider">Provider</Label>
+					<Label htmlFor="agent-preset">Provider</Label>
 					<select
-						id="agent-provider"
+						id="agent-preset"
 						className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-						value={form.provider}
+						value={form.preset}
 						disabled={!loaded}
-						onChange={(event) => setForm((current) => ({
-							...current,
-							provider: event.target.value as AgentAdminForm["provider"],
-							baseUrl: event.target.value === "compatible" ? baseUrlForPreset(current.preset, current.baseUrl) : "",
-							model: event.target.value === "cloudflare" ? DEFAULT_CLOUDFLARE_MODEL : "",
-						}))}
+						onChange={(event) => {
+							const preset = event.target.value as AgentProviderPreset;
+							setForm((current) => ({ ...current, provider: "compatible", preset, baseUrl: baseUrlForPreset(preset), apiKey: "", model: "" }));
+						}}
 					>
-						<option value="cloudflare">Cloudflare Workers AI</option>
-						<option value="compatible">OpenAI-compatible provider</option>
+						{PROVIDER_PRESETS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
 					</select>
-					{form.provider === "cloudflare" && !cloudflareAvailable && (
-						<p className="text-xs text-[var(--muted-foreground)]">Cloudflare Workers AI requires an AI binding on this installation.</p>
-					)}
 				</div>
-				{form.provider === "compatible" && <>
-					<div className="space-y-2">
-						<Label htmlFor="agent-preset">Provider template</Label>
-						<select
-							id="agent-preset"
-							className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-							value={form.preset}
-							onChange={(event) => {
-								const preset = event.target.value as AgentProviderPreset;
-								setForm((current) => ({ ...current, preset, baseUrl: baseUrlForPreset(preset), apiKey: "", model: "" }));
-							}}
-						>
-							{PROVIDER_PRESETS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
-						</select>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="agent-url">API base URL</Label>
-						<Input
-							id="agent-url"
-							type="url"
-							value={form.baseUrl}
-							readOnly={form.preset !== "custom"}
-							placeholder="https://provider.example/v1"
-							onChange={(event) => setForm((current) => ({ ...current, baseUrl: event.target.value, model: "" }))}
-							required
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="agent-key">API key</Label>
-						<Input
-							id="agent-key"
-							type="password"
-							value={form.apiKey}
-							autoComplete="new-password"
-							placeholder={canUseSavedKey ? "Saved key (leave blank to keep)" : "Enter API key"}
-							onChange={(event) => setForm((current) => ({ ...current, apiKey: event.target.value }))}
-						/>
-						<p className="text-xs text-[var(--muted-foreground)]">
-							{canUseSavedKey
-								? "An API key is saved on the server. Enter a new one to replace it."
-								: "Paste your own provider key. It is stored on the server and never shown again. Without a key, AI stays off."}
-						</p>
-					</div>
-				</>}
+				<div className="space-y-2">
+					<Label htmlFor="agent-url">API base URL</Label>
+					<Input
+						id="agent-url"
+						type="url"
+						value={form.baseUrl}
+						readOnly={form.preset !== "custom"}
+						placeholder="https://provider.example/v1"
+						onChange={(event) => setForm((current) => ({ ...current, baseUrl: event.target.value, model: "" }))}
+						required
+					/>
+				</div>
+				<div className="space-y-2">
+					<Label htmlFor="agent-key">API key</Label>
+					<Input
+						id="agent-key"
+						type="password"
+						value={form.apiKey}
+						autoComplete="new-password"
+						placeholder={canUseSavedKey ? "Saved key (leave blank to keep)" : "Enter API key"}
+						onChange={(event) => setForm((current) => ({ ...current, apiKey: event.target.value }))}
+					/>
+					<p className="text-xs text-[var(--muted-foreground)]">
+						{canUseSavedKey
+							? "An API key is saved on the server. Enter a new one to replace it."
+							: "Paste your own provider key. It is stored on the server and never shown again. Without a key, AI stays off."}
+					</p>
+				</div>
 				<div className="space-y-2">
 					<p className="text-sm font-medium">Models</p>
 					<div className="max-h-64 space-y-2 overflow-y-auto rounded-md border border-input p-3">
@@ -330,7 +313,7 @@ export default function AdminAgentPage() {
 						))}
 					</div>
 					{modelSource === "suggested" && (
-						<p className="text-xs text-[var(--muted-foreground)]">Showing suggested Cloudflare models because a full catalog is unavailable.</p>
+						<p className="text-xs text-[var(--muted-foreground)]">Showing suggested models because a full catalog is unavailable.</p>
 					)}
 					{modelError && <p className="text-xs text-[var(--destructive)]">{modelError}</p>}
 					<Label htmlFor="agent-model-id" className="block pt-2 text-xs text-[var(--muted-foreground)]">Or enter model IDs (comma-separated)</Label>
@@ -338,7 +321,7 @@ export default function AdminAgentPage() {
 						id="agent-model-id"
 						value={form.model}
 						onChange={(event) => setForm((current) => ({ ...current, model: event.target.value }))}
-						placeholder={form.provider === "cloudflare" ? DEFAULT_CLOUDFLARE_MODEL : "provider/model-id, provider/another-model"}
+						placeholder="provider/model-id, provider/another-model"
 						required
 					/>
 					<p className="text-xs text-[var(--muted-foreground)]">Choose models that support tool calling so the assistant can read mail and create drafts. The first model is the default.</p>
@@ -362,7 +345,7 @@ export default function AdminAgentPage() {
 				<Button
 					type="submit"
 					className="active:scale-[0.98]"
-					disabled={!loaded || saving || !selectedModelIds.length || (form.provider === "cloudflare" && !cloudflareAvailable) || (form.provider === "compatible" && (!form.baseUrl || (!form.apiKey.trim() && !canUseSavedKey)))}
+					disabled={!loaded || saving || !selectedModelIds.length || !form.baseUrl || (!form.apiKey.trim() && !canUseSavedKey)}
 				>
 					{saving ? "Saving…" : "Save agent settings"}
 				</Button>

@@ -1,5 +1,5 @@
-import type { CfDnsRecord } from "@/lib/cloudflare-api.types";
 import { queryDns, type DnsQueryType } from "@/lib/dns-query";
+import type { DnsRecord } from "@/lib/domains/types";
 
 export type DnsAuthRecord = "mx" | "spf" | "dkim" | "dmarc";
 export type DnsAuthStatus = "ok" | "missing" | "unknown";
@@ -20,12 +20,12 @@ export type DomainDnsAudit = {
 };
 
 type AuditInput = {
-	routing: { records: CfDnsRecord[]; missing: CfDnsRecord[] };
-	sending: CfDnsRecord[];
+	routing: { records: DnsRecord[]; missing: DnsRecord[] };
+	sending: DnsRecord[];
 	dkimSelector?: string;
 };
 
-function isTxt(record: CfDnsRecord) {
+function isTxt(record: DnsRecord) {
 	return record.type?.toUpperCase() === "TXT";
 }
 

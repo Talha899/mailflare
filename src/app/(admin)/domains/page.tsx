@@ -260,20 +260,18 @@ export default function DomainsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">Domains</h1>
           <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-[var(--muted-foreground)]">
             {saasMode
-              ? "Add customer domains. Zones on your Cloudflare account are configured automatically; other domains use TXT verification and a manual DNS checklist."
-              : managesDns
-                ? "Domains must be on your Cloudflare account. Email Routing is enabled automatically, and Email Sending can be enabled when available."
-                : "Add the domains this server receives mail for. Open DNS on a domain to see the MX, SPF and DMARC records to create."}
+              ? "Add customer domains. Each domain uses TXT ownership verification and a manual DNS checklist for MX, SPF and DMARC."
+              : "Add the domains this server receives mail for. Open DNS on a domain to see the MX, SPF and DMARC records to create."}
           </p>
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               New domain
             </Button>
@@ -283,8 +281,8 @@ export default function DomainsPage() {
               <DialogTitle>Add domain</DialogTitle>
               <DialogDescription>
                 {saasMode
-                  ? "Enter a hostname. Cloudflare zones on this account are auto-configured; other domains get TXT verification and DNS records to publish."
-                  : "Connect a Cloudflare zone and choose whether Dispatch should provision Email Sending."}
+                  ? "Enter a hostname. You will get a TXT ownership record and MX/SPF/DMARC values to publish at your DNS provider."
+                  : "Enter a hostname. After adding it, open DNS to see the MX, SPF and DMARC records to create."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -311,13 +309,13 @@ export default function DomainsPage() {
                 />
                 <p className="text-xs text-[var(--muted-foreground)]">Use example.com — not https://example.com/</p>
               </div>
-              {!isManualDomain && (
+              {managesDns && !isManualDomain && (
                 <div className="flex items-center justify-between gap-4 rounded-xl bg-[var(--muted)] px-4 py-3">
                   <div>
                     <Label htmlFor="enable-sending">Enable sending</Label>
                     <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
                       {domainChecking
-                        ? "Checking Cloudflare access..."
+                        ? "Checking domain..."
                         : domainCheck
                           ? enableSending
                             ? "Required to send email."
@@ -337,16 +335,17 @@ export default function DomainsPage() {
                   )}
                 </div>
               )}
-              {domainCheck && !isManualDomain && (
+              {managesDns && domainCheck && !isManualDomain && (
                 <div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
                   <CheckCircle2 className="h-4 w-4" />
-                  Domain found in Cloudflare as {domainCheck.zone.name}
+                  Domain ready as {domainCheck.zone.name}
                 </div>
               )}
               {domainCheck && isManualDomain && (
                 <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-sm text-[var(--foreground)]">
-                  Not on this Cloudflare account. You can still add it — we will show a TXT
-                  ownership record and MX/SPF/DMARC values to publish at your DNS provider.
+                  {saasMode
+                    ? "After adding, publish the TXT ownership record plus MX/SPF/DMARC at your DNS provider."
+                    : "After adding, open DNS on the domain for the MX, SPF and DMARC records to create."}
                 </div>
               )}
               {domainCheckError && (
@@ -357,23 +356,6 @@ export default function DomainsPage() {
               {create.isError && (
                 <div className="space-y-3 rounded-xl bg-[var(--destructive)]/10 px-4 py-3 text-sm text-[var(--destructive)]">
                   <p>{(create.error as Error).message}</p>
-                  {!saasMode && managesDns && (
-                    <div className="space-y-2">
-                      <p className="font-medium">
-                        Check that your Cloudflare API token has these permissions:
-                      </p>
-                      <ul className="list-disc space-y-1 pl-5">
-                        <li>
-                          All accounts — DNS Settings:Edit, Email Routing
-                          Addresses:Edit; Email Sending:Edit for outbound mail
-                        </li>
-                        <li>
-                          All zones — DNS Settings:Edit, Email Routing Rules:Edit,
-                          Zone Settings:Edit, DNS:Edit
-                        </li>
-                      </ul>
-                    </div>
-                  )}
                 </div>
               )}
               <Button

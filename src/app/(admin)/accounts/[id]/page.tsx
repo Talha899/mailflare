@@ -104,7 +104,7 @@ export default function AccountDetailsPage() {
 						placeholder="destination@example.com"
 					/>
 					<p className="text-xs leading-5 text-[var(--muted-foreground)]">
-						Incoming mail will also be sent to this verified Cloudflare Email Routing destination.
+						Incoming mail will also be forwarded to this address.
 					</p>
 				</div>}
 				<div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--border)] bg-[var(--muted)] p-4">

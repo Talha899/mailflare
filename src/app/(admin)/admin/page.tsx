@@ -31,7 +31,7 @@ const sections: AdminSection[] = [
 	{
 		href: "/domains",
 		title: "Domains",
-		description: "Add Cloudflare domains and inspect DNS state.",
+		description: "Add domains and publish MX, SPF, and DKIM records by hand.",
 		icon: Globe2,
 		permission: "domains",
 	},

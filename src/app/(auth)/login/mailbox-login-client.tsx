@@ -7,7 +7,6 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TurnstileField } from "@/components/auth/turnstile";
 import {
 	formatLoginError,
 	formatLoginNetworkError,
@@ -19,7 +18,6 @@ export function MailboxLoginClient() {
 	const router = useRouter();
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
-	const [turnstileReset, setTurnstileReset] = useState(0);
 	const [challengeToken, setChallengeToken] = useState<string | null>(null);
 	const [code, setCode] = useState("");
 
@@ -37,7 +35,6 @@ export function MailboxLoginClient() {
 			const { ok, data } = await submitLogin(new FormData(e.currentTarget));
 			if (!ok) {
 				setError(formatLoginError(data.error, "mailbox"));
-				setTurnstileReset((value) => value + 1);
 				return;
 			}
 			if (data.mfaRequired && data.challengeToken) {
@@ -47,7 +44,6 @@ export function MailboxLoginClient() {
 			finish(data.redirect);
 		} catch (err) {
 			setError(formatLoginNetworkError(err, "mailbox"));
-			setTurnstileReset((value) => value + 1);
 		} finally {
 			setLoading(false);
 		}
@@ -164,7 +160,6 @@ export function MailboxLoginClient() {
 						{error}
 					</p>
 				)}
-				<TurnstileField resetSignal={turnstileReset} />
 				<Button
 					type="submit"
 					className="h-11 w-full rounded-xl px-6 active:scale-[0.98]"

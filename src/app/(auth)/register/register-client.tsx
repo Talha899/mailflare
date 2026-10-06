@@ -6,11 +6,8 @@ import { AlertTriangle, ArrowRight, CheckCircle2, LoaderCircle, MailPlus, XCircl
 import { useEffect, useState } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { TurnstileField } from "@/components/auth/turnstile";
 import {
   getSetupStatus,
   checkExistingMx,
@@ -43,7 +40,6 @@ export function RegisterClient() {
   const [replaceMxRecords, setReplaceMxRecords] = useState(false);
   const [mxCheckRevision, setMxCheckRevision] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [turnstileReset, setTurnstileReset] = useState(0);
 
   useEffect(() => {
     void runPreparation();
@@ -127,7 +123,7 @@ export function RegisterClient() {
       return;
     }
     setSetupDomain(data.domain.hostname);
-    setSetupEnableSending(usedCachedCheck ? enableSending : false);
+    setSetupEnableSending(true);
     setStep(3);
   }
 
@@ -147,7 +143,7 @@ export function RegisterClient() {
     }
 
     setDomainCheck(data.domain);
-    setEnableSending(false);
+    setEnableSending(true);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -177,13 +173,11 @@ export function RegisterClient() {
         setMxRecordsExist(true);
         setReplaceMxRecords(false);
         setError(null);
-        setTurnstileReset((value) => value + 1);
         return;
       }
       setError(
         typeof data.error === "string" ? data.error : "Registration failed",
       );
-      setTurnstileReset((value) => value + 1);
       return;
     }
     window.location.assign(data.redirect ?? "/login");
@@ -315,33 +309,12 @@ export function RegisterClient() {
               }}
             />
             <p className="text-xs leading-5 text-[var(--muted-foreground)]">
-              The domain must already be a Cloudflare zone on this account.
+              Use example.com. After adding it, publish MX, SPF, and DKIM at your DNS host.
             </p>
           </div>
-          <div className="flex items-center justify-between gap-4 rounded-xl bg-[var(--muted)] px-4 py-3">
-            <div>
-              <Label htmlFor="setup-enable-sending">Enable sending</Label>
-              <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-                {domainChecking
-                  ? "Checking Cloudflare access..."
-                  : domainCheck
-                    ? enableSending
-                      ? "Required to send email."
-                      : "Receive-only mode."
-                    : "Enter the domain and leave the field to verify it."}
-              </p>
-            </div>
-            <Switch
-              id="setup-enable-sending"
-              checked={enableSending}
-              onCheckedChange={setEnableSending}
-              disabled={domainChecking || !domainCheck}
-            />
-          </div>
           {domainCheck && (
-            <div className="flex items-center gap-3 rounded-xl bg-[var(--success)]/10 px-4 py-3 text-sm text-[var(--success)]">
-              <CheckCircle2 className="h-4 w-4" />
-              Domain found in Cloudflare as {domainCheck.zone.name}
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)] px-4 py-3 text-sm text-[var(--foreground)]">
+              After adding, publish MX, SPF, and DKIM at your DNS host. Dispatch does not change DNS for you.
             </div>
           )}
           {error && (
@@ -372,22 +345,15 @@ export function RegisterClient() {
 						</div>
 					)}
 					{mxRecordsExist === true && (
-						<label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-4 text-[var(--foreground)]">
-							<Checkbox
-								checked={replaceMxRecords}
-								onChange={(event) => setReplaceMxRecords(event.target.checked)}
-								className="mt-1"
-							/>
-							<span>
-								<span className="flex items-center gap-2 text-sm font-medium text-[var(--destructive)]">
-									<AlertTriangle className="h-4 w-4" />
-									Replace existing MX records
-								</span>
-								<span className="mt-1 block text-xs leading-5 text-[var(--muted-foreground)]">
-									This deletes the current mail provider's MX records and replaces them with Cloudflare Email Routing. The previous provider will stop receiving mail.
-								</span>
+						<div className="rounded-xl border border-[var(--destructive)]/25 bg-[var(--destructive)]/10 px-4 py-4 text-[var(--foreground)]">
+							<span className="flex items-center gap-2 text-sm font-medium text-[var(--destructive)]">
+								<AlertTriangle className="h-4 w-4" />
+								Existing MX records found
 							</span>
-						</label>
+							<p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
+								Mail currently goes to another provider. Dispatch cannot change DNS for you — update MX at your DNS host after setup, or incoming mail will keep going to the old provider.
+							</p>
+						</div>
 					)}
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
@@ -449,11 +415,10 @@ export function RegisterClient() {
 							Check MX records again
 						</Button>
 					)}
-          <TurnstileField resetSignal={turnstileReset} />
 					<Button
 						type="submit"
 						className="mt-8 h-10 w-full rounded-xl active:scale-[0.98]"
-						disabled={loading || mxChecking || mxRecordsExist === null || (mxRecordsExist && !replaceMxRecords) || hasAdminAccount === null || hasPrimaryDomain === null}
+						disabled={loading || mxChecking || mxRecordsExist === null || hasAdminAccount === null || hasPrimaryDomain === null}
 					>
 						{loading ? "Creating..." : "Create account"}
 					</Button>

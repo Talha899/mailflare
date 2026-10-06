@@ -3,25 +3,11 @@ import { getDb } from "@/db";
 import { domains, mailboxes, users } from "@/db/schema";
 import { ensureMailboxDomainRouting } from "@/lib/mailboxes/domain-addresses";
 import { newId } from "@/lib/ids";
-import {
-	disableEmailRouting,
-	getEmailRoutingDns,
-	getEmailRoutingSettings,
-	getSendingSubdomainDns,
-	deleteSendingSubdomain,
-	listSendingSubdomains,
-	type CfDnsRecord,
-} from "@/lib/cloudflare-api";
-import { deleteEmailRoutingRulesForDomain } from "@/lib/domains/cloudflare-cleanup";
-import { isManualZone, provisionDomainOnCloudflare } from "@/lib/domains/provision";
+import { isManualZone, MANUAL_ZONE_ID, provisionDomainOnCloudflare } from "@/lib/domains/provision";
 import { getManualDomainDns } from "@/lib/domains/manual-dns";
 import { assertDomainHostname, normalizeDomainHostname, isValidDomainHostname } from "@/lib/domains/hostname";
-import { rollbackDomainProvisioning } from "@/lib/domains/rollback";
-import type { DomainProvisioningChanges } from "@/lib/domains/types";
-import { findSendingSubdomain } from "@/lib/domains/sending-status";
-import { preflightDomain } from "@/lib/domains/preflight";
+import type { DnsRecord, DomainProvisioningChanges } from "@/lib/domains/types";
 import { syncOutboundSenderDomains } from "@/lib/outbound/sender-domains";
-import { hasCloudflareCredentials } from "@/lib/runtime";
 import {
 	createDomainVerification,
 	isSaasMode,
@@ -29,12 +15,12 @@ import {
 } from "@/lib/organizations/service";
 
 export type DomainDnsView = {
-	routing: { records: CfDnsRecord[]; missing: CfDnsRecord[]; status?: string };
-	sending: CfDnsRecord[];
+	routing: { records: DnsRecord[]; missing: DnsRecord[]; status?: string };
+	sending: DnsRecord[];
 	sendingEnabled: boolean;
-	/** DKIM selector Cloudflare signs with, when a sending subdomain exists. */
+	/** DKIM selector used for outbound signing when Postfix/SMTP is configured. */
 	dkimSelector?: string;
-	/** The matching sending subdomain, when the zone has the domain added for sending. */
+	/** Legacy sending-subdomain hint; unused when provisioning is manual. */
 	sendingSubdomain?: { name: string; tag: string };
 };
 
@@ -81,63 +67,8 @@ export async function addDomainForUser(
 		throw new Error("Domain is already registered");
 	}
 
-	let useCloudflare = false;
-	if (hasCloudflareCredentials(env)) {
-		try {
-			const preflight = await preflightDomain(env, normalizedHostname);
-			// Manual / off-account domains share zoneId "manual" — never treat that as a unique CF zone claim.
-			if (preflight.mode === "manual" || isManualZone(preflight.zone.id)) {
-				useCloudflare = false;
-			} else {
-				const [claimedZone] = await db
-					.select({ userId: domains.userId, organizationId: domains.organizationId })
-					.from(domains)
-					.where(and(eq(domains.zoneId, preflight.zone.id), ne(domains.organizationId, organizationId)))
-					.limit(1);
-				if (claimedZone) {
-					throw new Error("Cloudflare zone is already registered to another organization");
-				}
-				useCloudflare = true;
-			}
-		} catch (error) {
-			// Dual path C: fall back to manual TXT verification when the zone is not on this CF account.
-			if (isSaasMode(env) && error instanceof Error && /Zone not found/i.test(error.message)) {
-				useCloudflare = false;
-			} else {
-				throw error;
-			}
-		}
-	}
-
-	const manualProvisioned = {
-		hostname: normalizedHostname,
-		zone: { id: "manual", name: normalizedHostname },
-		routingEnabled: false,
-		sendingRequested: options?.enableSending ?? true,
-		// Node mailer is ready for outbound even when the zone is not on our CF account;
-		// the operator still must onboard the domain in CF Email Sending / publish SPF+DKIM.
-		sendingEnabled:
-			(options?.enableSending ?? true) &&
-			!!(env.EMAIL as unknown as { configured?: boolean })?.configured,
-		sendingSubdomainTag: null as string | null,
-		routingStatus: "manual",
-		changes: {
-			zoneId: "manual",
-			enabledEmailRouting: false,
-			createdSendingSubdomainTag: null,
-			previousCatchAll: null,
-			createdAddressRules: [] as string[],
-			deletedMxRecords: [] as Array<{ id: string; name: string; type: string; content: string; priority?: number; ttl?: number }>,
-		} satisfies DomainProvisioningChanges,
-	};
-
-	const effectiveProvisioned = useCloudflare
-		? await provisionDomainOnCloudflare(env, hostname, options)
-		: !hasCloudflareCredentials(env)
-			? await provisionDomainOnCloudflare(env, hostname, options)
-			: manualProvisioned;
-
-	const forceManual = isManualZone(effectiveProvisioned.zone.id);
+	// Always manual — no Cloudflare Email Routing / zone API.
+	const effectiveProvisioned = await provisionDomainOnCloudflare(env, hostname, options);
 
 	let insertedDomainId: string | null = null;
 	let domain: typeof domains.$inferSelect;
@@ -150,14 +81,14 @@ export async function addDomainForUser(
 		}
 
 		const domainId = existing?.id ?? newId("dom");
-		const isManual = forceManual;
+		const isManual = isManualZone(effectiveProvisioned.zone.id);
 		const requiresTxtProof = isManual && isSaasMode(env);
 		const values = {
 			id: domainId,
 			userId,
 			organizationId,
 			hostname: effectiveProvisioned.hostname,
-			zoneId: isManual ? "manual" : effectiveProvisioned.zone.id,
+			zoneId: MANUAL_ZONE_ID,
 			status: requiresTxtProof
 				? ("pending" as const)
 				: effectiveProvisioned.routingEnabled || effectiveProvisioned.sendingEnabled || isManual
@@ -166,7 +97,12 @@ export async function addDomainForUser(
 			routingStatus: effectiveProvisioned.routingStatus ?? null,
 			sendingSubdomainTag: effectiveProvisioned.sendingSubdomainTag,
 			sendingRequested: effectiveProvisioned.sendingRequested,
-			sendingEnabled: effectiveProvisioned.sendingEnabled,
+			// Node mailer is ready for outbound even without Cloudflare Email Sending;
+			// the operator still must publish SPF+DKIM (or use SMTP_URL / Postfix).
+			sendingEnabled:
+				effectiveProvisioned.sendingEnabled ||
+				((options?.enableSending ?? true) &&
+					!!(env.EMAIL as unknown as { configured?: boolean })?.configured),
 			routingEnabled: requiresTxtProof ? false : (effectiveProvisioned.routingEnabled || isManual),
 		};
 
@@ -207,7 +143,6 @@ export async function addDomainForUser(
 		const [row] = await db.select().from(domains).where(eq(domains.id, domainId)).limit(1);
 		domain = row!;
 	} catch (err) {
-		if (useCloudflare) await rollbackDomainProvisioning(env, effectiveProvisioned.changes);
 		if (insertedDomainId) {
 			try {
 				await db.delete(domains).where(eq(domains.id, insertedDomainId));
@@ -302,42 +237,8 @@ export async function getDomainDns(
 	domain: typeof domains.$inferSelect,
 ): Promise<DomainDnsView> {
 	domain = await repairDomainHostnameIfNeeded(env, domain);
-	if (isManualZone(domain.zoneId)) return getManualDomainDns(env, domain.hostname);
-	// Read the zone's actual sending state rather than trusting `sendingRequested`,
-	// which goes stale when sending is enabled outside Mailflare (or when the row
-	// was written before the subdomain existed). A missing Email Sending permission
-	// must not take down the routing/DNS view, so a failed list degrades to none.
-	const [routingDns, routingSettings, sendingSubdomains] = await Promise.all([
-		getEmailRoutingDns(env, domain.zoneId),
-		getEmailRoutingSettings(env, domain.zoneId),
-		listSendingSubdomains(env, domain.zoneId).catch((error) => {
-			console.warn("getDomainDns: failed to list sending subdomains", error);
-			return [];
-		}),
-	]);
-	const sendingSubdomain = findSendingSubdomain(domain.hostname, sendingSubdomains);
-	let sending: CfDnsRecord[] = [];
-	if (sendingSubdomain?.tag) {
-		sending = await getSendingSubdomainDns(env, domain.zoneId, sendingSubdomain.tag).catch(
-			(error) => {
-				console.warn("getDomainDns: failed to read sending subdomain DNS", error);
-				return [];
-			},
-		);
-	}
-	return {
-		routing: {
-			records: routingDns.records,
-			missing: routingDns.missing,
-			status: routingSettings.status,
-		},
-		sending,
-		sendingEnabled: sendingSubdomain?.enabled ?? false,
-		dkimSelector: sendingSubdomain?.dkim_selector,
-		sendingSubdomain: sendingSubdomain
-			? { name: sendingSubdomain.name, tag: sendingSubdomain.tag }
-			: undefined,
-	};
+	// Always show the hand-managed DNS checklist — no Cloudflare zone reads.
+	return getManualDomainDns(env, domain.hostname);
 }
 
 export async function removeDomainForUser(
@@ -358,32 +259,6 @@ export async function removeDomainForUser(
 		))
 		.limit(1);
 	if (!domain) throw new Error("Domain not found");
-
-	try {
-		await deleteEmailRoutingRulesForDomain(env, domain.zoneId, domain.hostname);
-	} catch (err) {
-		console.warn("deleteEmailRoutingRulesForDomain", err);
-	}
-
-	const [otherDomainOnZone] = await db.select({ id: domains.id }).from(domains).where(and(
-		eq(domains.zoneId, domain.zoneId),
-		ne(domains.id, domainId),
-	)).limit(1);
-	if (domain.routingEnabled && !otherDomainOnZone) {
-		try {
-			await disableEmailRouting(env, domain.zoneId);
-		} catch (err) {
-			console.warn("disableEmailRouting", err);
-		}
-	}
-
-	if (domain.sendingSubdomainTag) {
-		try {
-			await deleteSendingSubdomain(env, domain.zoneId, domain.sendingSubdomainTag);
-		} catch (err) {
-			console.warn("deleteSendingSubdomain", err);
-		}
-	}
 
 	await db.delete(domains).where(eq(domains.id, domainId));
 	await syncOutboundSenderDomains(env);

@@ -19,7 +19,7 @@ import { RoutingRuleSelect } from "./routing-rule-select";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip } from "@/components/ui/tooltip";
 import { CardGridSkeleton } from "@/components/page-skeletons";
-import { useSelectedMailbox } from "@/components/mailbox-provider";
+import { useOptionalSelectedMailbox } from "@/components/mailbox-provider";
 import type { DomainRoutingProps, DomainRule, DomainRuleInput } from "./types";
 import {
 	ACTION_LABELS,
@@ -43,7 +43,9 @@ const ACTION_ICONS = {
 
 export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 	const qc = useQueryClient();
-	const { selectedMailbox, isLoading: isMailboxLoading } = useSelectedMailbox();
+	const mailboxCtx = useOptionalSelectedMailbox();
+	const selectedMailbox = mailboxCtx?.selectedMailbox ?? null;
+	const isMailboxLoading = mailboxCtx?.isLoading ?? false;
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editing, setEditing] = useState<DomainRule | null>(null);
 	const [form, setForm] = useState<DomainRuleInput>(emptyRuleInput(""));
@@ -110,10 +112,10 @@ export function DomainRouting({ domain }: DomainRoutingProps = {}) {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex flex-wrap items-end justify-between gap-4">
-				<div>
+			<div className="flex flex-wrap items-start justify-between gap-3">
+				<div className="min-w-0">
 					<div className="flex items-center gap-2">
-						<h2 className="text-2xl font-semibold">Domain routing</h2>
+						<h2 className="text-xl font-semibold sm:text-2xl">Domain routing</h2>
 						<Tooltip label="Block, forward, or deliver mail arriving at this domain.">
 							<button type="button" aria-label="About domain routing" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
 								<Info className="h-4 w-4" />
@@ -389,7 +391,7 @@ function RuleSection({
 	onToggle: (rule: DomainRule) => void;
 }) {
 	return (
-		<Card className={`${className} border-0 bg-[var(--card)] px-6`}>
+		<Card className={`${className} border-0 bg-[var(--card)] px-4 sm:px-6`}>
 			<CardHeader>
 				<div className="flex items-center gap-2">
 					<CardTitle className="text-xs uppercase">{title}</CardTitle>
@@ -407,11 +409,12 @@ function RuleSection({
 						return (
 							<div
 								key={rule.id}
-								className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--border)] px-3 py-2"
+								className="flex flex-col gap-3 rounded-xl border border-[var(--border)] px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center"
 							>
-								<Icon className="h-4 w-4 shrink-0 text-[var(--muted-foreground)]" />
+								<div className="flex min-w-0 flex-1 items-start gap-3">
+								<Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--muted-foreground)]" />
 								<div className="min-w-0 flex-1">
-									<div className="flex items-center gap-2">
+									<div className="flex flex-wrap items-center gap-2">
 										<p className="truncate text-sm font-medium">
 											{rule.name || describeRule(rule, mailboxes, hostname)}
 										</p>
@@ -427,6 +430,8 @@ function RuleSection({
 										{formatLastMatched(rule.lastMatchedAt)}
 									</p>
 								</div>
+								</div>
+								<div className="flex items-center justify-end gap-1 sm:ml-auto">
 								<Switch checked={rule.enabled} onCheckedChange={() => onToggle(rule)} />
 								<Button variant="ghost" size="sm" onClick={() => onEdit(rule)}>
 									<Pencil className="h-4 w-4" />
@@ -434,6 +439,7 @@ function RuleSection({
 								<Button variant="ghost" size="sm" onClick={() => onDelete(rule.id)}>
 									<Trash2 className="h-4 w-4 text-[var(--destructive)]" />
 								</Button>
+								</div>
 							</div>
 						);
 					})

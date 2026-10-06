@@ -86,7 +86,7 @@ See the [deployment guide](docs/deployment.md) for required permissions, manual 
 
 ### Self-host with Docker instead
 
-Dispatch also runs as one container on any server, with SQLite and local files in place of D1 and R2, a built-in SMTP listener for inbound mail (or a small Cloudflare relay Worker if you want to keep MX on Cloudflare), and any SMTP relay or Cloudflare Email Sending for outbound.
+Dispatch also runs as one container on any server, with SQLite and local files in place of D1 and R2, a built-in SMTP listener for inbound mail, and any SMTP relay (for example Postfix) for outbound.
 
 For **multi-organization SaaS** (public signup, per-customer domains and mailboxes), see [docs/saas-docker.md](docs/saas-docker.md).
 
