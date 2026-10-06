@@ -1,5 +1,9 @@
 # Coolify: Docker Compose resource → this file.
-# Assign the public app domain to the `mailflare` service (port 3000).
+# Assign the public HTTPS domain to service `mailflare`, container port 3000.
+# Do not put php artisan / Laravel commands in Pre/Post deployment.
+# Leave Custom build command and Custom start command EMPTY so Coolify can
+# attach Traefik labels. A custom `docker compose up -d` causes
+# "no available server" on the public URL.
 #
 # Paste `.env` into Coolify Environment Variables. Do not set DATA_DIR there —
 # the image already uses /mailflare-data (same path as the shared volume).

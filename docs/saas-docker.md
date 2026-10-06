@@ -113,7 +113,22 @@ For **send/receive DNS** on customer domains, see [saas-mail.md](./saas-mail.md)
    Coolify — it is baked into the image as `/mailflare-data`. Coolify cannot
    delete a variable that still exists in the Compose `environment:` block.
 5. Assign a domain to the **`mailflare`** service, port **`3000`**, with HTTPS.
-6. Deploy. Open `https://your-domain/signup` (SaaS) or `/setup` if `SAAS_MODE` is off.
+   Do not attach the domain to `postfix` or to ports 25/587/143.
+6. Leave **Custom build command**, **Custom start command**, **Pre-deployment**,
+   and **Post-deployment** empty. Laravel leftovers (`php artisan migrate`,
+   `docker compose up -d`) make Traefik return **no available server**.
+7. Deploy. Open `https://your-domain/signup` (SaaS) or `/setup` if `SAAS_MODE` is off.
+
+### 503 `no available server`
+
+The Coolify proxy has the hostname but no healthy `mailflare` container on port 3000.
+
+1. Click **Reset** if the form still shows unsaved Laravel fields, then clear:
+   Custom build command, Custom start command, Pre-deployment, Post-deployment, Watch paths.
+2. **Save changes**.
+3. **Manage domains** → `mail.codenak.com` → service `mailflare` → port `3000` → HTTPS / WebSockets.
+4. **Reload compose**, then **Redeploy**.
+5. **Runtime Logs** for `mailflare` (not postfix). If Mongo cannot connect, the process exits and Traefik keeps 503.
 
 ### Coolify environment variables
 
