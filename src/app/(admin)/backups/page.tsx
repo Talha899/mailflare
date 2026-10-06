@@ -44,8 +44,10 @@ import {
   saveBackupSettings,
   startBackup,
 } from "./utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export default function BackupsPage() {
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const restoreInput = useRef<HTMLInputElement | null>(null);
   const savedSettings = useRef<BackupSettings | null>(null);
@@ -128,10 +130,17 @@ export default function BackupsPage() {
             type="file"
             accept="application/json,.json"
             className="hidden"
-            onChange={(event) => {
+            onChange={async (event) => {
               const file = event.target.files?.[0];
               event.target.value = "";
-              if (!file || !window.confirm("Restore this backup? This replaces all current database records and may sign you out.")) return;
+              if (!file) return;
+              const confirmed = await confirm({
+                title: "Restore this backup?",
+                description: `Every current database record is replaced with the contents of ${file.name}. You may be signed out.`,
+                confirmLabel: "Restore backup",
+                confirmText: "RESTORE",
+              });
+              if (!confirmed) return;
               restore.mutate(file);
             }}
           />

@@ -27,8 +27,10 @@ import {
 	updateWebhook,
 } from "./utils";
 import { WebhookDeliveries } from "./deliveries";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export default function WebhooksPage() {
+	const confirm = useConfirm();
 	const qc = useQueryClient();
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [url, setUrl] = useState("");
@@ -212,8 +214,8 @@ export default function WebhooksPage() {
 									<Button
 										variant="ghost"
 										size="sm"
-										onClick={() => {
-											if (window.confirm("Rotate this signing secret? The previous secret will stop signing new deliveries immediately.")) rotate.mutate(hook.id);
+										onClick={async () => {
+											if (await confirm({ title: "Rotate the signing secret?", description: "The previous secret stops signing new deliveries immediately. Update your endpoint before the next event.", confirmLabel: "Rotate secret" })) rotate.mutate(hook.id);
 										}}
 										disabled={rotate.isPending}
 									>

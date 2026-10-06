@@ -168,7 +168,7 @@ async function main() {
 		check("support session cannot open a billing@ message by id", crossRead.status === 404, String(crossRead.status));
 		const crossThread = await support(`/api/messages/${billingMessageId}/thread`);
 		check("support session cannot open a billing@ thread by id", crossThread.status === 404 || crossThread.status === 403, String(crossThread.status));
-		const crossBulk = await support("/api/messages/bulk", { method: "PATCH", body: { messageIds: [billingMessageId], action: "trash" } });
+		const crossBulk = await support("/api/messages/bulk", { method: "POST", body: { messageIds: [billingMessageId], action: "trash" } });
 		check("support session cannot bulk-trash a billing@ message", crossBulk.status === 404 || crossBulk.status === 403, String(crossBulk.status));
 		const crossStar = await support(`/api/messages/${billingMessageId}/star`, { method: "PATCH", body: { starred: true } });
 		check("support session cannot star a billing@ message", crossStar.status >= 400, String(crossStar.status));

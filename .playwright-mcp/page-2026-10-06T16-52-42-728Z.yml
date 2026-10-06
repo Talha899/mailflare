@@ -1,0 +1,20 @@
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e7]:
+        - paragraph [ref=e8]: Webmail
+        - generic [ref=e9]: Dispatch
+      - generic [ref=e10]:
+        - heading "Open your inbox" [level=1] [ref=e11]
+        - paragraph [ref=e12]: Use your mailbox address and mailbox password (IMAP/SMTP use the same password). This is not your admin account password.
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - text: Mailbox email
+        - textbox "Mailbox email" [ref=e17]:
+          - /placeholder: you@your-domain.com
+      - generic [ref=e18]:
+        - text: Mailbox password
+        - textbox "Mailbox password" [ref=e19]
+        - paragraph [ref=e20]: Same password used for IMAP/SMTP. Ask an admin if you need it reset.
+      - button "Open inbox" [ref=e21] [cursor=pointer]
+  - alert [ref=e22]

@@ -129,6 +129,9 @@ The Coolify proxy has the hostname but no healthy `mailflare` container on port 
 3. **Manage domains** → `mail.codenak.com` → service `mailflare` → port `3000` → HTTPS / WebSockets.
 4. **Reload compose**, then **Redeploy**.
 5. **Runtime Logs** for `mailflare` (not postfix). If Mongo cannot connect, the process exits and Traefik keeps 503.
+   Coolify Mongo hostnames (random ids like `whsrnmd2fyh5jxdlinr5dqlc`) need the compose
+   `coolify` external network. Redeploy after that compose change, or set `MONGO_URL` to
+   the host IP (`mongodb://user:pass@HOST:27017/mailflare?directConnection=true&authSource=admin`).
 
 ### Coolify environment variables
 

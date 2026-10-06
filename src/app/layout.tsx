@@ -1,20 +1,18 @@
 import type { Metadata } from "next";
-import { Figtree, IBM_Plex_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { sidebarBootstrapScript } from "@/components/sidebar-state-utils";
 import { themeBootstrapScript } from "@/components/theme-utils";
 import "./globals.css";
 
-const dispatchSans = Figtree({
+const dispatchSans = Geist({
 	variable: "--font-dispatch-sans",
 	subsets: ["latin"],
-	weight: ["400", "500", "600", "700"],
 });
 
-const dispatchMono = IBM_Plex_Mono({
+const dispatchMono = Geist_Mono({
 	variable: "--font-dispatch-mono",
 	subsets: ["latin"],
-	weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {

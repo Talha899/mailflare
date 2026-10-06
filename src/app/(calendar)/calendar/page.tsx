@@ -4,11 +4,12 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { AlignLeft, CalendarPlus2, ChevronDown, ChevronLeft, ChevronRight, Clock3, MapPin, Palette, Plus, Repeat2, Trash2, UsersRound, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 import { RouteLoadingBar } from "@/components/route-loading-bar";
 import { authFetch } from "@/lib/auth/client";
 import { formatUserDate, getUserTimeZone, parseUserDateTimeLocal } from "@/lib/time/utils";
@@ -27,10 +28,12 @@ import {
 	monthGridDates, PAST_EVENT_COLOR_CLASSES, rescheduleCalendarOccurrence, resizeEventTimes, startOfDay, startOfMonth, startOfWeek, WEEKDAY_OPTIONS,
 } from "./utils";
 import clsx from "clsx";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const eventFieldClass = "h-9 rounded-xl border-transparent bg-transparent px-2 shadow-none hover:bg-[var(--muted)] focus:border-[var(--ring)] focus:bg-[var(--card)] focus:shadow-sm";
 
 export default function CalendarPage() {
+	const confirm = useConfirm();
 	const [events, setEvents] = useState<CalendarEvent[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [eventsVersion, setEventsVersion] = useState(0);
@@ -199,7 +202,9 @@ export default function CalendarPage() {
 
 	async function deleteEvent(id: string) {
 		const recurring = editing && editing.repeat !== "none";
-		if (!window.confirm(recurring ? "Delete future occurrences from now?" : "Delete this event?")) return;
+		if (!(await confirm(recurring
+			? { title: "Delete future occurrences?", description: "Occurrences from now on are removed. Past ones stay on your calendar.", confirmLabel: "Delete occurrences" }
+			: { title: "Delete this event?", confirmLabel: "Delete event" }))) return;
 		setPendingAction(id);
 		try {
 			const effectiveFrom = recurring ? new Date().toISOString() : undefined;
@@ -346,7 +351,6 @@ export default function CalendarPage() {
 
 	return (
 		<div className={clsx("flex h-full min-h-0 flex-col bg-[var(--background)] pl-3 lg:flex-row transition-[gap] duration-200 ease-in-out motion-reduce:transition-none", minimal ? "gap-0" : "gap-3")}>
-			<Toaster position="bottom-right" />
 			{loading && <RouteLoadingBar />}
 			{headerTarget && createPortal(
 				<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
@@ -400,13 +404,10 @@ export default function CalendarPage() {
 						<button type="button" aria-label={`Previous ${view}`} onClick={() => setVisibleDate(addDays(visibleDate, view === "week" ? -7 : -1))} className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--muted-foreground)] hover:bg-[var(--muted)]"><ChevronLeft className="h-6 w-6" /></button>
 						<button type="button" aria-label={`Next ${view}`} onClick={() => setVisibleDate(addDays(visibleDate, view === "week" ? 7 : 1))} className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--muted-foreground)] hover:bg-[var(--muted)]"><ChevronRight className="h-6 w-6" /></button>
 						<button type="button" onClick={() => setVisibleDate(new Date())} className="h-10 rounded-xl bg-[var(--card)] px-4 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]">Today</button>
-						<div className="relative">
-							<select value={view} onChange={(event) => setView(event.target.value as CalendarView)} aria-label="Calendar view" className="h-10 appearance-none rounded-xl border-0 bg-[var(--card)] pl-4 pr-10 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]">
-								<option value="week">Week</option>
-								<option value="day">Day</option>
-							</select>
-							<ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--muted-foreground)]" />
-						</div>
+						<Select value={view} onChange={(event) => setView(event.target.value as CalendarView)} aria-label="Calendar view" className="h-10 w-28 rounded-xl font-medium">
+							<option value="week">Week</option>
+							<option value="day">Day</option>
+						</Select>
 						<Button disabled={pendingAction !== null} onClick={() => openNewEvent()} className="ml-1 h-10 rounded-xl bg-[var(--primary)] px-4 text-[var(--primary-foreground)] hover:bg-[color-mix(in_oklab,var(--primary)_88%,var(--foreground))]"><Plus className="h-5 w-5" />New event</Button>
 					</div>
 				</div>,
@@ -549,17 +550,14 @@ export default function CalendarPage() {
 							<div className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-3">
 								<Repeat2 aria-hidden="true" className="mt-2 h-5 w-5 text-[var(--muted-foreground)]" />
 								<div className="min-w-0">
-									<div className="relative">
-										<select value={repeat} onChange={(event) => setRepeat(event.target.value as CalendarRepeat)} aria-label="Repeat"
-										className="h-9 w-full appearance-none rounded-xl border border-transparent bg-transparent pl-2 pr-8 text-sm text-[var(--foreground)] outline-none hover:bg-[var(--muted)] focus:border-[var(--ring)] focus:bg-[var(--card)]">
+									<Select value={repeat} onChange={(event) => setRepeat(event.target.value as CalendarRepeat)} aria-label="Repeat"
+										className="border-transparent bg-transparent shadow-none hover:bg-[var(--hover)]">
 										<option value="none">Does not repeat</option>
 										<option value="daily">Daily</option>
 										<option value="weekly">Weekly</option>
 										<option value="monthly">Monthly</option>
 										<option value="weekdays">Weekdays</option>
-										</select>
-										<ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]" />
-									</div>
+									</Select>
 									{repeat === "weekdays" && (
 										<div role="group" aria-label="Repeat on weekdays" className="flex flex-wrap gap-1.5 px-2 pt-1">
 											{WEEKDAY_OPTIONS.map((day) => (

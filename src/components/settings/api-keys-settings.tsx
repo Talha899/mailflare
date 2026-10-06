@@ -16,8 +16,10 @@ import { McpAgentInstructions } from "@/components/settings/mcp-agent-instructio
 import type { ApiKeyScope } from "@/lib/api/scopes";
 import type { ManagedApiKey, McpKeyScope } from "./api-keys-settings-types";
 import { createManagedApiKey, keyPermissions, loadManagedApiKeys, MCP_KEY_SCOPES, revokeManagedApiKey, STANDARD_KEY_SCOPES } from "./api-keys-settings-utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function ApiKeysSettings() {
+	const confirm = useConfirm();
 	const { mailboxes, selectedMailbox } = useSelectedMailbox();
 	const [keys, setKeys] = useState<ManagedApiKey[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export function ApiKeysSettings() {
 	}
 
 	async function revoke(key: ManagedApiKey) {
-		if (!window.confirm(`Revoke “${key.name}”? Apps using this key will lose access immediately.`)) return;
+		if (!(await confirm({ title: `Revoke “${key.name}”?`, description: "Apps using this key lose access immediately. This cannot be undone.", confirmLabel: "Revoke key" }))) return;
 		setRevokingId(key.id);
 		setError(null);
 		try {

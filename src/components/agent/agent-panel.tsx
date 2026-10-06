@@ -11,6 +11,7 @@ import { useSelectedMailbox } from "@/components/mailbox-provider";
 import { useCompose } from "@/components/compose/compose-context";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Select } from "@/components/ui/select";
 import { AgentTurnView } from "./agent-turn";
 import { ConversationSkeleton } from "./conversation-skeleton";
 import { QueuedAgentMessages } from "./queued-messages";
@@ -384,8 +385,8 @@ export function AgentPanel({ open, fullSize, onClose, onToggleFullSize }: AgentP
 		{view === "settings" && <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4 text-sm">
 			{!canManage && <p>Mailbox management permission is required to change these settings.</p>}
 			{settings && <>
-				<label className="block">Draft reviewer<select className="mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 outline-none focus:border-[var(--ring)]" value={settings.reviewerUserId ?? ""} disabled={!canManage} onChange={(event) => setSettings({ ...settings, reviewerUserId: event.target.value })}>{reviewers.map((reviewer) => <option key={reviewer.id} value={reviewer.id}>{reviewer.name} ({reviewer.email})</option>)}</select></label>
-				<label className="block">Model<select className="mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] p-2 outline-none focus:border-[var(--ring)]" value={settings.modelId ?? ""} disabled={!canManage || !availableModels.length} onChange={(event) => setSettings({ ...settings, modelId: event.target.value })}>{!availableModels.length && <option value="">No models configured</option>}{availableModels.map((model) => <option key={model} value={model}>{model}</option>)}</select></label>
+				<label className="block">Draft reviewer<Select aria-label="Draft reviewer" className="mt-2" value={settings.reviewerUserId ?? ""} disabled={!canManage} onChange={(event) => setSettings({ ...settings, reviewerUserId: event.target.value })}>{reviewers.map((reviewer) => <option key={reviewer.id} value={reviewer.id}>{reviewer.name} ({reviewer.email})</option>)}</Select></label>
+				<label className="block">Model<Select aria-label="Model" className="mt-2" value={settings.modelId ?? ""} disabled={!canManage || !availableModels.length} onChange={(event) => setSettings({ ...settings, modelId: event.target.value })}>{!availableModels.length && <option value="">No models configured</option>}{availableModels.map((model) => <option key={model} value={model}>{model}</option>)}</Select></label>
 				<div className="flex items-center justify-between gap-3"><span>Automatically draft replies</span><Switch checked={settings.autoDraftEnabled} disabled={!canManage || autoReplyEnabled} onCheckedChange={(checked) => setSettings({ ...settings, autoDraftEnabled: checked })} aria-label="Automatically draft replies" /></div>
 				{autoReplyEnabled && <p className="text-[var(--compose)]">Disable out-of-office auto-replies to enable AI drafts.</p>}
 				<label className="block">Writing instructions<textarea className="mt-2 min-h-32 w-full rounded-xl border border-[var(--border)] p-2 outline-none focus:border-[var(--ring)]" value={settings.instructions} disabled={!canManage} onChange={(event) => setSettings({ ...settings, instructions: event.target.value })} /></label>

@@ -7,6 +7,7 @@ import { ArrowLeft, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, Glob
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 import { useBranding } from "@/components/branding-provider";
 import { RouteLoadingBar } from "@/components/route-loading-bar";
 import { getUserTimeZone } from "@/lib/time/utils";
@@ -151,7 +152,7 @@ export default function PublicBookingEventPage() {
 								<div className="flex min-w-0 items-center gap-2 w-full pl-3 pr-2 text-sm text-[var(--muted-foreground)] focus-within:border-[var(--primary)] max-w-[440px] my-4 mx-auto">
 									<Globe2 aria-hidden="true" className="h-4 w-4 shrink-0" />
 									<label htmlFor="booking-time-zone" className="flex-1 min-w-0">Time zone</label>
-									<select id="booking-time-zone" value={timeZone} onChange={(input) => { const nextToday = localDateForSlot({ startsAt: new Date().toISOString(), endsAt: "", localDate: "", time: "" }, input.target.value); setTimeZone(input.target.value); setSelectedDate(nextToday); setMonth(nextToday.slice(0, 7)); writeBookingPageSelection(nextToday, null, input.target.value); }} className="h-9 border-0 bg-transparent px-1 text-sm text-[var(--foreground)]/80 shadow-none outline-none text-right">{timeZones.map((zone) => <option key={zone} value={zone}>{zone.replaceAll("_", " ")}</option>)}</select>
+									<Select id="booking-time-zone" value={timeZone} onChange={(input) => { const nextToday = localDateForSlot({ startsAt: new Date().toISOString(), endsAt: "", localDate: "", time: "" }, input.target.value); setTimeZone(input.target.value); setSelectedDate(nextToday); setMonth(nextToday.slice(0, 7)); writeBookingPageSelection(nextToday, null, input.target.value); }} size="sm" className="w-auto max-w-[16rem] border-transparent bg-transparent text-[var(--foreground)]/80 shadow-none hover:bg-[var(--hover)]">{timeZones.map((zone) => <option key={zone} value={zone}>{zone.replaceAll("_", " ")}</option>)}</Select>
 								</div>
 								{slots.length === 0 && <p className="mt-6 text-sm text-[var(--muted-foreground)]">No times are available in the next 60 days.</p>}
 							</section>

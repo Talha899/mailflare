@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select } from "@/components/ui/select";
 import { PROVIDER_BASE_URLS } from "@/lib/agent/provider-constants";
 import { saveAssistantAvailability } from "@/lib/agent/availability-client";
 import { parseAgentModelIds, toggleAgentModelId } from "@/lib/agent/model-ids";
@@ -256,9 +257,8 @@ export default function AdminAgentPage() {
 			<CardContent className="pt-6"><form onSubmit={submit} className="space-y-5">
 				<div className="space-y-2">
 					<Label htmlFor="agent-preset">Provider</Label>
-					<select
+					<Select
 						id="agent-preset"
-						className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
 						value={form.preset}
 						disabled={!loaded}
 						onChange={(event) => {
@@ -267,7 +267,7 @@ export default function AdminAgentPage() {
 						}}
 					>
 						{PROVIDER_PRESETS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
-					</select>
+					</Select>
 				</div>
 				<div className="space-y-2">
 					<Label htmlFor="agent-url">API base URL</Label>

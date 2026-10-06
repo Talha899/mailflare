@@ -11,8 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { LicenseStatus } from "@/lib/licenses/types";
 import type { ActivatableLicensePlan, LicenseAction } from "./types";
 import { formatLicensePlan, loadLicenseStatus, runLicenseAction } from "./utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function LicenseActivation() {
+	const confirm = useConfirm();
 	const [license, setLicense] = useState<LicenseStatus | null>(null);
 	const [licenseKey, setLicenseKey] = useState("");
 	const [selectedPlan, setSelectedPlan] = useState<ActivatableLicensePlan>("pro");
@@ -42,7 +44,7 @@ export function LicenseActivation() {
 			setStatus("Enter your license key");
 			return;
 		}
-		if (nextAction === "deactivate" && !window.confirm("Deactivate this license on this installation?")) return;
+		if (nextAction === "deactivate" && !(await confirm({ title: "Deactivate this license?", description: "Paid features and custom branding stop on this installation until a license is activated again.", confirmLabel: "Deactivate" }))) return;
 
 		setAction(nextAction);
 		setStatus(null);

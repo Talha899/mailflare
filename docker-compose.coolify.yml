@@ -52,6 +52,9 @@ services:
       SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-false}
     expose:
       - "3000"
+    networks:
+      - default
+      - coolify
 
   postfix:
     build: ./deploy/postfix
@@ -65,3 +68,9 @@ services:
 volumes:
   mailflare-data:
   postfix-dkim:
+
+# Coolify Mongo (and other Coolify resources) live on this network.
+# Without it, MONGO_URL hostnames like `whsrnmd2fyh5jxdlinr5dqlc` fail with EAI_AGAIN.
+networks:
+  coolify:
+    external: true

@@ -31,8 +31,10 @@ import {
   updateMailboxSettings,
 } from "./utils";
 import MailboxAvatarForm from "./MailboxAvatarForm";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export default function MailboxSettingsPage() {
+  const confirm = useConfirm();
   const params = useParams<{ id: string }>();
   const mailboxId = params.id;
   const qc = useQueryClient();
@@ -487,13 +489,14 @@ export default function MailboxSettingsPage() {
             type="button"
             variant="destructive"
             disabled={!mailbox.data || removeMailbox.isPending}
-            onClick={() => {
-              if (
-                !window.confirm(
-                  `Delete ${address}? This removes its email routing rule and cannot be undone.`,
-                )
-              )
-                return;
+            onClick={async () => {
+              const confirmed = await confirm({
+                title: `Delete ${address}?`,
+                description: "Its email routing rule is removed and new mail to this address will no longer be delivered. This cannot be undone.",
+                confirmLabel: "Delete mailbox",
+                confirmText: address,
+              });
+              if (!confirmed) return;
               removeMailbox.mutate();
             }}
           >

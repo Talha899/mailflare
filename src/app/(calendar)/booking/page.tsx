@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { CalendarDays, Check, Clock3, Copy, ExternalLink, MapPin, MoreHorizontal, Plus } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { RouteLoadingBar } from "@/components/route-loading-bar";
 import { authFetch } from "@/lib/auth/client";
@@ -16,8 +16,10 @@ import { BookingListSkeleton } from "./booking-list-skeleton";
 import { visibleBookingEvents } from "./default-events";
 import type { BookingEvent, BookingForm, BookingHost } from "./types";
 import { availabilityLabel, durationLabel, emptyBookingForm, formFromEvent } from "./utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export default function BookingsPage() {
+	const confirm = useConfirm();
 	const { minimal } = useSidebar();
 	const [events, setEvents] = useState<BookingEvent[]>([]);
 	const [username, setUsername] = useState("");
@@ -91,7 +93,7 @@ export default function BookingsPage() {
 	}
 
 	async function remove(event: BookingEvent) {
-		if (!window.confirm(`Delete “${event.name}”?`)) return;
+		if (!(await confirm({ title: `Delete “${event.name}”?`, description: "Its booking link stops working. Existing bookings stay on your calendar.", confirmLabel: "Delete event" }))) return;
 		try {
 			const response = await authFetch(`/api/booking/${event.id}`, { method: "DELETE" });
 			if (!response.ok) throw new Error();
@@ -108,7 +110,6 @@ export default function BookingsPage() {
 	}
 
 	return <div className={clsx("flex h-full min-h-0 flex-col bg-[var(--background)] pl-3 transition-[gap] duration-200 ease-in-out motion-reduce:transition-none lg:flex-row", minimal ? "gap-0" : "gap-3")}>
-		<Toaster position="bottom-right" />
 		{loading && <RouteLoadingBar />}
 		<UpcomingSidebar />
 		<section className="min-h-0 min-w-0 flex-1 overflow-hidden overscroll-contain">

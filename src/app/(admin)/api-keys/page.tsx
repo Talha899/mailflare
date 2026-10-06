@@ -23,8 +23,10 @@ import { authFetch } from "@/lib/auth/client";
 import type { AdminApiKeyScope } from "@/lib/api/scopes-types";
 import type { ApiKey } from "./types";
 import { ADMIN_KEY_PERMISSIONS, parseApiKeyScopes } from "./utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export default function ApiKeysPage() {
+	const confirm = useConfirm();
 	const qc = useQueryClient();
 	const [name, setName] = useState("");
 	const [scopes, setScopes] = useState<AdminApiKeyScope[]>(["domains"]);
@@ -157,7 +159,7 @@ export default function ApiKeysPage() {
 									))}
 								</span>
 							</span>
-						<Button type="button" size="sm" variant="outline" disabled={revoke.isPending} onClick={() => { if (window.confirm(`Revoke “${key.name}”? Apps using this key will lose access immediately.`)) revoke.mutate(key.id); }}><Trash2 className="h-4 w-4" />Revoke</Button>
+						<Button type="button" size="sm" variant="outline" disabled={revoke.isPending} onClick={async () => { if (await confirm({ title: `Revoke “${key.name}”?`, description: "Apps using this key lose access immediately. This cannot be undone.", confirmLabel: "Revoke key" })) revoke.mutate(key.id); }}><Trash2 className="h-4 w-4" />Revoke</Button>
 						</ListRow>
 					))}
 				</List>

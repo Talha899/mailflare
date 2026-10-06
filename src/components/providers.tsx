@@ -6,6 +6,8 @@ import { clearMailboxClientState } from "@/components/mailbox-provider-utils";
 import { BrandingProvider } from "@/components/branding-provider";
 import { NewMessagePopup } from "@/components/new-message-popup";
 import { ThemeSync } from "@/components/theme-sync";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
+import { Toaster } from "@/components/ui/toaster";
 import { useMessagePolling } from "@/hooks/use-message-polling";
 import { clearMessageClientState } from "@/hooks/utils";
 import { clearMessageDetailCache } from "@/lib/messages/detail-cache";
@@ -45,7 +47,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<QueryClientProvider client={client}>
 			<BrandingProvider>
-				{children}
+				<ConfirmProvider>
+					{children}
+				</ConfirmProvider>
+				<Toaster />
 				<ThemeSync />
 				{realtime.notification && (
 					<NewMessagePopup

@@ -1,0 +1,16 @@
+[    8530ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[    8589ms] [LOG] [HMR] connected @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[    8773ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:3100/api/auth/me:0
+[    8877ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[    9161ms] [LOG] [Fast Refresh] done in 391ms @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[    9193ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:3100/api/auth/me:0
+[    9218ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:3100/api/auth/me:0
+[    9249ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://127.0.0.1:3100/api/auth/me:0
+[   15212ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[   15675ms] [LOG] [Fast Refresh] done in 579ms @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[   34272ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[   47365ms] [LOG] [Fast Refresh] done in 13197ms @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[   48240ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[   48842ms] [LOG] [Fast Refresh] done in 723ms @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[   64156ms] [LOG] [Fast Refresh] rebuilding @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
+[   64271ms] [LOG] [Fast Refresh] done in 226ms @ http://127.0.0.1:3100/_next/static/chunks/node_modules_next_dist_1e8vcs8._.js:776
