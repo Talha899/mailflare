@@ -46,6 +46,7 @@ function parseMx(content: string, priority?: number): { priority: string; target
 
 function isPlaceholderContent(content?: string): boolean {
 	const value = (content ?? "").trim();
+	if (/v=DKIM1/i.test(value) && !/(?:^|[;\s])p=[A-Za-z0-9+/=]+/.test(value)) return true;
 	return (
 		!value ||
 		/^\(.*\)$/.test(value) ||

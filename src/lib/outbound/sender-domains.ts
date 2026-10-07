@@ -4,7 +4,7 @@ import { domains } from "@/db/schema";
 import { getDb } from "@/db";
 
 import { normalizeDomainHostname } from "@/lib/domains/hostname";
-import { parseOpenDkimPublicTxt } from "@/lib/outbound/dkim-txt-utils";
+import { hasDkimPublicKey, parseOpenDkimPublicTxt } from "@/lib/outbound/dkim-txt-utils";
 
 /** Shared with the Postfix container (`deploy/postfix`) via the mailflare-data volume. */
 export const OUTBOUND_SENDER_DOMAINS_FILE = "outbound/sender-domains.txt";
@@ -64,7 +64,7 @@ async function readPublishedDkimTxt(root: string, hostname: string): Promise<str
 		const path = join(root, OUTBOUND_DKIM_DIR, `${normalizeDomainHostname(hostname)}.txt`);
 		const content = (await readFile(path, "utf8")).trim();
 		if (!content || content.startsWith("(")) return null;
-		return content;
+		return parseOpenDkimPublicTxt(content) ?? (hasDkimPublicKey(content) ? content : null);
 	} catch {
 		return null;
 	}

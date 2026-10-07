@@ -1,5 +1,6 @@
 import { queryDns, type DnsQueryType } from "@/lib/dns-query";
 import type { DnsRecord } from "@/lib/domains/types";
+import { hasDkimPublicKey } from "@/lib/outbound/dkim-txt-utils";
 
 export type DnsAuthRecord = "mx" | "spf" | "dkim" | "dmarc";
 export type DnsAuthStatus = "ok" | "missing" | "unknown";
@@ -126,7 +127,7 @@ export async function auditDomainDns(
 	]);
 
 	const dkim: DnsAuthCheck = dkimName
-		? await check("dkim", "DKIM", dkimName, "TXT", () => true)
+		? await check("dkim", "DKIM", dkimName, "TXT", hasDkimPublicKey)
 		: {
 				record: "dkim",
 				label: "DKIM",
