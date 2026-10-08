@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertInstanceOwner } from "@/lib/auth/admin";
+import { canManageApplicationUpdate } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
 import { isNodeRuntime } from "@/lib/runtime";
@@ -31,9 +31,7 @@ export async function authorizeAdminRequest(request: Request) {
     };
   }
 
-  try {
-    assertInstanceOwner(env, user);
-  } catch {
+  if (!canManageApplicationUpdate(env, user)) {
     return {
       error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
     };

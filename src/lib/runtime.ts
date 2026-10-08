@@ -11,7 +11,9 @@ export function getNodeEnv(): CloudflareEnv | undefined {
 }
 
 export function isNodeRuntime(env?: Pick<CloudflareEnv, "MAILFLARE_RUNTIME">): boolean {
-	return (env ?? getNodeEnv())?.MAILFLARE_RUNTIME === "node";
+	if (env !== undefined) return env.MAILFLARE_RUNTIME === "node";
+	if (getNodeEnv()?.MAILFLARE_RUNTIME === "node") return true;
+	return typeof process !== "undefined" && process.env?.MAILFLARE_RUNTIME === "node";
 }
 
 /** Always false — DNS is configured by hand (Coolify / Postfix / any DNS panel). */

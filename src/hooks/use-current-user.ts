@@ -11,6 +11,8 @@ export type CurrentUser = {
 	isPrimaryAdmin: boolean;
 	/** Runs the whole installation (backups, branding, licenses…); differs from primary admin in SaaS mode. */
 	isInstanceOwner?: boolean;
+	/** Version check and SQLite migrations on Overview. */
+	canManageApplicationUpdate?: boolean;
 	/** Account management is licensed (Team) or the install runs in SaaS mode. */
 	canManageAccounts?: boolean;
 	canManageMailboxes: boolean;

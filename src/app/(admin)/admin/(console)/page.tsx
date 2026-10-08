@@ -179,7 +179,7 @@ export default function AdminSettingsPage() {
 					);
 				})}
 			</div>
-			{user?.isPrimaryAdmin && (
+			{(user?.canManageApplicationUpdate ?? user?.isPrimaryAdmin) && (
 				<div className="mt-8">
 					<AdminUpdateCard />
 				</div>

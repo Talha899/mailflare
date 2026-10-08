@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/cookies";
-import { isInstanceOwner } from "@/lib/auth/admin";
+import { canManageApplicationUpdate, isInstanceOwner } from "@/lib/auth/admin";
 import { getEnv } from "@/lib/cloudflare";
 import { hasPrimaryDomain, userHasMailboxes } from "@/lib/user";
 import { getLicenseEntitlements } from "@/lib/licenses/service";
@@ -38,6 +38,7 @@ export async function GET(request: Request) {
 			role: user.role,
 			isPrimaryAdmin: user.isPrimaryAdmin,
 			isInstanceOwner: isInstanceOwner(env, user),
+			canManageApplicationUpdate: canManageApplicationUpdate(env, user),
 			sessionScope: user.sessionScope,
 			canManageMailboxes: user.canManageMailboxes,
 			canManageDomains: user.canManageDomains,
