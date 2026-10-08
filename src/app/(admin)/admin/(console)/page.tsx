@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Bot, Globe2, KeyRound, Mail, Palette, TriangleAlert, Users } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AdminUpdateCard } from "@/components/admin-update-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -179,11 +178,6 @@ export default function AdminSettingsPage() {
 					);
 				})}
 			</div>
-			{(user?.canManageApplicationUpdate ?? user?.isPrimaryAdmin) && (
-				<div className="mt-8">
-					<AdminUpdateCard />
-				</div>
-			)}
 		</div>
 	);
 }
