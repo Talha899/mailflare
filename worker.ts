@@ -16,6 +16,7 @@ import {
 	getCopyForwardDestinations,
 	MAILFLARE_FORWARDED_HEADER,
 } from "./src/lib/email/account-forwarding";
+import { deliverCopyForwards } from "./src/lib/email/forward-destinations";
 import { runScheduledDatabaseBackup } from "./src/lib/backups/runner";
 import { processAgentDraftJob } from "./src/lib/agent/jobs/utils";
 import { runAgentMaintenance } from "./src/lib/agent/maintenance";
@@ -76,9 +77,8 @@ export default {
 
 			if (message.headers.get(MAILFLARE_FORWARDED_HEADER) !== "1") {
 				const exclude = decision?.action === "forward" ? [decision.forwardTo] : [];
-				for (const destination of await getCopyForwardDestinations(env, message.to, exclude)) {
-					await forwardMessage(message, destination);
-				}
+				const destinations = await getCopyForwardDestinations(env, message.to, exclude);
+				await deliverCopyForwards(message.to, destinations, (destination) => forwardMessage(message, destination));
 			}
 			const rawR2Key = await storeRawToR2(env, message.from, message.to, raw);
 			const payload: InboundQueueMessage = {

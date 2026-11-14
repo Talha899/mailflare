@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { mailboxes } from "@/db/schema";
-import { requireUser } from "@/lib/auth/cookies";
+import { getCurrentUser } from "@/lib/auth/cookies";
 import { hasValidSessionMutationOrigin } from "@/lib/auth/origin";
 import { getEnv } from "@/lib/cloudflare";
 import { resolveInboundAddress } from "@/lib/email/routing";
@@ -19,7 +19,10 @@ type Params = { params: Promise<{ id: string }> };
  */
 async function loadAdminMailbox(request: Request, id: string) {
 	const env = getEnv();
-	const user = await requireUser(env, request);
+	const user = await getCurrentUser(env, request);
+	if (!user) {
+		return { ok: false as const, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+	}
 	if (!canAdministerOrganizationMailboxes(user)) {
 		return { ok: false as const, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
 	}
@@ -79,6 +82,8 @@ export async function PATCH(request: Request, { params }: Params) {
 		mailboxId: access.mailbox.id,
 		action: "mailbox.forwarding_update",
 		metadata: { forwardingEmail: destination },
+	}).catch((error) => {
+		console.error("Mailbox forwarding audit failed", error);
 	});
 
 	return NextResponse.json({ forwardingEmail: destination });

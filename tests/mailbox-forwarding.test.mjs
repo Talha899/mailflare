@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { prependRawHeaders, uniqueForwardDestinations } from "../src/lib/email/forward-destinations.ts";
+import Database from "better-sqlite3";
+import { deliverCopyForwards, prependRawHeaders, uniqueForwardDestinations } from "../src/lib/email/forward-destinations.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -62,9 +63,32 @@ test("webmail mailbox payloads do not include the forward address", () => {
 	}
 });
 
+test("one failed copy does not stop the other copies", async () => {
+	const sent = [];
+	await deliverCopyForwards("user@example.com", ["down@example.com", "archive@example.com"], async (destination) => {
+		if (destination.startsWith("down@")) throw new Error("relay refused");
+		sent.push(destination);
+		return true;
+	});
+	assert.deepEqual(sent, ["archive@example.com"]);
+});
+
+test("forwarding migration adds a nullable column to an existing mailboxes table", () => {
+	const db = new Database(":memory:");
+	db.exec("CREATE TABLE mailboxes (id text primary key)");
+	const sql = read("drizzle/migrations/0055_add_mailbox_forwarding_email.sql").replace(/^\s*--.*$/gm, "").trim();
+	db.exec(sql);
+	const column = db.prepare("PRAGMA table_info(mailboxes)").all().find((item) => item.name === "forwarding_email");
+	assert.ok(column);
+	assert.equal(column.notnull, 0);
+	db.close();
+});
+
 test("stored mail is copied from both inbound runtimes", () => {
-	assert.match(read("worker.ts"), /getCopyForwardDestinations/);
-	assert.match(read("src/lib/email/intake.ts"), /getCopyForwardDestinations/);
+	assert.match(read("worker.ts"), /deliverCopyForwards/);
+	assert.match(read("src/lib/email/intake.ts"), /deliverCopyForwards/);
+	assert.match(read("src/lib/email/account-forwarding.ts"), /Copy forward lookup failed/);
+	assert.match(read("src/app/api/mailboxes/[id]/forwarding/route.ts"), /status: 401/);
 	const smtp = read("server/runtime/smtp.ts");
 	assert.match(smtp, /prependRawHeaders/);
 	assert.match(smtp, /headers/);

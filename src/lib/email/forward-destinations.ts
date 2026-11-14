@@ -30,6 +30,24 @@ export function uniqueForwardDestinations(
 	return destinations;
 }
 
+/**
+ * Send each copy on its own. One rejected destination must not stop the rest,
+ * and must not stop the original message from being stored.
+ */
+export async function deliverCopyForwards(
+	recipient: string,
+	destinations: readonly string[],
+	send: (destination: string) => Promise<boolean | void>,
+): Promise<void> {
+	for (const destination of destinations) {
+		try {
+			await send(destination);
+		} catch (error) {
+			console.error(`Copy forward failed for ${recipient} -> ${destination}`, error);
+		}
+	}
+}
+
 /** Insert headers at the top of a raw RFC 5322 message so a later hop can see them. */
 export function prependRawHeaders(raw: Uint8Array, headers: Record<string, string>): Uint8Array {
 	const lines = Object.entries(headers)

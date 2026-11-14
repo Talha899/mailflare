@@ -47,10 +47,14 @@ export async function POST(request: Request) {
 			},
 		},
 	);
+	// A relay that only reads `forwardTo` sends one address. For stored mail that
+	// is the last copy (mailbox, then account), matching the previous single-slot
+	// response. `forwards` is every destination and is what a relay should send.
+	const primary = result.action === "store" ? forwards.at(-1) : forwards[0];
 	return NextResponse.json({
 		...result,
-		forwardTo: forwards[0]?.to ?? null,
-		forwardHeaders: forwards[0]?.headers ?? {},
+		forwardTo: primary?.to ?? null,
+		forwardHeaders: primary?.headers ?? {},
 		forwards,
 	});
 }

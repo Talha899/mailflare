@@ -20,6 +20,20 @@ export async function getCopyForwardDestinations(
 	recipient: string,
 	exclude: Array<string | null | undefined> = [],
 ): Promise<string[]> {
+	try {
+		return await lookupCopyForwardDestinations(env, recipient, exclude);
+	} catch (error) {
+		// A lookup failure (including a database that has not migrated yet) must not bounce the message.
+		console.error(`Copy forward lookup failed for ${recipient}`, error);
+		return [];
+	}
+}
+
+async function lookupCopyForwardDestinations(
+	env: CloudflareEnv,
+	recipient: string,
+	exclude: Array<string | null | undefined>,
+): Promise<string[]> {
 	const db = getDb(env);
 	const decision = await resolveInboundAddress(db, recipient);
 	const mailbox = decision?.mailbox;

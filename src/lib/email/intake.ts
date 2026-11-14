@@ -1,5 +1,6 @@
 import { newId } from "@/lib/ids";
 import { getCopyForwardDestinations, MAILFLARE_FORWARDED_HEADER } from "@/lib/email/account-forwarding";
+import { deliverCopyForwards } from "@/lib/email/forward-destinations";
 import { resolveIncomingMail } from "@/lib/email/incoming";
 import type { InboundQueueMessage } from "@/lib/email/inbound";
 import type { IntakeActions, IntakeInput, IntakeResult } from "@/lib/email/intake-types";
@@ -29,9 +30,10 @@ export async function intakeIncomingMail(env: CloudflareEnv, input: IntakeInput,
 	const alreadyForwarded = input.headers[MAILFLARE_FORWARDED_HEADER.toLowerCase()] === "1" || input.headers[MAILFLARE_FORWARDED_HEADER] === "1";
 	if (!alreadyForwarded) {
 		const exclude = decision?.action === "forward" ? [decision.forwardTo] : [];
-		for (const destination of await getCopyForwardDestinations(env, input.to, exclude)) {
-			await actions.forward?.(destination, { [MAILFLARE_FORWARDED_HEADER]: "1" });
-		}
+		const destinations = await getCopyForwardDestinations(env, input.to, exclude);
+		await deliverCopyForwards(input.to, destinations, (destination) =>
+			actions.forward?.(destination, { [MAILFLARE_FORWARDED_HEADER]: "1" }) ?? Promise.resolve(false),
+		);
 	}
 
 	const rawR2Key = `inbound/${Date.now()}-${newId()}.eml`;
