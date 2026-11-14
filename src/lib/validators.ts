@@ -253,6 +253,9 @@ export const updateForwardingEmailSchema = z.object({
 	),
 });
 
+/** Admin-only per-mailbox copy. Blank clears it. */
+export const updateMailboxForwardingSchema = updateForwardingEmailSchema;
+
 export const updateShortcutsSettingsSchema = z.object({
 	enabled: z.boolean(),
 });

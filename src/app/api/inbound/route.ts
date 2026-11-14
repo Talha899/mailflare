@@ -33,19 +33,24 @@ export async function POST(request: Request) {
 		// The header map is advisory; the raw message is authoritative.
 	}
 
-	let forwardTo: string | null = null;
-	let forwardHeaders: Record<string, string> = {};
+	const forwards: { to: string; headers: Record<string, string> }[] = [];
 	const result = await intakeIncomingMail(
 		env,
 		{ from, to, raw, headers },
 		{
-			// The relay performs the forward on the live message; report it as done so keep-copy applies.
+			// The relay performs each forward on the live message. `forwardTo` stays the
+			// first destination for older relays; `forwards` is every copy, including
+			// the admin mailbox destination and the account destination.
 			forward: async (destination, extra) => {
-				forwardTo = destination;
-				forwardHeaders = extra;
+				forwards.push({ to: destination, headers: extra });
 				return true;
 			},
 		},
 	);
-	return NextResponse.json({ ...result, forwardTo, forwardHeaders });
+	return NextResponse.json({
+		...result,
+		forwardTo: forwards[0]?.to ?? null,
+		forwardHeaders: forwards[0]?.headers ?? {},
+		forwards,
+	});
 }

@@ -31,6 +31,7 @@ import {
   updateMailboxSettings,
 } from "./utils";
 import MailboxAvatarForm from "./MailboxAvatarForm";
+import MailboxForwardingForm from "./MailboxForwardingForm";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export default function MailboxSettingsPage() {
@@ -297,6 +298,8 @@ export default function MailboxSettingsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <MailboxForwardingForm mailboxId={mailboxId} />
 
       <Card className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
         <CardHeader className="py-0">

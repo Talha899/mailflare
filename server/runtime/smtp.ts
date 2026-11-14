@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { SMTPServer } from "smtp-server";
 import type { SMTPServerSession } from "smtp-server";
 import { intakeIncomingMail } from "@/lib/email/intake";
+import { prependRawHeaders } from "@/lib/email/forward-destinations";
 import { inboundAttachmentLimitReasonFromRaw } from "@/lib/email/inbound-attachments";
 import type { Mailer } from "./mailer";
 import { getDb } from "@/db";
@@ -87,7 +88,8 @@ export function startSmtpListener(
 							reject: (reason) => {
 								rejectReason = reason;
 							},
-							forward: async (destination) => mailer.sendRaw(from, destination, raw),
+							forward: async (destination, headers) =>
+								mailer.sendRaw(from, destination, Buffer.from(prependRawHeaders(raw, headers ?? {}))),
 						},
 					).catch((error) => {
 						console.error(`SMTP intake failed for ${recipient.address}`, error);

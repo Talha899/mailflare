@@ -19,6 +19,11 @@ export type MailboxDetailResponse = {
 	error?: string;
 };
 
+export type MailboxForwardingResponse = {
+	forwardingEmail?: string | null;
+	error?: string;
+};
+
 export type MailboxAvatarFormProps = {
 	mailboxId: string;
 	hasAvatar: boolean;

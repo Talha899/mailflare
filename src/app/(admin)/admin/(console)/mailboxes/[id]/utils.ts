@@ -1,6 +1,6 @@
 import { authFetch } from "@/lib/auth/client";
 import { clearMailboxesCache } from "@/components/mailbox-provider-utils";
-import type { MailboxAliasesResponse, MailboxDetail, MailboxDetailResponse, SharedInboxAccessResponse } from "./types";
+import type { MailboxAliasesResponse, MailboxDetail, MailboxDetailResponse, MailboxForwardingResponse, SharedInboxAccessResponse } from "./types";
 
 export function getMailboxAddress(mailbox: Pick<MailboxDetail, "localPart" | "hostname">): string {
 	return `${mailbox.localPart}@${mailbox.hostname}`;
@@ -91,6 +91,24 @@ export async function deleteMailboxAlias(id: string, aliasId: string): Promise<v
 	if (!res.ok) throw new Error(json.error ?? "Failed to remove alias");
 
 	clearMailboxesCache();
+}
+
+export async function fetchMailboxForwarding(id: string): Promise<string> {
+	const res = await authFetch(`/api/mailboxes/${id}/forwarding`);
+	const json = (await res.json()) as MailboxForwardingResponse;
+	if (!res.ok) throw new Error(json.error ?? "Failed to load forwarding");
+	return json.forwardingEmail ?? "";
+}
+
+export async function updateMailboxForwarding(id: string, forwardingEmail: string): Promise<string> {
+	const res = await authFetch(`/api/mailboxes/${id}/forwarding`, {
+		method: "PATCH",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ forwardingEmail }),
+	});
+	const json = (await res.json()) as MailboxForwardingResponse;
+	if (!res.ok) throw new Error(json.error ?? "Failed to update forwarding");
+	return json.forwardingEmail ?? "";
 }
 
 export async function deleteMailbox(id: string): Promise<void> {

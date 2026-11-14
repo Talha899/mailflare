@@ -93,6 +93,11 @@ export const mailboxes = sqliteTable(
 		disabled: integer("disabled", { mode: "boolean" }).notNull().default(false),
 		/** bcrypt hash for IMAP/SMTP AUTH and mailbox webmail login only; never synced with users.password_hash */
 		passwordHash: text("password_hash"),
+		/**
+		 * Extra copy of mail that lands in this inbox. Set only from the admin
+		 * console; user and webmail APIs never return it.
+		 */
+		forwardingEmail: text("forwarding_email"),
 		createdAt: integer("created_at", { mode: "timestamp" })
 			.notNull()
 			.$defaultFn(() => new Date()),

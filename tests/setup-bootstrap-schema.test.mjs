@@ -19,6 +19,7 @@ test("migration bundle includes mailbox password hash and organization migration
 		"0029_add_spam_protection.sql",
 		"0051_add_organization_id.sql",
 		"0052_add_mailbox_password_hash.sql",
+		"0055_add_mailbox_forwarding_email.sql",
 	]) {
 		assert.ok(names.includes(name), `bundle is missing ${name}`);
 	}

@@ -330,6 +330,13 @@
       "when": 1788850800018,
       "tag": "0054_add_session_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1788850800019,
+      "tag": "0055_add_mailbox_forwarding_email",
+      "breakpoints": true
     }
   ]
 }

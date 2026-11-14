@@ -13,7 +13,7 @@ import { getSessionTokenFromRequest } from "./src/lib/realtime/utils";
 import { inboundAttachmentLimitReasonFromRaw } from "./src/lib/email/inbound-attachments";
 import { hasValidSessionMutationOrigin } from "./src/lib/auth/origin";
 import {
-	getAccountForwardingDestination,
+	getCopyForwardDestinations,
 	MAILFLARE_FORWARDED_HEADER,
 } from "./src/lib/email/account-forwarding";
 import { runScheduledDatabaseBackup } from "./src/lib/backups/runner";
@@ -75,9 +75,9 @@ export default {
 			}
 
 			if (message.headers.get(MAILFLARE_FORWARDED_HEADER) !== "1") {
-				const forwardingDestination = await getAccountForwardingDestination(env, message.to);
-				if (forwardingDestination) {
-					await forwardMessage(message, forwardingDestination);
+				const exclude = decision?.action === "forward" ? [decision.forwardTo] : [];
+				for (const destination of await getCopyForwardDestinations(env, message.to, exclude)) {
+					await forwardMessage(message, destination);
 				}
 			}
 			const rawR2Key = await storeRawToR2(env, message.from, message.to, raw);
