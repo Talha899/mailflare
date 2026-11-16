@@ -88,15 +88,15 @@ export function startSmtpListener(
 							reject: (reason) => {
 								rejectReason = reason;
 							},
-							forward: async (destination, extra) => {
+							forward: async (destination, extra, options) => {
 								// Send failures throw. A routing forward then temp-fails the sender so
 								// it can be retried. Copy forwards catch that throw and still store the mail.
-								const sent = await mailer.sendRaw(
-									from,
-									destination,
-									Buffer.from(prependRawHeaders(raw, extra ?? {})),
-								);
-								if (!sent) console.error(`SMTP forward skipped for ${recipient.address} -> ${destination}: outbound mail is not configured`);
+								const envelopeFrom = options?.envelopeFrom || from;
+								const bytes = options?.raw ?? prependRawHeaders(raw, extra ?? {});
+								const sent = await mailer.sendRaw(envelopeFrom, destination, Buffer.from(bytes));
+								if (!sent && !mailer.configured) {
+									console.error(`SMTP forward skipped for ${recipient.address} -> ${destination}: outbound mail is not configured`);
+								}
 								return sent;
 							},
 						},

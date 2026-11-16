@@ -11,8 +11,16 @@ export type IntakeInput = {
 export type IntakeActions = {
 	/** Refuse the message at the edge; the SMTP listener answers 550, the relay tells the Worker to setReject. */
 	reject?: (reason: string) => Promise<void> | void;
-	/** Relay the raw message to another address; returns whether it went out. */
-	forward?: (destination: string, headers: Record<string, string>) => Promise<boolean>;
+	/**
+	 * Relay to another address. `raw` replaces the original MIME (a copy sent as
+	 * the mailbox). `envelopeFrom` is the MAIL FROM the outbound relay will accept.
+	 * Returns whether the relay accepted the message.
+	 */
+	forward?: (
+		destination: string,
+		headers: Record<string, string>,
+		options?: { raw?: Uint8Array; envelopeFrom?: string },
+	) => Promise<boolean>;
 };
 
 export type IntakeResult =

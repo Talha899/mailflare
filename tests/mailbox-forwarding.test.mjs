@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
-import { deliverCopyForwards, prependRawHeaders, uniqueForwardDestinations } from "../src/lib/email/forward-destinations.ts";
+import { buildForwardCopy, deliverCopyForwards, forwardDeliveryAccepted, prependRawHeaders, uniqueForwardDestinations } from "../src/lib/email/forward-destinations.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -63,6 +63,28 @@ test("webmail mailbox payloads do not include the forward address", () => {
 	}
 });
 
+test("a copy is sent as the mailbox so the relay can sign it", () => {
+	const original = new TextEncoder().encode("From: person@gmail.com\r\nSubject: Hello\r\nDKIM-Signature: v=1; d=gmail.com\r\n\r\nBody");
+	const now = new Date("2026-11-16T07:00:00Z");
+	const copy = new TextDecoder().decode(buildForwardCopy({
+		mailbox: "Inbox <sales@example.com>",
+		destination: "Archive <archive@gmail.com>",
+		originalFrom: "Person <person@gmail.com>",
+		original,
+		now,
+	}));
+	assert.match(copy, /^From: sales@example.com\r\n/);
+	assert.match(copy, /\r\nTo: archive@gmail.com\r\n/);
+	assert.match(copy, /\r\nSubject: Hello\r\n/);
+	assert.match(copy, /\r\nReply-To: Person <person@gmail.com>\r\n/);
+	assert.match(copy, /\r\nX-Mailflare-Forwarded: 1\r\n/);
+	assert.match(copy, /\r\nContent-Type: message\/rfc822\r\n/);
+	assert.ok(copy.endsWith("DKIM-Signature: v=1; d=gmail.com\r\n\r\nBody"));
+	assert.equal(forwardDeliveryAccepted({ response: "250 2.0.0 Ok", rejected: [] }), true);
+	assert.equal(forwardDeliveryAccepted({ response: "550 mailbox unavailable", rejected: [] }), false);
+	assert.equal(forwardDeliveryAccepted({ rejected: ["archive@gmail.com"] }), false);
+});
+
 test("one failed copy does not stop the other copies", async () => {
 	const sent = [];
 	await deliverCopyForwards("user@example.com", ["down@example.com", "archive@example.com"], async (destination) => {
@@ -86,7 +108,9 @@ test("forwarding migration adds a nullable column to an existing mailboxes table
 
 test("stored mail is copied from both inbound runtimes", () => {
 	assert.match(read("worker.ts"), /deliverCopyForwards/);
-	assert.match(read("src/lib/email/intake.ts"), /deliverCopyForwards/);
+	assert.match(read("src/lib/email/intake.ts"), /envelopeFrom: mailbox/);
+	assert.match(read("server/runtime/smtp.ts"), /options\?\.envelopeFrom/);
+	assert.match(read("server/runtime/mailer.ts"), /forwardDeliveryAccepted/);
 	assert.match(read("src/lib/email/account-forwarding.ts"), /Copy forward lookup failed/);
 	assert.match(read("src/app/api/mailboxes/[id]/forwarding/route.ts"), /status: 401/);
 	const smtp = read("server/runtime/smtp.ts");

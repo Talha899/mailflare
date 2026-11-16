@@ -1,6 +1,6 @@
 import { newId } from "@/lib/ids";
 import { getCopyForwardDestinations, MAILFLARE_FORWARDED_HEADER } from "@/lib/email/account-forwarding";
-import { deliverCopyForwards } from "@/lib/email/forward-destinations";
+import { buildForwardCopy, deliverCopyForwards, normalizeForwardAddress } from "@/lib/email/forward-destinations";
 import { resolveIncomingMail } from "@/lib/email/incoming";
 import type { InboundQueueMessage } from "@/lib/email/inbound";
 import type { IntakeActions, IntakeInput, IntakeResult } from "@/lib/email/intake-types";
@@ -31,9 +31,22 @@ export async function intakeIncomingMail(env: CloudflareEnv, input: IntakeInput,
 	if (!alreadyForwarded) {
 		const exclude = decision?.action === "forward" ? [decision.forwardTo] : [];
 		const destinations = await getCopyForwardDestinations(env, input.to, exclude);
-		await deliverCopyForwards(input.to, destinations, (destination) =>
-			actions.forward?.(destination, { [MAILFLARE_FORWARDED_HEADER]: "1" }) ?? Promise.resolve(false),
-		);
+		await deliverCopyForwards(input.to, destinations, (destination) => {
+			const mailbox = normalizeForwardAddress(input.to);
+			if (!mailbox.includes("@")) return Promise.resolve(false);
+			const copy = buildForwardCopy({
+				mailbox,
+				destination,
+				originalFrom: input.from,
+				original: new Uint8Array(input.raw),
+			});
+			// MAIL FROM is the mailbox, not the outside sender. The relay only
+			// accepts and DKIM-signs our domains; the destination then keeps the copy.
+			return actions.forward?.(destination, { [MAILFLARE_FORWARDED_HEADER]: "1" }, {
+				raw: copy,
+				envelopeFrom: mailbox,
+			}) ?? Promise.resolve(false);
+		});
 	}
 
 	const rawR2Key = `inbound/${Date.now()}-${newId()}.eml`;

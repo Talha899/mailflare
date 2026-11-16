@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { getEmailAddress } from "@/lib/email/address";
+import { forwardDeliveryAccepted } from "@/lib/email/forward-destinations";
 
 type Builder = {
 	from: string | { name?: string; email: string };
@@ -85,11 +86,14 @@ export class Mailer {
 		throw new Error("Outbound mail is not configured. Set SMTP_URL.");
 	}
 
-	/** Relay a raw RFC 5322 message unchanged, for forwarding rules. SMTP only. */
+	/** Relay an RFC 5322 message. Returns false when the relay does not accept it. */
 	async sendRaw(envelopeFrom: string, to: string, raw: Buffer): Promise<boolean> {
 		if (!this.transporter) return false;
-		await this.transporter.sendMail({ envelope: { from: envelopeFrom, to }, raw });
-		return true;
+		const info = await this.transporter.sendMail({ envelope: { from: envelopeFrom, to }, raw });
+		const accepted = forwardDeliveryAccepted(info);
+		if (accepted) console.info(`SMTP forward accepted for ${to}: ${info.response ?? "250"}`);
+		else console.error(`SMTP forward rejected for ${to}: ${info.response ?? "recipient rejected"}`);
+		return accepted;
 	}
 }
 
